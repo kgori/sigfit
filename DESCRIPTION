@@ -1,0 +1,16 @@
+Package: sigfit
+Type: Package
+Title: Estimate the contribution of each of a set of mutational to observed mutations.
+Version: 1.0
+Date: 2017-03-10
+Author: Kevin Gori
+Maintainer: <kg8@sanger.ac.uk>
+Description: More about what it does (maybe more than one line)
+License: What license is it under?
+Depends: R (>= 3.0.2), Rcpp (>= 0.12.9), methods (>= 3.3.2)
+Imports: rstan (>= 2.14.1), rstantools (>= 1.1.0)
+LinkingTo: StanHeaders (>= 2.14.0.1), rstan (>= 2.14.1), BH (>= 1.62.0.1), 
+        Rcpp (>= 0.12.9), RcppEigen (>= 0.3.2.9.0)
+RcppModules: stan_fit4sigfit_mod
+RoxygenNote: 5.0.1
+NeedsCompilation: yes
