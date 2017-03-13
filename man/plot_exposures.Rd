@@ -5,7 +5,18 @@
 \title{Plots estimated exposure of each signature}
 \usage{
 plot_exposures(samples, prob = 0.9, thresh = 0.001,
-  title = "Signature exposures")
+  title = "Signature exposures", ...)
+}
+\arguments{
+\item{samples}{The MCMC samples}
+
+\item{prob}{The width of the HPD interval}
+
+\item{thresh}{Signatures with a lower HPDI below this value are coloured grey}
+
+\item{title}{The main title of this plot}
+
+\item{...}{Arguments to pass through to graphics::barplot}
 }
 \description{
 Plots estimated exposure of each signature

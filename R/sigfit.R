@@ -7,26 +7,31 @@ fetch_cosmic_data <- function() {
     cosmic.sigs[, paste("Signature", 1:30)]
 }
 
-gen_bar_plot <- function(samples, featurename, title, prob, thresh) {
+gen_bar_plot <- function(samples, featurename, title, prob, thresh, ...) {
     feature <- rstan::extract(samples, pars = featurename)[[featurename]]
     mean_feature <- colMeans(feature)
     names(mean_feature) <- 1:length(mean_feature)
     error <- HPDinterval(as.mcmc(feature), prob = prob)
     bars <- barplot(mean_feature, ylim = c(0, max(error[, 2]*1.05)), main = title,
-                    col = ifelse(error[, 1] > thresh, "dodgerblue3", "grey90"))
+                    col = ifelse(error[, 1] > thresh, "dodgerblue3", "grey90"), ...)
     top_arr <- arrows(bars, error[, 1], bars, mean_feature, angle=90, code=1, length=0.05)
     bottom_arr <- arrows(bars, error[, 2], bars, mean_feature, angle=90, code=1, length=0.05)
     list(bars, top = top_arr, bottom = bottom_arr)
 }
 
 #' Plots estimated exposure of each signature
+#' @param samples The MCMC samples
+#' @param prob The width of the HPD interval
+#' @param thresh Signatures with a lower HPDI below this value are coloured grey
+#' @param title The main title of this plot
+#' @param ... Arguments to pass through to graphics::barplot
 #' @importFrom "coda" HPDinterval
 #' @importFrom "coda" as.mcmc
 #' @importFrom "rstan" summary
 #' @importFrom "rstan" extract
 #' @export
-plot_exposures <- function(samples, prob = 0.9, thresh = 1e-3, title = "Signature exposures") {
-    plt <- gen_bar_plot(samples, "exposures", title, prob, thresh)
+plot_exposures <- function(samples, prob = 0.9, thresh = 1e-3, title = "Signature exposures", ...) {
+    plt <- gen_bar_plot(samples, "exposures", title, prob, thresh, ...)
     plt$bars
     plt$top
     plt$bottom
@@ -34,15 +39,29 @@ plot_exposures <- function(samples, prob = 0.9, thresh = 1e-3, title = "Signatur
 }
 
 #' Plots the fitted spectrum
+#' @param samples The MCMC samples
+#' @param prob The width of the HPD interval
+#' @param title The main title of this plot
 #' @importFrom "rstan" extract
 #' @export
-plot_spectrum <- function(samples, prob = 0.9, title = "Fitted spectrum") {
-    plt <- gen_bar_plot(samples, "probs", title, prob, 0)
+plot_spectrum <- function(samples, prob = 0.9, title = "Fitted spectrum", ...) {
+    plt <- gen_bar_plot(samples, "probs", title, prob, 0, ...)
     plt$bars
     plt$top
     plt$bottom
 }
 
+#' Runs the MCMC sampling chain to estimate exposures
+#' @param counts Vector of mutation counts
+#' @param signatures Matrix of mutational signatures
+#' @param prior Vector of the same length as signatures, to be used as the Dirichlet prior in the sampling chain. Default is all ones, i.e. uninformative
+#' @param ... Arguments to pass to rstan::sampling
+#' @examples
+#'  # Custom prior favours signature 1 over 2, 3 and 4
+#' samples <- sigfit::run_sampling(mycounts, mysignatures, prior = c(5, 1, 1, 1))
+#' 
+#' # Run a single chain for quite a long time
+#' samples <- sigfit::run_sampling(mycounts, mysignatures, chains = 1, niter = 13000, warmup = 3000)
 #' @useDynLib sigfit, .registration = TRUE 
 #' @importFrom "rstan" sampling
 #' @export

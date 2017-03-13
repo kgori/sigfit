@@ -4,7 +4,14 @@
 \alias{plot_spectrum}
 \title{Plots the fitted spectrum}
 \usage{
-plot_spectrum(samples, title = "Fitted spectrum")
+plot_spectrum(samples, prob = 0.9, title = "Fitted spectrum", ...)
+}
+\arguments{
+\item{samples}{The MCMC samples}
+
+\item{prob}{The width of the HPD interval}
+
+\item{title}{The main title of this plot}
 }
 \description{
 Plots the fitted spectrum
