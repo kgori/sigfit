@@ -26,4 +26,4 @@ that produces Markov Chain Monte Carlo samples.
     mcmc_samples <- sigfit::run_sampling(counts = mutations, signatures = sigs,
                                          iter = 1500, warmup = 500)
                                          
-We can plot the estimated exposures as a bar chart. ```rstan``` and ```bayesplot```
+See the vignettes for more a detailed example.
