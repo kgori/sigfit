@@ -33,7 +33,7 @@ This example will use the mutational signatures from [COSMIC](http://cancer.sang
 
 First of all we need some mutational signatures to fit to our data. This command will fetch mutational signatures from COSMIC.
 ```{r fetch}
-sigs <- sigfit::fetch_cosmic_data()
+sigs <- sigfit::fetch_cosmic_data(reorder = TRUE)  # reorder: sorts by substitution type and trinucleotide context
 ```
 
 Let's use these signatures to simulate some mutation data. This code will generate 20000 mutations from a 4:3:2:1 mixture of signatures 1, 5, 7 and 11.
@@ -87,47 +87,47 @@ The bars in this plot are coloured blue if the estimated exposure value is 'suff
 In this example, ```sigfit``` has identified the 4 signatures used to construct the sample.
 
 #### Multiple samples
-Here is a similar example where we have multiple samples
+Here is a similar example where we have multiple samples - 10 samples with 2000 mutations
 
 ```{r multisim}
 set.seed(1)
 probs <- as.matrix(sigs[, c(1, 5, 7, 11)]) %*% c(0.4, 0.3, 0.2, 0.1)
-mutations <- t(rmultinom(10, 2000, probs))
-colnames(mutations) <- rownames(sigs)
+mmutations <- t(rmultinom(10, 2000, probs))
+colnames(mmutations) <- rownames(sigs)
 ```
 
 ```{r plotmultisim}
 #par(mfrow = c(5, 2))
-for (i in 1:nrow(mutations)) barplot(mutations[i, ], cex.names = 0.4, las = 2)
+for (i in 1:nrow(mmutations)) barplot(mmutations[i, ], cex.names = 0.4, las = 2)
 ```
 
 ```{r include=FALSE}
 set.seed(1)
-mcmc_samples <- sigfit::run_sampling(counts = mutations, signatures = sigs,
+mmcmc_samples <- sigfit::run_sampling(counts = mmutations, signatures = sigs,
                                        iter = 1500, warmup = 500, seed = 1)
 ```
 
 ```{r eval=FALSE}
 set.seed(1)
-mcmc_samples <- sigfit::run_sampling(counts = mutations, signatures = sigs,
+mmcmc_samples <- sigfit::run_sampling(counts = mmutations, signatures = sigs,
                                        iter = 1500, warmup = 500, seed = 1)
 ```
 
 #### Visualisation
 Here is the best fit spectrum over all samples.
 ```{r fig.width=7.5, fig.height=5, echo=FALSE}
-anon <- suppressWarnings(sigfit::plot_spectrum(mcmc_samples, names.arg = rownames(mutations),
+anon <- suppressWarnings(sigfit::plot_spectrum(mmcmc_samples, names.arg = rownames(mmutations),
                                                  cex.names = 0.4, las = 2))
 ```
 
 ```{r eval=FALSE}
-sigfit::plot_spectrum(mcmc_samples, names.arg = rownames(mutations),
+sigfit::plot_spectrum(mmcmc_samples, names.arg = rownames(mmutations),
                         cex.names = 0.4, las = 2)
 ```
 
 And the exposures
 ```{r fig.width=7.5, fig.height=5, multiexposures}
-sigfit::plot_exposures(mcmc_samples, prob = 0.9, thresh = 0.01,
+sigfit::plot_exposures(mmcmc_samples, prob = 0.9, thresh = 0.01,
                          cex.names = 0.7, las = 2)
 ```
 

@@ -1,8 +1,12 @@
 #' Fetches COSMIC's estimated mutational signatures
+#' @param reorder Reorders the matrix by substitution type and trinucleotide
 #' @export
-fetch_cosmic_data <- function() {
+fetch_cosmic_data <- function(reorder = TRUE) {
     cosmic.sigs <- read.table('http://cancer.sanger.ac.uk/cancergenome/assets/signatures_probabilities.txt', 
                               header = TRUE, sep = '\t', check.names = FALSE)
+    if (reorder) {
+        cosmic.sigs <- cosmic.sigs[order(cosmic.sigs[["Substitution Type"]], cosmic.sigs[["Trinucleotide"]]),]
+    }
     rownames(cosmic.sigs) <- cosmic.sigs[["Somatic Mutation Type"]]
     cosmic.sigs[, paste("Signature", 1:30)]
 }

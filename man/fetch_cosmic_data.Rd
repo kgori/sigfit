@@ -4,7 +4,10 @@
 \alias{fetch_cosmic_data}
 \title{Fetches COSMIC's estimated mutational signatures}
 \usage{
-fetch_cosmic_data()
+fetch_cosmic_data(reorder = TRUE)
+}
+\arguments{
+\item{reorder}{Reorders the matrix by substitution type and trinucleotide}
 }
 \description{
 Fetches COSMIC's estimated mutational signatures
