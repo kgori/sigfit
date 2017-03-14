@@ -7,7 +7,7 @@ Author: Kevin Gori
 Maintainer: <kg8@sanger.ac.uk>
 Description: More about what it does (maybe more than one line)
 License: What license is it under?
-Depends: R (>= 3.0.2), Rcpp (>= 0.12.9), methods (>= 3.3.2)
+Depends: R (>= 3.0.2), Rcpp (>= 0.12.9), methods
 Imports: rstan (>= 2.14.1), coda(>= 0.19.1)
 LinkingTo: StanHeaders (>= 2.14.0.1), rstan (>= 2.14.1), BH (>= 1.62.0.1), 
         Rcpp (>= 0.12.9), RcppEigen (>= 0.3.2.9.0)
