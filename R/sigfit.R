@@ -69,12 +69,20 @@ run_sampling <- function(counts, signatures, prior = NULL, ...) {
     if (is.null(prior)) {
         prior = rep(1, ncol(signatures))
     }
-    stopifnot(length(counts) == nrow(signatures))
+    
+    # If counts is a vector, convert it to a single row matrix
+    if (is.vector(counts)) counts <- matrix(counts, nrow = 1)
+    
+    # Check dimensions are correct. Should be:
+    # counts[NSAMPLES, NCAT], signatures[NCAT, NSIG]
+    stopifnot(ncol(counts) == nrow(signatures))
     stopifnot(length(prior) == ncol(signatures))
+    
     dat = list(
-        C = length(counts),
+        C = ncol(counts),
         S = ncol(signatures),
-        counts = as.vector(counts),
+        G = nrow(counts),
+        counts = as.matrix(counts),
         signatures = as.matrix(signatures),
         alpha = prior
     )

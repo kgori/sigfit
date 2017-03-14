@@ -1,8 +1,9 @@
 data {
     int<lower=1> C; // number of categories
     int<lower=1> S; // number of signatures
+    int<lower=1> G; // number of genomes
     matrix[C, S] signatures; // matrix of categories (rows) by signatures (columns)
-    int counts[C]; // data = counts per category
+    int counts[G, C]; // data = counts per category (columns) per genome sample (rows)
     vector<lower=0>[S] alpha; // prior on probs
 }
 parameters {
@@ -15,6 +16,7 @@ transformed parameters {
 }
 model {
     exposures ~ dirichlet(alpha);
-    counts ~ multinomial(probs);
+    for (i in 1:G) {
+      counts[i] ~ multinomial(probs);
+    }
 }
-

@@ -28,8 +28,9 @@ class model_sigfit : public prob_grad {
 private:
     int C;
     int S;
+    int G;
     matrix_d signatures;
-    vector<int> counts;
+    vector<vector<int> > counts;
     vector_d alpha;
 public:
     model_sigfit(stan::io::var_context& context__,
@@ -74,6 +75,11 @@ public:
         vals_i__ = context__.vals_i("S");
         pos__ = 0;
         S = vals_i__[pos__++];
+        context__.validate_dims("data initialization", "G", "int", context__.to_vec());
+        G = int(0);
+        vals_i__ = context__.vals_i("G");
+        pos__ = 0;
+        G = vals_i__[pos__++];
         context__.validate_dims("data initialization", "signatures", "matrix_d", context__.to_vec(C,S));
         validate_non_negative_index("signatures", "C", C);
         validate_non_negative_index("signatures", "S", S);
@@ -87,14 +93,18 @@ public:
                 signatures(m_mat__,n_mat__) = vals_r__[pos__++];
             }
         }
-        context__.validate_dims("data initialization", "counts", "int", context__.to_vec(C));
+        context__.validate_dims("data initialization", "counts", "int", context__.to_vec(G,C));
+        validate_non_negative_index("counts", "G", G);
         validate_non_negative_index("counts", "C", C);
-        counts = std::vector<int>(C,int(0));
+        counts = std::vector<std::vector<int> >(G,std::vector<int>(C,int(0)));
         vals_i__ = context__.vals_i("counts");
         pos__ = 0;
-        size_t counts_limit_0__ = C;
-        for (size_t i_0__ = 0; i_0__ < counts_limit_0__; ++i_0__) {
-            counts[i_0__] = vals_i__[pos__++];
+        size_t counts_limit_1__ = C;
+        for (size_t i_1__ = 0; i_1__ < counts_limit_1__; ++i_1__) {
+            size_t counts_limit_0__ = G;
+            for (size_t i_0__ = 0; i_0__ < counts_limit_0__; ++i_0__) {
+                counts[i_0__][i_1__] = vals_i__[pos__++];
+            }
         }
         validate_non_negative_index("alpha", "S", S);
         alpha = vector_d(static_cast<Eigen::VectorXd::Index>(S));
@@ -109,6 +119,7 @@ public:
         // validate, data variables
         check_greater_or_equal(function__,"C",C,1);
         check_greater_or_equal(function__,"S",S,1);
+        check_greater_or_equal(function__,"G",G,1);
         check_greater_or_equal(function__,"alpha",alpha,0);
         // initialize data variables
 
@@ -226,7 +237,10 @@ public:
         try {
 
             lp_accum__.add(dirichlet_log<propto__>(exposures, alpha));
-            lp_accum__.add(multinomial_log<propto__>(counts, probs));
+            for (int i = 1; i <= G; ++i) {
+
+                lp_accum__.add(multinomial_log<propto__>(get_base1(counts,i,"counts",1), probs));
+            }
         } catch (const std::exception& e) {
             stan::lang::rethrow_located(e,current_statement_begin__);
             // Next line prevents compiler griping about no return

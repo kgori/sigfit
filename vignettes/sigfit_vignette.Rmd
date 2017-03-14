@@ -23,7 +23,7 @@ suppressPackageStartupMessages(library(sigfit))
 
 ```sigfit``` is an R package. As it is in early development it is not on CRAN, but can be installed from github using ```devtools```.
 ```{r eval=FALSE}
-devtools::install_github("kgori/sigfit")
+devtools::install_github("kgori/sigfit", build_vignettes = TRUE)
 ```
 
 ## Usage guide
@@ -43,7 +43,6 @@ probs <- as.matrix(sigs[, c(1, 5, 7, 11)]) %*% c(0.4, 0.3, 0.2, 0.1)
 mutations <- as.vector(rmultinom(1, 20000, probs))
 names(mutations) <- rownames(sigs)
 ```
-
 
 Here is what our simulated counts look like:
 ```{r fig.width=7.5, fig.height=5, plotsim}
@@ -65,14 +64,14 @@ mcmc_samples <- sigfit::run_sampling(counts = mutations, signatures = sigs,
 ```
 
 #### Visualisation
-We can look at the fitted spectrum using ```plot_spectrum```. This functions can pass through arguments to ```barplot```
+We can look at the fitted spectrum using ```plot_spectrum```. This function can pass through arguments to ```barplot```
 ```{r fig.width=7.5, fig.height=5, echo=FALSE}
-anon <- suppressWarnings(sigfit::plot_spectrum(mcmc_samples, names.arg = names(mutations),
+anon <- suppressWarnings(sigfit::plot_spectrum(mcmc_samples, names.arg = rownames(mutations),
                                                  cex.names = 0.4, las = 2))
 ```
 
 ```{r eval=FALSE}
-sigfit::plot_spectrum(mcmc_samples, names.arg = names(mutations),
+sigfit::plot_spectrum(mcmc_samples, names.arg = rownames(mutations),
                         cex.names = 0.4, las = 2)
 ```
 
@@ -86,6 +85,51 @@ sigfit::plot_exposures(mcmc_samples, prob = 0.9, thresh = 0.01,
 The bars in this plot are coloured blue if the estimated exposure value is 'sufficiently non-zero' - it is difficult for the model to make hard assignments of which signatures are present or absent due to the non-negative constraint on the estimate, which means that the range of values in the sample will not include zero. In practice, 'sufficiently non-zero' means that the lower end of the Bayesian HPD credible interval (`prob`) is above a threshold value (`thresh`).
 
 In this example, ```sigfit``` has identified the 4 signatures used to construct the sample.
+
+#### Multiple samples
+Here is a similar example where we have multiple samples
+
+```{r multisim}
+set.seed(1)
+probs <- as.matrix(sigs[, c(1, 5, 7, 11)]) %*% c(0.4, 0.3, 0.2, 0.1)
+mutations <- t(rmultinom(10, 2000, probs))
+colnames(mutations) <- rownames(sigs)
+```
+
+```{r plotmultisim}
+#par(mfrow = c(5, 2))
+for (i in 1:nrow(mutations)) barplot(mutations[i, ], cex.names = 0.4, las = 2)
+```
+
+```{r include=FALSE}
+set.seed(1)
+mcmc_samples <- sigfit::run_sampling(counts = mutations, signatures = sigs,
+                                       iter = 1500, warmup = 500, seed = 1)
+```
+
+```{r eval=FALSE}
+set.seed(1)
+mcmc_samples <- sigfit::run_sampling(counts = mutations, signatures = sigs,
+                                       iter = 1500, warmup = 500, seed = 1)
+```
+
+#### Visualisation
+Here is the best fit spectrum over all samples.
+```{r fig.width=7.5, fig.height=5, echo=FALSE}
+anon <- suppressWarnings(sigfit::plot_spectrum(mcmc_samples, names.arg = rownames(mutations),
+                                                 cex.names = 0.4, las = 2))
+```
+
+```{r eval=FALSE}
+sigfit::plot_spectrum(mcmc_samples, names.arg = rownames(mutations),
+                        cex.names = 0.4, las = 2)
+```
+
+And the exposures
+```{r fig.width=7.5, fig.height=5, multiexposures}
+sigfit::plot_exposures(mcmc_samples, prob = 0.9, thresh = 0.01,
+                         cex.names = 0.7, las = 2)
+```
 
 ___
 
