@@ -4,7 +4,7 @@ Fit mutational signatures with a Bayesian model
 ## Installation
 sigfit is an R package. It can be installed from inside an R session using the devtools library
 
-    devtools::install_github("kgori/sigfit")
+    devtools::install_github("kgori/sigfit", build_vignettes = TRUE)
     
 
 ## Usage guide
