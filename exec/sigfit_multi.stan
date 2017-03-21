@@ -1,5 +1,5 @@
 functions {
-    vector scale_to_sum_1(vector v) {
+    row_vector scale_to_sum_1(row_vector v) {
         return (v / sum(v));
     }
 }
@@ -12,13 +12,21 @@ data {
     vector<lower=0>[S] alpha; // prior on probs
 }
 parameters {
-    simplex[S] exposures;
-    simplex[C] probs;
+    simplex[S] exposures[G];
+}
+transformed parameters{
+    matrix[G, C] probs;
+    {
+        matrix[G, S] exposures_mat;
+        for (i in 1:G) {
+            exposures_mat[i] = to_row_vector(exposures[i]);
+        }
+        probs = exposures_mat * signatures';
+    }
 }
 model {
-    probs = scale_to_sum_1(signatures * exposures);
-    exposures ~ dirichlet(alpha);
     for (i in 1:G) {
-      counts[i] ~ multinomial(probs);
+        exposures[i] ~ dirichlet(alpha);
+        counts[i] ~ multinomial(to_vector(scale_to_sum_1(probs[i])));
     }
 }
