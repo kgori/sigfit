@@ -1,8 +1,5 @@
 functions {
-    vector enforcesum1(vector v) {
-        return (v / sum(v));
-    }
-    row_vector enforcesum1row(row_vector v) {
+    vector scale_to_sum_1_v(vector v) {
         return (v / sum(v));
     }
 }
@@ -12,29 +9,31 @@ data {
     int<lower=1> G; // number of genomes
     matrix[C, S] signatures; // matrix of categories (rows) by signatures (columns)
     int counts[G, C]; // data = counts per category (columns) per genome sample (rows)
-    vector<lower=0>[S] alpha; // prior on global probs
+}
+transformed data {
+    vector[S] ones;  // Prior on shared weights
+    for (i in 1:S) ones[i] = 1;
 }
 parameters {
-    vector<lower=0>[G] kappa; // parameter to accommodate individual samples' departure from global trend
-    simplex[S] globalExposures;
-    simplex[S] sampleExposures[G];
+    simplex[S] exposures[G];
+    real<lower=0> shared_scale;
+    simplex[S] shared_weights;
 }
 transformed parameters {
-    matrix<lower=0,upper=1>[G, C] probs;
-    matrix[G, S] sampleExposuresMatrix;
-    for (i in 1:G) {
-        sampleExposuresMatrix[i] = to_row_vector(sampleExposures[i]);
-    }
-    probs = sampleExposuresMatrix * signatures';
-    for (i in 1:G) {
-        probs[i] = enforcesum1row(probs[i]);
-    }
+    vector[S] alpha = shared_scale * shared_weights;
 }
 model {
-    globalExposures ~ dirichlet(alpha);
+    vector[C] probs;
+
+    shared_scale ~ cauchy(0, 2.5);
+    shared_weights ~ dirichlet(ones);
+    
     for (i in 1:G) {
-        kappa[i] ~ cauchy(0, 2.5);
-        sampleExposures[i] ~ dirichlet(kappa[G] * globalExposures);
-        counts[i] ~ multinomial(to_vector(probs[i]));
+        exposures[i] ~ dirichlet(alpha);
+        probs = scale_to_sum_1_v(signatures * exposures[i]);
+        counts[i] ~ multinomial(probs);
     }
+}
+generated quantities {
+    vector[S] shared_exposures = dirichlet_rng(alpha);
 }

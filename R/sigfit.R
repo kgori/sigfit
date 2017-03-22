@@ -69,7 +69,7 @@ plot_spectrum <- function(samples, prob = 0.9, title = "Fitted spectrum", ...) {
 #' @useDynLib sigfit, .registration = TRUE 
 #' @importFrom "rstan" sampling
 #' @export
-run_sampling <- function(counts, signatures, prior = NULL, ...) {
+run_sampling <- function(counts, signatures, prior = NULL, hierarchical = FALSE, ...) {
     if (is.null(prior)) {
         prior = rep(1, ncol(signatures))
     }
@@ -90,6 +90,11 @@ run_sampling <- function(counts, signatures, prior = NULL, ...) {
         signatures = as.matrix(signatures),
         alpha = prior
     )
-    model <- stanmodels$sigfit
+    if (hierarchical) {
+        model <- stanmodels$sigfit_hier
+    }
+    else {
+        model <- stanmodels$sigfit
+    }
     rstan::sampling(model, data = dat, ...)
 }
