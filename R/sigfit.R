@@ -11,6 +11,12 @@ fetch_cosmic_data <- function(reorder = TRUE) {
     cosmic.sigs[, paste("Signature", 1:30)]
 }
 
+#' Access stan models
+#' @export
+stan_models <- function() {
+    stanmodels
+}
+
 gen_bar_plot <- function(samples, featurename, title, prob, thresh, ...) {
     feature <- rstan::extract(samples, pars = featurename)[[featurename]]
     mean_feature <- colMeans(feature)
@@ -66,10 +72,10 @@ plot_spectrum <- function(samples, prob = 0.9, title = "Fitted spectrum", ...) {
 #' 
 #' # Run a single chain for quite a long time
 #' samples <- sigfit::run_sampling(mycounts, mysignatures, chains = 1, niter = 13000, warmup = 3000)
-#' @useDynLib sigfit, .registration = TRUE 
+#' @useDynLib sigfit, .registration = TRUE
 #' @importFrom "rstan" sampling
 #' @export
-run_sampling <- function(counts, signatures, prior = NULL, hierarchical = FALSE, ...) {
+run_sampling <- function(counts, signatures, prior = NULL, hierarchical = FALSE, multi = FALSE, ...) {
     if (is.null(prior)) {
         prior = rep(1, ncol(signatures))
     }
@@ -94,7 +100,75 @@ run_sampling <- function(counts, signatures, prior = NULL, hierarchical = FALSE,
         model <- stanmodels$sigfit_hier
     }
     else {
-        model <- stanmodels$sigfit
+        if (multi) {
+            model <- stanmodels$sigfit_multi
+        }
+        else {
+            model <- stanmodels$sigfit
+        }
     }
     rstan::sampling(model, data = dat, ...)
+}
+
+#' Extracts signatures from a set of mutation counts
+#' using models based on NMF or EMu
+#' 
+#' @param counts Matrix of mutation counts for each sample (rows) in each category
+#' (columns)
+#' @param nsignatures Number of signatures to extract
+#' @param method Either "emu" or "nmf" (though currently "nmf" is disabled)
+#' @param opportunities Optional matrix of mutational opportunities for "emu" method.
+#' Dimensions should be same as for counts
+#' @param stanfunc "sampling"|"optimizing"|"vb" Choice of rstan inference strategy. 
+#' "sampling" is the full Bayesian MCMC approach, and is the default. "optimizing"
+#' returns the Maximum a Posteriori (MAP) point estimates via numerical optimization.
+#' "vb" uses Variational Bayes to approximate the full posterior.
+#' @param ... Any other parameters to pass through to rstan 
+#' @useDynLib sigfit, .registration = TRUE
+#' @importFrom "rstan" sampling
+#' @importFrom "rstan" optimizing
+#' @importFrom "rstan" vb
+#' @export
+extract_signatures <- function(counts, nsignatures, method = "emu", 
+                               opportunities = NULL, stanfunc = "sampling", ...) {
+    if (method == "emu") {
+        if(is.null(opportunities)) {
+            opportunities <- matrix(1, nrow = nrow(counts), ncol = ncol(counts))
+        }
+        stopifnot(all(dim(opportunities) == dim(counts)))
+        
+        model <- stanmodels$sigfit_emu
+        data <- list(
+            N = ncol(counts),
+            M = nrow(counts),
+            n = nsignatures,
+            counts = as.matrix(counts),
+            opps = as.matrix(opportunities)
+        )
+    }
+    
+    else if (method == "nmf") {
+        return("nmf method is buggy - do not use")
+        model <- stanmodels$sigfit_nnmf
+        data <- list(
+            T = nrow(counts),
+            I = ncol(counts),
+            K = nsignatures,
+            X = counts,
+            sigma = rep(1, ncol(counts))
+        )
+    }
+    
+    if (stanfunc == "sampling") {
+        cat("Stan sampling:")
+        return(sampling(model, data = data, chains = 1, ...))
+    }
+    else if (stanfunc == "optimizing") {
+        cat("Stan optimizing:")
+        return(optimizing(model, data = data, ...))
+    }
+    else if (stanfunc == "vb") {
+        cat("Stan vb")
+        return(vb(model, data = data, ...))
+    }
 }

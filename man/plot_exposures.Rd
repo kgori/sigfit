@@ -21,4 +21,3 @@ plot_exposures(samples, prob = 0.9, thresh = 0.001,
 \description{
 Plots estimated exposure of each signature
 }
-

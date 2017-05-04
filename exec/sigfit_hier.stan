@@ -1,7 +1,5 @@
 functions {
-    vector scale_to_sum_1_v(vector v) {
-        return (v / sum(v));
-    }
+    #include "common_functions.stan"
 }
 data {
     int<lower=1> C; // number of categories
@@ -16,24 +14,25 @@ transformed data {
 }
 parameters {
     simplex[S] exposures[G];
-    real<lower=0> shared_scale;
-    simplex[S] shared_weights;
+    vector<lower=1,upper=1000>[S] alpha;
 }
 transformed parameters {
-    vector[S] alpha = shared_scale * shared_weights;
+    vector<lower=0, upper=1>[C] probs[G];
+    for (i in 1:G) {
+        probs[i] = scale_to_sum_1(signatures * exposures[i]);
+    }
 }
 model {
-    vector[C] probs;
+    alpha ~ uniform(1, 1000); // all exposures share this Dirichlet prior
 
-    shared_scale ~ cauchy(0, 2.5);
-    shared_weights ~ dirichlet(ones);
-    
     for (i in 1:G) {
         exposures[i] ~ dirichlet(alpha);
-        probs = scale_to_sum_1_v(signatures * exposures[i]);
-        counts[i] ~ multinomial(probs);
+        counts[i] ~ multinomial(probs[i]);
     }
 }
 generated quantities {
-    vector[S] shared_exposures = dirichlet_rng(alpha);
+    vector[G] log_lik;
+    for (i in 1:G) {
+        log_lik[i] = multinomial_lpmf(counts[i] | probs[i]);
+    }
 }

@@ -16,4 +16,3 @@ plot_spectrum(samples, prob = 0.9, title = "Fitted spectrum", ...)
 \description{
 Plots the fitted spectrum
 }
-

@@ -1,7 +1,5 @@
 functions {
-    vector scale_to_sum_1(vector v) {
-        return (v / sum(v));
-    }
+    #include "common_functions.stan"
 }
 data {
     int<lower=1> C; // number of categories
@@ -13,12 +11,20 @@ data {
 }
 parameters {
     simplex[S] exposures;
+}
+transformed parameters {
     simplex[C] probs;
+    probs = scale_to_sum_1(signatures * exposures);
 }
 model {
-    probs = scale_to_sum_1(signatures * exposures);
     exposures ~ dirichlet(alpha);
     for (i in 1:G) {
       counts[i] ~ multinomial(probs);
+    }
+}
+generated quantities {
+    vector[G] log_lik;
+    for (i in 1:G) {
+        log_lik[i] = multinomial_lpmf(counts[i] | probs);
     }
 }

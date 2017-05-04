@@ -1,7 +1,5 @@
 functions {
-    vector scale_to_sum_1(vector v) {
-        return (v / sum(v));
-    }
+    #include "common_functions.stan"
 }
 data {
     int<lower=1> C; // number of mutation categories
@@ -14,11 +12,21 @@ data {
 parameters {
     simplex[S] exposures[G];
 }
+transformed parameters {
+    vector<lower=0, upper=1>[C] probs[G];
+    for (i in 1:G) {
+        probs[i] = scale_to_sum_1(signatures * exposures[i]);
+    }
+}
 model {
-    vector[C] probs;
     for (i in 1:G) {
         exposures[i] ~ dirichlet(alpha);
-        probs = scale_to_sum_1(signatures * exposures[i]);
-        counts[i] ~ multinomial(probs);
+        counts[i] ~ multinomial(probs[i]);
+    }
+}
+generated quantities {
+    vector[G] log_lik;
+    for (i in 1:G) {
+        log_lik[i] = multinomial_lpmf(counts[i] | probs[i]);
     }
 }

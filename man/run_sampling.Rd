@@ -4,7 +4,8 @@
 \alias{run_sampling}
 \title{Runs the MCMC sampling chain to estimate exposures}
 \usage{
-run_sampling(counts, signatures, prior = NULL, ...)
+run_sampling(counts, signatures, prior = NULL, hierarchical = FALSE,
+  multi = FALSE, ...)
 }
 \arguments{
 \item{counts}{Vector of mutation counts}
@@ -25,4 +26,3 @@ samples <- sigfit::run_sampling(mycounts, mysignatures, prior = c(5, 1, 1, 1))
 # Run a single chain for quite a long time
 samples <- sigfit::run_sampling(mycounts, mysignatures, chains = 1, niter = 13000, warmup = 3000)
 }
-

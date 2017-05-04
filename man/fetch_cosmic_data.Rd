@@ -12,4 +12,3 @@ fetch_cosmic_data(reorder = TRUE)
 \description{
 Fetches COSMIC's estimated mutational signatures
 }
-
