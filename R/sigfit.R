@@ -148,14 +148,12 @@ extract_signatures <- function(counts, nsignatures, method = "emu",
     }
     
     else if (method == "nmf") {
-        return("nmf method is buggy - do not use")
-        model <- stanmodels$sigfit_nnmf
+        model <- stanmodels$sigfit_nmf
         data <- list(
-            T = nrow(counts),
-            I = ncol(counts),
-            K = nsignatures,
-            X = counts,
-            sigma = rep(1, ncol(counts))
+            G = nrow(counts),
+            C = ncol(counts),
+            S = nsignatures,
+            counts = counts
         )
     }
     
