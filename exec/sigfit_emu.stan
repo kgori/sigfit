@@ -18,14 +18,16 @@ parameters {
 transformed parameters {
     // Precomputation
     matrix[M, N] sig_expo_opps;    // elementwise product of sig_expo and opps
-    matrix[n, N] sig_mat;    // sig recast as matrix
+    {
+        matrix[n, N] sig_mat;    // sig recast as matrix
     
-    for (a in 1:n) {
-        for (j in 1:N) {
-            sig_mat[a, j] = signatures[a, j];
+        for (a in 1:n) {
+            for (j in 1:N) {
+                sig_mat[a, j] = signatures[a, j];
+            }
         }
+        sig_expo_opps = exposures * sig_mat .* opps;
     }
-    sig_expo_opps = exposures * sig_mat .* opps;
 }
 model {
     // Priors for x

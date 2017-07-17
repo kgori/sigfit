@@ -3,6 +3,8 @@ data {
     int<lower=1> C;
     int<lower=1> S;
     int<lower=0> counts[G, C];
+    real<lower=0> exposures_prior_val;
+    real<lower=0> signatures_prior[S, C];
 }
 transformed data {
     vector[S] exposures_prior;
@@ -14,7 +16,7 @@ transformed data {
     // Another idea is to allow use of (e.g.) cosmic signatures as priors
     // on the signatures.
     for (s in 1:S) {
-        exposures_prior[s] = 0.5;
+        exposures_prior[s] = exposures_prior_val;
     }
     
     for (c in 1:C) {

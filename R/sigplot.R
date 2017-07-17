@@ -16,6 +16,7 @@ plot_signatures <- function(samples) {
 sigplot <- function(spectrum, titletext = "") {
     colors <- c("deepskyblue", "black", "firebrick2", "gray76", "darkolivegreen3", "rosybrown2")
     mut <- c('C>A','C>G','C>T','T>A','T>C','T>G')
+    tickfreq <- 0.05 # Plot a tick on the y-axis this frequently
     # Observed spectrum
     names(spectrum) <- c("A[C>A]A", "A[C>A]C", "A[C>A]G", "A[C>A]T", "C[C>A]A", "C[C>A]C", "C[C>A]G", "C[C>A]T", "G[C>A]A",
                              "G[C>A]C", "G[C>A]G", "G[C>A]T", "T[C>A]A", "T[C>A]C", "T[C>A]G", "T[C>A]T", "A[C>G]A", "A[C>G]C",
@@ -28,24 +29,27 @@ sigplot <- function(spectrum, titletext = "") {
                              "G[T>C]A", "G[T>C]C", "G[T>C]G", "G[T>C]T", "T[T>C]A", "T[T>C]C", "T[T>C]G", "T[T>C]T", "A[T>G]A",
                              "A[T>G]C", "A[T>G]G", "A[T>G]T", "C[T>G]A", "C[T>G]C", "C[T>G]G", "C[T>G]T", "G[T>G]A", "G[T>G]C",
                              "G[T>G]G", "G[T>G]T", "T[T>G]A", "T[T>G]C", "T[T>G]G", "T[T>G]T")
+    height <- max(max(spectrum), 0.25)
+    # cat(height)
     barplot(spectrum, 
             col = rep(colors, each = 16), 
             border = "white", 
             family = "mono",
             yaxt = "n", 
-            ylim = c(0,0.25), 
+            ylim = c(0, height), 
             xlim = c(-1, 116), 
             xaxs = "i",
             cex = .6,  # <- x axis label size
             cex.axis = 1.5, 
             cex.lab = 1.7, 
             las = 2)
-    axis(side = 2, at = seq(0,0.25,0.05), las = 2, cex.axis = 1.25)
+    axis_max <- ceiling(height/tickfreq)*tickfreq
+    axis(side = 2, at = seq(0,axis_max,tickfreq), las = 2, cex.axis = 1.25)
     mtext("Mutation probability", side = 2, cex = 1.7, line = 4.5)
     title(titletext, line = 2, cex.main = 1)
     xleft = c(0.2, 19.4, 38.6, 57.8, 77, 96.2)
     xright = c(19.2, 38.4, 57.6, 76.8, 96, 115.2)
-    rect(xleft = xleft, xright = xright, ybottom = 0.24, ytop = 0.25, 
+    rect(xleft = xleft, xright = xright, ybottom = axis_max, ytop = axis_max+0.01, 
          col = colors, border = "white", lty = par("lty"), lwd = par("lwd"))
-    text(x = (xleft+xright)/2, y = 0.23, labels = mut, cex = 1.25)
+    text(x = (xleft+xright)/2, y = axis_max-0.01, labels = mut, cex = 1.25)
 }

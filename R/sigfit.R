@@ -1,14 +1,24 @@
+#' Deal with zero values in a signature
+remove_zeros_ <- function(mtx, min_allowed = 1e-9) {
+    apply(mtx, 2, function(col) {
+        col[col < min_allowed] <- min_allowed
+        col / sum(col)
+    })
+}
+
 #' Fetches COSMIC's estimated mutational signatures
 #' @param reorder Reorders the matrix by substitution type and trinucleotide
 #' @export
-fetch_cosmic_data <- function(reorder = TRUE) {
+fetch_cosmic_data <- function(reorder = TRUE, remove_zeros = TRUE) {
     cosmic.sigs <- read.table('http://cancer.sanger.ac.uk/cancergenome/assets/signatures_probabilities.txt', 
                               header = TRUE, sep = '\t', check.names = FALSE)
     if (reorder) {
         cosmic.sigs <- cosmic.sigs[order(cosmic.sigs[["Substitution Type"]], cosmic.sigs[["Trinucleotide"]]),]
     }
     rownames(cosmic.sigs) <- cosmic.sigs[["Somatic Mutation Type"]]
-    cosmic.sigs[, paste("Signature", 1:30)]
+    cosmic.sigs <- cosmic.sigs[, paste("Signature", 1:30)]
+    if(remove_zeros) cosmic.sigs <- remove_zeros_(cosmic.sigs)
+    cosmic.sigs
 }
 
 #' Access stan models
@@ -116,7 +126,7 @@ run_sampling <- function(counts, signatures, prior = NULL, hierarchical = FALSE,
 #' @param counts Matrix of mutation counts for each sample (rows) in each category
 #' (columns)
 #' @param nsignatures Number of signatures to extract
-#' @param method Either "emu" or "nmf" (though currently "nmf" is disabled)
+#' @param method Either "emu" or "nmf" (though currently "nmf" is experimental)
 #' @param opportunities Optional matrix of mutational opportunities for "emu" method.
 #' Dimensions should be same as for counts
 #' @param stanfunc "sampling"|"optimizing"|"vb" Choice of rstan inference strategy. 
@@ -130,7 +140,8 @@ run_sampling <- function(counts, signatures, prior = NULL, hierarchical = FALSE,
 #' @importFrom "rstan" vb
 #' @export
 extract_signatures <- function(counts, nsignatures, method = "emu", 
-                               opportunities = NULL, stanfunc = "sampling", ...) {
+                               opportunities = NULL, exposures_prior = 0.5, 
+                               stanfunc = "sampling", ...) {
     if (method == "emu") {
         if(is.null(opportunities)) {
             opportunities <- matrix(1, nrow = nrow(counts), ncol = ncol(counts))
@@ -153,7 +164,8 @@ extract_signatures <- function(counts, nsignatures, method = "emu",
             G = nrow(counts),
             C = ncol(counts),
             S = nsignatures,
-            counts = counts
+            counts = counts,
+            exposures_prior_val = exposures_prior
         )
     }
     

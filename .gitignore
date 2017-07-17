@@ -5,3 +5,8 @@
 src/*.o
 src/*.so
 src/*.dll
+
+# Project specific
+sigfit.Rproj
+src/include/models.hpp.bak
+tools/make_cpp.Rout

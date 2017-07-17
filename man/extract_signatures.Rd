@@ -6,7 +6,7 @@
 using models based on NMF or EMu}
 \usage{
 extract_signatures(counts, nsignatures, method = "emu",
-  opportunities = NULL, stanfunc = "sampling", ...)
+  opportunities = NULL, exposures_prior = 0.5, stanfunc = "sampling", ...)
 }
 \arguments{
 \item{counts}{Matrix of mutation counts for each sample (rows) in each category
@@ -14,7 +14,7 @@ extract_signatures(counts, nsignatures, method = "emu",
 
 \item{nsignatures}{Number of signatures to extract}
 
-\item{method}{Either "emu" or "nmf" (though currently "nmf" is disabled)}
+\item{method}{Either "emu" or "nmf" (though currently "nmf" is experimental)}
 
 \item{opportunities}{Optional matrix of mutational opportunities for "emu" method.
 Dimensions should be same as for counts}
