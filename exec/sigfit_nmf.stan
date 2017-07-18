@@ -4,7 +4,7 @@ data {
     int<lower=1> S;
     int<lower=0> counts[G, C];
     real<lower=0> exposures_prior_val;
-    real<lower=0> signatures_prior[S, C];
+    // real<lower=0> signatures_prior[S, C];
 }
 transformed data {
     vector[S] exposures_prior;
