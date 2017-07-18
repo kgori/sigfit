@@ -78,14 +78,14 @@ plot_spectrum <- function(samples, prob = 0.9, title = "Fitted spectrum", ...) {
 #' @param ... Arguments to pass to rstan::sampling
 #' @examples
 #'  # Custom prior favours signature 1 over 2, 3 and 4
-#' samples <- sigfit::run_sampling(mycounts, mysignatures, prior = c(5, 1, 1, 1))
+#' samples <- sigfit::fit_signatures(mycounts, mysignatures, prior = c(5, 1, 1, 1))
 #' 
 #' # Run a single chain for quite a long time
-#' samples <- sigfit::run_sampling(mycounts, mysignatures, chains = 1, niter = 13000, warmup = 3000)
+#' samples <- sigfit::fit_signatures(mycounts, mysignatures, chains = 1, niter = 13000, warmup = 3000)
 #' @useDynLib sigfit, .registration = TRUE
 #' @importFrom "rstan" sampling
 #' @export
-run_sampling <- function(counts, signatures, prior = NULL, hierarchical = FALSE, multi = FALSE, ...) {
+fit_signatures <- function(counts, signatures, prior = NULL, hierarchical = FALSE, multi = FALSE, ...) {
     if (is.null(prior)) {
         prior = rep(1, ncol(signatures))
     }

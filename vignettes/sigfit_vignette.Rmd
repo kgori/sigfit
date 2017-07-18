@@ -53,13 +53,13 @@ barplot(mutations, cex.names = 0.4, las = 2)
 Now we can estimate the exposure of the data to each signature (pretending we don't already know that it was generated from 1, 5, 7, 11). ```sigfit``` uses [Stan](http://mc-stan.org/) to run a Bayesian model that produces Markov Chain Monte Carlo samples. ```rstan::sampling``` arguments, such as ```iter```, ```warmup```, etc., can be passed through.
 ```{r include=FALSE}
 set.seed(1)
-mcmc_samples <- sigfit::run_sampling(counts = mutations, signatures = sigs,
+mcmc_samples <- sigfit::fit_signatures(counts = mutations, signatures = sigs,
                                        iter = 1500, warmup = 500, seed = 1)
 ```
 
 ```{r eval=FALSE}
 set.seed(1)
-mcmc_samples <- sigfit::run_sampling(counts = mutations, signatures = sigs,
+mcmc_samples <- sigfit::fit_signatures(counts = mutations, signatures = sigs,
                                        iter = 1500, warmup = 500, seed = 1)
 ```
 
@@ -103,13 +103,13 @@ for (i in 1:nrow(mmutations)) barplot(mmutations[i, ], cex.names = 0.4, las = 2)
 
 ```{r include=FALSE}
 set.seed(1)
-mmcmc_samples <- sigfit::run_sampling(counts = mmutations, signatures = sigs,
+mmcmc_samples <- sigfit::fit_signatures(counts = mmutations, signatures = sigs,
                                        iter = 1500, warmup = 500, seed = 1)
 ```
 
 ```{r eval=FALSE}
 set.seed(1)
-mmcmc_samples <- sigfit::run_sampling(counts = mmutations, signatures = sigs,
+mmcmc_samples <- sigfit::fit_signatures(counts = mmutations, signatures = sigs,
                                        iter = 1500, warmup = 500, seed = 1)
 ```
 
