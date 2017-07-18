@@ -1,12 +1,16 @@
 Package: sigfit
 Type: Package
-Title: Estimate the contribution of each of a set of mutational to observed mutations.
+Title: Discovering mutational signatures through Bayesian inference
 Version: 1.0
 Date: 2017-03-10
-Author: Kevin Gori
-Maintainer: <kg8@sanger.ac.uk>
-Description: More about what it does (maybe more than one line)
-License: What license is it under?
+Authors@R: c(person("Kevin", "Gori", email = "kg8@sanger.ac.uk", role = c("aut", "cre")),
+             person("Adrian", "Baez-Ortega", email = "ao7@sanger.ac.uk", role = "ctb"))
+Description: This package implements Bayesian models for fitting and extracting
+    mixtures of mutational signatures from mutation count data. It provides
+    interfaces to a Poisson model and a Dirichlet-Multinomial NMF model, as well
+    as auxiliary functions for analysing and plotting resulting data. Markov Chain
+    Monte Carlo sampling is done using Stan.
+License: GPL (>=3)
 Depends: R (>= 3.0.2), Rcpp (>= 0.12.9), methods
 Imports: rstan (>= 2.14.1), coda(>= 0.19.1)
 LinkingTo: StanHeaders (>= 2.14.0.1), rstan (>= 2.14.1), BH (>= 1.62.0.1), 
