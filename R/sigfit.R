@@ -71,10 +71,10 @@ plot_spectrum <- function(samples, prob = 0.9, title = "Fitted spectrum", ...) {
     plt$bottom
 }
 
-#' Runs the MCMC sampling chain to estimate exposures
-#' @param counts Matrix of mutation counts
-#' @param signatures Matrix of mutational signatures
-#' @param prior Vector of the same length as signatures, to be used as the Dirichlet prior in the sampling chain. Default is all ones, i.e. uninformative
+#' Runs MCMC to fit signatures and estimate exposures
+#' @param counts Matrix of mutation counts per category (columns) per genome sample (rows)
+#' @param signatures Matrix of mutational signatures (columns) to be fitted
+#' @param prior Vector of the same length as signatures, to be used as the Dirichlet prior in the sampling chain. Default prior is uniform (uninformative).
 #' @param ... Arguments to pass to rstan::sampling
 #' @examples
 #'  # Custom prior favours signature 1 over 2, 3 and 4
@@ -236,5 +236,56 @@ extract_signatures <- function(counts, nsignatures, method = "emu",
     else if (stanfunc == "vb") {
         cat("Stan vb")
         return(vb(model, data = data, ...))
+    }
+}
+
+#' Fits signatures to estimate exposures in a set of mutation counts
+#' and extracts additional signatures present in the samples.
+#' 
+#' @param counts Matrix of mutation counts for each sample (rows) in each category
+#' (columns)
+#' @param signatures Matrix of fixed mutational signatures (columns) to be fitted
+#' @param num_extra_sigs Number of additional signatures to be extracted
+#' @param stanfunc "sampling"|"optimizing"|"vb" Choice of rstan inference strategy. 
+#' "sampling" is the full Bayesian MCMC approach, and is the default. "optimizing"
+#' returns the Maximum a Posteriori (MAP) point estimates via numerical optimization.
+#' "vb" uses Variational Bayes to approximate the full posterior.
+#' @param ... Any other parameters to pass through to rstan 
+#' @useDynLib sigfit, .registration = TRUE
+#' @importFrom "rstan" sampling
+#' @importFrom "rstan" optimizing
+#' @importFrom "rstan" vb
+#' @export
+fit_extract_signatures <- function(counts, signatures, num_extra_sigs, 
+                                   stanfunc = "sampling", ...) {
+    # If counts is a vector, convert it to a single row matrix
+    if (is.vector(counts)) counts <- matrix(counts, nrow = 1)
+    
+    # Check dimensions are correct. Should be:
+    # counts[NSAMPLES, NCAT], signatures[NCAT, NSIG]
+    stopifnot(ncol(counts) == nrow(signatures))
+
+    dat = list(
+        C = ncol(counts),
+        S = ncol(signatures),
+        G = nrow(counts),
+        N = num_extra_sigs,
+        fixed_sigs = t(as.matrix(signatures)),
+        counts = as.matrix(counts)
+    )
+    ## Only NMF implemented so far
+    model <- stanmodels$sigfit_fitex_nmf
+    
+    if (stanfunc == "sampling") {
+        cat("Stan sampling:")
+        return(rstan::sampling(model, data = data, chains = 1, ...))
+    }
+    else if (stanfunc == "optimizing") {
+        cat("Stan optimizing:")
+        return(rstan::optimizing(model, data = data, ...))
+    }
+    else if (stanfunc == "vb") {
+        cat("Stan vb")
+        return(rstan::vb(model, data = data, ...))
     }
 }
