@@ -72,10 +72,11 @@ plot_spectrum <- function(samples, prob = 0.9, title = "Fitted spectrum", ...) {
 }
 
 #' Runs MCMC to fit signatures and estimate exposures
-#' @param counts Matrix of mutation counts per category (columns) per genome sample (rows)
-#' @param signatures Matrix of mutational signatures (columns) to be fitted
+#' @param counts Matrix of mutation counts per category (columns) per genome sample (rows).
+#' @param signatures Matrix of mutational signatures (columns) to be fitted.
 #' @param prior Vector of the same length as signatures, to be used as the Dirichlet prior in the sampling chain. Default prior is uniform (uninformative).
-#' @param ... Arguments to pass to rstan::sampling
+#' @param method Either "emu" or "nmf".
+#' @param ... Arguments to pass to rstan::sampling.
 #' @examples
 #'  # Custom prior favours signature 1 over 2, 3 and 4
 #' samples <- sigfit::fit_signatures(mycounts, mysignatures, prior = c(5, 1, 1, 1))
@@ -85,7 +86,7 @@ plot_spectrum <- function(samples, prob = 0.9, title = "Fitted spectrum", ...) {
 #' @useDynLib sigfit, .registration = TRUE
 #' @importFrom "rstan" sampling
 #' @export
-fit_signatures <- function(counts, signatures, prior = NULL, hierarchical = FALSE, ...) {
+fit_signatures <- function(counts, signatures, prior = NULL, hierarchical = FALSE, method = "nmf", ...) {
     if (is.null(prior)) {
         prior = rep(1, ncol(signatures))
     }
@@ -138,16 +139,16 @@ fit_signatures <- function(counts, signatures, prior = NULL, hierarchical = FALS
 #' using models based on NMF or EMu
 #' 
 #' @param counts Matrix of mutation counts for each sample (rows) in each category
-#' (columns)
-#' @param nsignatures Number of signatures to extract
-#' @param method Either "emu" or "nmf" (though currently "nmf" is experimental)
+#' (columns).
+#' @param nsignatures Number of signatures to extract.
+#' @param method Either "emu" or "nmf" (though currently "nmf" is experimental).
 #' @param opportunities Optional matrix of mutational opportunities for "emu" method; must have same dimension as counts. 
 #' If equals to "human-genome" or "human-exome", the reference human genome/exome opportunities will be used for every sample.
 #' @param stanfunc "sampling"|"optimizing"|"vb" Choice of rstan inference strategy. 
 #' "sampling" is the full Bayesian MCMC approach, and is the default. "optimizing"
 #' returns the Maximum a Posteriori (MAP) point estimates via numerical optimization.
 #' "vb" uses Variational Bayes to approximate the full posterior.
-#' @param ... Any other parameters to pass through to rstan 
+#' @param ... Any other parameters to pass through to rstan.
 #' @useDynLib sigfit, .registration = TRUE
 #' @importFrom "rstan" sampling
 #' @importFrom "rstan" optimizing
@@ -262,14 +263,14 @@ extract_signatures <- function(counts, nsignatures, method = "emu",
 #' and extracts additional signatures present in the samples.
 #' 
 #' @param counts Matrix of mutation counts for each sample (rows) in each category
-#' (columns)
-#' @param signatures Matrix of fixed mutational signatures (columns) to be fitted
-#' @param num_extra_sigs Number of additional signatures to be extracted
+#' (columns).
+#' @param signatures Matrix of fixed mutational signatures (columns) to be fitted.
+#' @param num_extra_sigs Number of additional signatures to be extracted.
 #' @param stanfunc "sampling"|"optimizing"|"vb" Choice of rstan inference strategy. 
 #' "sampling" is the full Bayesian MCMC approach, and is the default. "optimizing"
 #' returns the Maximum a Posteriori (MAP) point estimates via numerical optimization.
 #' "vb" uses Variational Bayes to approximate the full posterior.
-#' @param ... Any other parameters to pass through to rstan 
+#' @param ... Any other parameters to pass through to rstan.
 #' @useDynLib sigfit, .registration = TRUE
 #' @importFrom "rstan" sampling
 #' @importFrom "rstan" optimizing
