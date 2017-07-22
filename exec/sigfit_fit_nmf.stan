@@ -2,11 +2,11 @@ functions {
     #include "common_functions.stan"
 }
 data {
-    int<lower=1> C; // number of mutation categories
-    int<lower=1> S; // number of mutational signatures
-    int<lower=1> G; // number of genomes
-    matrix[C, S] signatures; // matrix of signatures (columns) to be fitted
-    int counts[G, C]; // data = counts per category (columns) per genome sample (rows)
+    int<lower=1> C;  // number of mutation categories
+    int<lower=1> S;  // number of mutational signatures
+    int<lower=1> G;  // number of genomes
+    matrix[C, S] signatures;  // matrix of signatures (columns) to be fitted
+    int counts[G, C];         // data = counts per category (columns) per genome sample (rows)
     vector<lower=0>[S] alpha; // prior on exposures (i.e. mixing proportions of signatures)
 }
 parameters {
