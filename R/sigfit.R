@@ -212,6 +212,9 @@ extract_signatures <- function(counts, nsignatures, method = "emu",
     }
     
     else if (method == "nmf") {
+        if (!is.null(opportunities)) {
+            warning("Using \"nmf\" model; opportunities will be ignored.")
+        }
         model <- stanmodels$sigfit_nmf
         data <- list(
             G = nrow(counts),
