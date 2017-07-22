@@ -1,9 +1,9 @@
 data {
-    int N;          // Number of mutation channels [uses index j]
-    int M;          // Number of tumour samples [uses index m]
-    int n;          // Number of signatures [uses index a]
-    int counts[M, N];    // Matrix of mutation counts
-    matrix[M, N] opps; // Matrix of opportunities
+    int N;  // Number of mutation channels [uses index j]
+    int M;  // Number of tumour samples [uses index m]
+    int n;  // Number of signatures [uses index a]
+    int counts[M, N];  // Matrix of mutation counts per sample (rows) per category
+    matrix[M, N] opps; // Matrix of opportunities per sample (rows) per category
 }
 transformed data {
     vector[N] alpha;
