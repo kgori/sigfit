@@ -107,10 +107,10 @@ fit_signatures <- function(counts, signatures, prior = NULL, hierarchical = FALS
         alpha = prior
     )
     if (hierarchical) {
-        model <- stanmodels$sigfit_hier
+        model <- stanmodels$sigfit_fit_nmf_hier
     }
     else {
-        model <- stanmodels$sigfit_fit
+        model <- stanmodels$sigfit_fit_nmf
     }
     rstan::sampling(model, data = dat, ...)
 }
@@ -201,7 +201,7 @@ extract_signatures <- function(counts, nsignatures, method = "emu",
         }
         stopifnot(all(dim(opportunities) == dim(counts)))
         
-        model <- stanmodels$sigfit_emu
+        model <- stanmodels$sigfit_ext_emu
         data <- list(
             N = ncol(counts),
             M = nrow(counts),
@@ -215,7 +215,7 @@ extract_signatures <- function(counts, nsignatures, method = "emu",
         if (!is.null(opportunities)) {
             warning("Using \"nmf\" model; opportunities will be ignored.")
         }
-        model <- stanmodels$sigfit_nmf
+        model <- stanmodels$sigfit_ext_nmf
         data <- list(
             G = nrow(counts),
             C = ncol(counts),
