@@ -99,6 +99,9 @@ fit_signatures <- function(counts, signatures, prior = NULL, hierarchical = FALS
     stopifnot(ncol(counts) == nrow(signatures))
     stopifnot(length(prior) == ncol(signatures))
     
+    # Add pseudocounts to signatures
+    signatures <- remove_zeros_(signatures)
+    
     if (method == "emu") {
         # NEED TO IMPLEMENT alpha
         dat = list(
@@ -284,7 +287,10 @@ fit_extract_signatures <- function(counts, signatures, num_extra_sigs,
     # Check dimensions are correct. Should be:
     # counts[NSAMPLES, NCAT], signatures[NCAT, NSIG]
     stopifnot(ncol(counts) == nrow(signatures))
-
+    
+    # Add pseudocounts to signatures
+    signatures <- remove_zeros_(signatures)
+    
     dat = list(
         C = ncol(counts),
         S = ncol(signatures),
