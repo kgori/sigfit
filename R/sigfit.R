@@ -122,8 +122,8 @@ fit_signatures <- function(counts, signatures, prior = NULL, hierarchical = FALS
 #' (columns)
 #' @param nsignatures Number of signatures to extract
 #' @param method Either "emu" or "nmf" (though currently "nmf" is experimental)
-#' @param opportunities Optional matrix of mutational opportunities for "emu" method; must have same dimension as "counts". If equals to "human-genome" or "human-exome", the reference human genome/exome opportunities will be used for every sample.
-#' Dimensions should be same as for counts
+#' @param opportunities Optional matrix of mutational opportunities for "emu" method; must have same dimension as counts. 
+#' If equals to "human-genome" or "human-exome", the reference human genome/exome opportunities will be used for every sample.
 #' @param stanfunc "sampling"|"optimizing"|"vb" Choice of rstan inference strategy. 
 #' "sampling" is the full Bayesian MCMC approach, and is the default. "optimizing"
 #' returns the Maximum a Posteriori (MAP) point estimates via numerical optimization.
