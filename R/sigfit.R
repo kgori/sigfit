@@ -98,18 +98,37 @@ fit_signatures <- function(counts, signatures, prior = NULL, hierarchical = FALS
     stopifnot(ncol(counts) == nrow(signatures))
     stopifnot(length(prior) == ncol(signatures))
     
-    dat = list(
-        C = ncol(counts),
-        S = ncol(signatures),
-        G = nrow(counts),
-        counts = as.matrix(counts),
-        signatures = as.matrix(signatures),
-        alpha = prior
-    )
-    if (hierarchical) {
+    if (method == "emu") {
+        # NEED TO IMPLEMENT alpha
+        dat = list(
+            N = ncol(counts),
+            n = ncol(signatures),
+            M = nrow(counts),
+            mu = t(as.matrix(signatures)),
+            X = t(as.matrix(counts)),
+            w = t(as.matrix(opportunities))
+        )
+        model <- stanmodels$sigfit_fit_emu
+    }
+    else if (hierarchical) {
+        dat = list(
+            C = ncol(counts),
+            S = ncol(signatures),
+            G = nrow(counts),
+            signatures = as.matrix(signatures),
+            counts = as.matrix(counts)
+        )
         model <- stanmodels$sigfit_fit_nmf_hier
     }
     else {
+        dat = list(
+            C = ncol(counts),
+            S = ncol(signatures),
+            G = nrow(counts),
+            signatures = as.matrix(signatures),
+            counts = as.matrix(counts),
+            alpha = prior
+        )
         model <- stanmodels$sigfit_fit_nmf
     }
     rstan::sampling(model, data = dat, ...)
