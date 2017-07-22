@@ -72,7 +72,7 @@ plot_spectrum <- function(samples, prob = 0.9, title = "Fitted spectrum", ...) {
 }
 
 #' Runs the MCMC sampling chain to estimate exposures
-#' @param counts Vector of mutation counts
+#' @param counts Matrix of mutation counts
 #' @param signatures Matrix of mutational signatures
 #' @param prior Vector of the same length as signatures, to be used as the Dirichlet prior in the sampling chain. Default is all ones, i.e. uninformative
 #' @param ... Arguments to pass to rstan::sampling
@@ -85,7 +85,7 @@ plot_spectrum <- function(samples, prob = 0.9, title = "Fitted spectrum", ...) {
 #' @useDynLib sigfit, .registration = TRUE
 #' @importFrom "rstan" sampling
 #' @export
-fit_signatures <- function(counts, signatures, prior = NULL, hierarchical = FALSE, multi = FALSE, ...) {
+fit_signatures <- function(counts, signatures, prior = NULL, hierarchical = FALSE, ...) {
     if (is.null(prior)) {
         prior = rep(1, ncol(signatures))
     }
@@ -110,12 +110,7 @@ fit_signatures <- function(counts, signatures, prior = NULL, hierarchical = FALS
         model <- stanmodels$sigfit_hier
     }
     else {
-        if (multi) {
-            model <- stanmodels$sigfit_multi
-        }
-        else {
-            model <- stanmodels$sigfit
-        }
+        model <- stanmodels$sigfit_fit
     }
     rstan::sampling(model, data = dat, ...)
 }
