@@ -71,6 +71,66 @@ plot_spectrum <- function(samples, prob = 0.9, title = "Fitted spectrum", ...) {
     plt$bottom
 }
 
+#' Obtain summary values for a set of model parameters (signatures or exposures) from a stanfit object.
+#' @param object An object of class stanfit.
+#' @param feature Name of the parameter set to extract; eiter "signatures" or "exposures".
+#' @param prob A numeric scalar in the interval (0,1) giving the target probability content of the HPD intervals.
+#' @examples
+#' # Extract signatures using the EMu (Poisson) model
+#' samples <- sigfit::extract_signatures(mycounts, nsignatures = 3, method = "emu", opportunities = "human-genome")
+#' 
+#' # Retrieve array of signatures
+#' signatures <- sigfit::retrieve_pars(samples, "signatures")
+#' 
+#' # Retrieve array of exposures using 90% HPD intervals
+#' exposures <- sigfit::retrieve_pars(samples, "exposures", prob = 0.9)
+#' @useDynLib sigfit, .registration = TRUE
+#' @importFrom "rstan" extract
+#' @importFrom "coda" HPDinterval
+#' @export
+retrieve_pars <- function(object, feature, prob = 0.95) {
+    feat <- rstan::extract(object, pars = feature)[[feature]]
+    # Create 3D-array
+    # Multi-sample case
+    if (length(dim(feat)) > 2) {
+        names1 <- ifelse(feature == "signatures",
+                         paste("Signature", LETTERS[1:dim(feat)[2]]),
+                         NULL)
+        names2 <- ifelse(feature == "exposures",
+                         paste("Signature", LETTERS[1:dim(feat)[3]]),
+                         NULL)
+        # for signatures: dims = (signatures, categories, mean/lwr/upr)
+        # for exposures: dims = (samples, signatures, mean/lwr/upr)
+        feat.summ <- array(NA, dim = c(dim(feat)[2], dim(feat)[3], 3),
+                           dimnames = list(names1, names2, c("mean", paste0(c("lower_", "upper_"), prob))))
+    } 
+    # Single-sample case
+    else {
+        names1 <- ifelse(feature == "signatures",
+                         "Signature 1",
+                         NULL)
+        names2 <- ifelse(feature == "exposures",
+                         paste("Signature", LETTERS[1:dim(feat)[2]]),
+                         NULL)
+        feat.summ <- array(NA, dim = c(1, dim(feat)[2], 3),
+                           dimnames = list(names1, names2, c("mean", paste0(c("lower_", "upper_"), prob))))
+    }
+    # Fill array
+    # Multi-sample case
+    if (length(dim(feat)) > 2) {
+        for (i in 1:dim(feat.summ)[1]) {
+            feat.summ[i,,1] <- colMeans(feat[,i,])
+            feat.summ[i,,2:3] <- coda::HPDinterval(coda::as.mcmc(feat[,i,]), prob = prob)
+        }
+    } 
+    # Single-sample case
+    else {
+        feat.summ[1,,1] <- colMeans(feat)
+        feat.summ[1,,2:3] <- coda::HPDinterval(coda::as.mcmc(feat), prob = prob)
+    }
+    feat.summ
+}
+
 #' Runs MCMC to fit signatures and estimate exposures
 #' @param counts Matrix of mutation counts per category (columns) per genome sample (rows).
 #' @param signatures Matrix of mutational signatures (columns) to be fitted.
