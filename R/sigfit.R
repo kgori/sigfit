@@ -27,13 +27,15 @@ stan_models <- function() {
     stanmodels
 }
 
-gen_bar_plot <- function(samples, featurename, title, prob, thresh, ...) {
+gen_bar_plot <- function(samples, featurename, title, prob, thresh, 
+                         primary_col = "dodgerblue3", secondary_col = "grey90",
+                         ...) {
     feature <- rstan::extract(samples, pars = featurename)[[featurename]]
     mean_feature <- colMeans(feature)
     names(mean_feature) <- 1:length(mean_feature)
     error <- HPDinterval(as.mcmc(feature), prob = prob)
     bars <- barplot(mean_feature, ylim = c(0, max(error[, 2]*1.05)), main = title,
-                    col = ifelse(error[, 1] > thresh, "dodgerblue3", "grey90"), ...)
+                    col = ifelse(error[, 1] > thresh, primary_col, secondary_col), ...)
     top_arr <- arrows(bars, error[, 1], bars, mean_feature, angle=90, code=1, length=0.05)
     bottom_arr <- arrows(bars, error[, 2], bars, mean_feature, angle=90, code=1, length=0.05)
     list(bars, top = top_arr, bottom = bottom_arr)
@@ -44,18 +46,23 @@ gen_bar_plot <- function(samples, featurename, title, prob, thresh, ...) {
 #' @param prob The width of the HPD interval
 #' @param thresh Signatures with a lower HPDI below this value are coloured grey
 #' @param title The main title of this plot
+#' @param primary_col The colour to plot strongly supported exposures (default=dodgerblue3)
+#' @param secondary_col The colour to plot weakly supported exposures (default=grey90)
 #' @param ... Arguments to pass through to graphics::barplot
 #' @importFrom "coda" HPDinterval
 #' @importFrom "coda" as.mcmc
 #' @importFrom "rstan" summary
 #' @importFrom "rstan" extract
 #' @export
-plot_exposures <- function(samples, prob = 0.9, thresh = 1e-3, title = "Signature exposures", ...) {
+plot_exposures <- function(samples, prob = 0.9, thresh = 1e-3,
+                           title = "Signature exposures",
+                           primary_col = "dodgerblue3", secondary_col = "grey90",
+                           ...) {
     plt <- gen_bar_plot(samples, "exposures", title, prob, thresh, ...)
     plt$bars
     plt$top
     plt$bottom
-    legend("topright", legend = sprintf("%.0f%% HPD > %.3f", prob*100, thresh), fill = "dodgerblue3")
+    legend("topright", legend = sprintf("%.0f%% HPD > %.3f", prob*100, thresh), fill = primary_col)
 }
 
 #' Plots the fitted spectrum
