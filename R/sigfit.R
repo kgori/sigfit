@@ -31,6 +31,10 @@ gen_bar_plot <- function(samples, featurename, title, prob, thresh,
                          primary_col = "dodgerblue3", secondary_col = "grey90",
                          ...) {
     feature <- rstan::extract(samples, pars = featurename)[[featurename]]
+    if ( length(dim(feature)) > 2 && dim(feature)[2] > 1) {
+        stop("Plotting for multiple samples not implemented")
+    }
+    feature <- feature[,1,]
     mean_feature <- colMeans(feature)
     names(mean_feature) <- 1:length(mean_feature)
     error <- HPDinterval(as.mcmc(feature), prob = prob)
@@ -58,7 +62,8 @@ plot_exposures <- function(samples, prob = 0.9, thresh = 1e-3,
                            title = "Signature exposures",
                            primary_col = "dodgerblue3", secondary_col = "grey90",
                            ...) {
-    plt <- gen_bar_plot(samples, "exposures", title, prob, thresh, ...)
+    plt <- gen_bar_plot(samples, "exposures", title, prob, thresh, 
+                        primary_col, secondary_col, ...)
     plt$bars
     plt$top
     plt$bottom
