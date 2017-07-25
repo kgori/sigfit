@@ -10,21 +10,21 @@ extract_signatures(counts, nsignatures, method = "emu",
 }
 \arguments{
 \item{counts}{Matrix of mutation counts for each sample (rows) in each category
-(columns)}
+(columns).}
 
-\item{nsignatures}{Number of signatures to extract}
+\item{nsignatures}{Number of signatures to extract.}
 
-\item{method}{Either "emu" or "nmf" (though currently "nmf" is experimental)}
+\item{method}{Either "emu" or "nmf" (though currently "nmf" is experimental).}
 
-\item{opportunities}{Optional matrix of mutational opportunities for "emu" method.
-Dimensions should be same as for counts}
+\item{opportunities}{Optional matrix of mutational opportunities for "emu" method; must have same dimension as counts. 
+If equals to "human-genome" or "human-exome", the reference human genome/exome opportunities will be used for every sample.}
 
 \item{stanfunc}{"sampling"|"optimizing"|"vb" Choice of rstan inference strategy. 
 "sampling" is the full Bayesian MCMC approach, and is the default. "optimizing"
 returns the Maximum a Posteriori (MAP) point estimates via numerical optimization.
 "vb" uses Variational Bayes to approximate the full posterior.}
 
-\item{...}{Any other parameters to pass through to rstan}
+\item{...}{Any other parameters to pass through to rstan.}
 }
 \description{
 Extracts signatures from a set of mutation counts

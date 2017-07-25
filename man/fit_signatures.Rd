@@ -2,22 +2,24 @@
 % Please edit documentation in R/sigfit.R
 \name{fit_signatures}
 \alias{fit_signatures}
-\title{Runs the MCMC sampling chain to estimate exposures}
+\title{Runs MCMC to fit signatures and estimate exposures}
 \usage{
 fit_signatures(counts, signatures, prior = NULL, hierarchical = FALSE,
-  multi = FALSE, ...)
+  method = "nmf", ...)
 }
 \arguments{
-\item{counts}{Vector of mutation counts}
+\item{counts}{Matrix of mutation counts per category (columns) per genome sample (rows).}
 
-\item{signatures}{Matrix of mutational signatures}
+\item{signatures}{Matrix of mutational signatures (columns) to be fitted.}
 
-\item{prior}{Vector of the same length as signatures, to be used as the Dirichlet prior in the sampling chain. Default is all ones, i.e. uninformative}
+\item{prior}{Vector of the same length as signatures, to be used as the Dirichlet prior in the sampling chain. Default prior is uniform (uninformative).}
 
-\item{...}{Arguments to pass to rstan::sampling}
+\item{method}{Either "emu" or "nmf".}
+
+\item{...}{Arguments to pass to rstan::sampling.}
 }
 \description{
-Runs the MCMC sampling chain to estimate exposures
+Runs MCMC to fit signatures and estimate exposures
 }
 \examples{
  # Custom prior favours signature 1 over 2, 3 and 4
