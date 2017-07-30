@@ -7,7 +7,7 @@ data {
     simplex[N] mu[n];  // Matrix of signatures
 }
 transformed data {
-    # Signatures and opportunities recast as matrices
+    // Signatures and opportunities recast as matrices
     matrix[N, n] mu_mat;
     matrix[N, M] w_mat;
     

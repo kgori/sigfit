@@ -5,7 +5,8 @@
 \title{Plots estimated exposure of each signature}
 \usage{
 plot_exposures(samples, prob = 0.9, thresh = 0.001,
-  title = "Signature exposures", ...)
+  title = "Signature exposures", primary_col = "dodgerblue3",
+  secondary_col = "grey90", ...)
 }
 \arguments{
 \item{samples}{The MCMC samples}
@@ -15,6 +16,10 @@ plot_exposures(samples, prob = 0.9, thresh = 0.001,
 \item{thresh}{Signatures with a lower HPDI below this value are coloured grey}
 
 \item{title}{The main title of this plot}
+
+\item{primary_col}{The colour to plot strongly supported exposures (default=dodgerblue3)}
+
+\item{secondary_col}{The colour to plot weakly supported exposures (default=grey90)}
 
 \item{...}{Arguments to pass through to graphics::barplot}
 }

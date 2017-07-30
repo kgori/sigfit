@@ -2,6 +2,7 @@
 
 export(extract_signatures)
 export(fetch_cosmic_data)
+export(fit_extract_signatures)
 export(fit_signatures)
 export(plot_exposures)
 export(plot_signatures)
