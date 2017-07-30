@@ -21,6 +21,88 @@ fetch_cosmic_data <- function(reorder = TRUE, remove_zeros = TRUE) {
     cosmic.sigs
 }
 
+#' Returns human genome or exome trinucleotide frequencies. This is useful to
+#' de-normalize signatures that were obtained using the mutational opportunities
+#' from the human genome/exome, in order to compare them to signatures extracted
+#' without incorporating opportunities.
+#' @param type Either "genome" (default) or "exome".
+#' @examples
+#' Extract signatures using human exome opportunitites
+#' samples <- sigfit::extract_signatures(mycounts, nsignatures = 3, method = "emu", opportunities = "human-exome")
+#' sigs <- retrieve_pars(samples, "signatures")
+#' 
+#' # De-normalize (mean) extracted signatures
+#' freqs <- human_trinuc_freqs("exome")
+#' denorm_sigs <- apply(sigs, 1, function(sig) { 
+#'      tmp <- sig[,1] * freqs
+#'      tmp / sum(tmp)
+#' })
+#' @useDynLib sigfit, .registration = TRUE
+#' @export
+human_trinuc_freqs <- function(type = "genome") {
+    if (type == "genome") {
+        # Human genome trinucleotide frequencies (from EMu)
+        matrix(rep(c(1.14e+08, 6.60e+07, 1.43e+07, 9.12e+07, # C>A @ AC[ACGT]
+                     1.05e+08, 7.46e+07, 1.57e+07, 1.01e+08, # C>A @ CC[ACGT]
+                     8.17e+07, 6.76e+07, 1.35e+07, 7.93e+07, # C>A @ GC[ACGT]
+                     1.11e+08, 8.75e+07, 1.25e+07, 1.25e+08, # C>A @ TC[ACGT]
+                     1.14e+08, 6.60e+07, 1.43e+07, 9.12e+07, # C>G @ AC[ACGT]
+                     1.05e+08, 7.46e+07, 1.57e+07, 1.01e+08, # C>G @ CC[ACGT]
+                     8.17e+07, 6.76e+07, 1.35e+07, 7.93e+07, # C>G @ GC[ACGT]
+                     1.11e+08, 8.75e+07, 1.25e+07, 1.25e+08, # C>G @ TC[ACGT]
+                     1.14e+08, 6.60e+07, 1.43e+07, 9.12e+07, # C>T @ AC[ACGT]
+                     1.05e+08, 7.46e+07, 1.57e+07, 1.01e+08, # C>T @ CC[ACGT]
+                     8.17e+07, 6.76e+07, 1.35e+07, 7.93e+07, # C>T @ GC[ACGT]
+                     1.11e+08, 8.75e+07, 1.25e+07, 1.25e+08, # C>T @ TC[ACGT]
+                     1.17e+08, 7.57e+07, 1.04e+08, 1.41e+08, # T>A @ AC[ACGT]
+                     7.31e+07, 9.55e+07, 1.15e+08, 1.13e+08, # T>A @ CC[ACGT]
+                     6.43e+07, 5.36e+07, 8.52e+07, 8.27e+07, # T>A @ GC[ACGT]
+                     1.18e+08, 1.12e+08, 1.07e+08, 2.18e+08, # T>A @ TC[ACGT]
+                     1.17e+08, 7.57e+07, 1.04e+08, 1.41e+08, # T>C @ AC[ACGT]
+                     7.31e+07, 9.55e+07, 1.15e+08, 1.13e+08, # T>C @ CC[ACGT]
+                     6.43e+07, 5.36e+07, 8.52e+07, 8.27e+07, # T>C @ GC[ACGT]
+                     1.18e+08, 1.12e+08, 1.07e+08, 2.18e+08, # T>C @ TC[ACGT]
+                     1.17e+08, 7.57e+07, 1.04e+08, 1.41e+08, # T>G @ AC[ACGT]
+                     7.31e+07, 9.55e+07, 1.15e+08, 1.13e+08, # T>G @ AC[ACGT]
+                     6.43e+07, 5.36e+07, 8.52e+07, 8.27e+07, # T>G @ AG[ACGT]
+                     1.18e+08, 1.12e+08, 1.07e+08, 2.18e+08),# T>G @ AT[ACGT]
+                   nrow(counts)),
+               nrow = nrow(counts), ncol = ncol(counts), byrow = T)
+    }
+    else if (type == "exome") {
+        # Human exome trinucleotide frequencies (from EMu)
+        matrix(rep(c(1940794, 1442408, 514826, 1403756,
+                     2277398, 2318284, 774498, 2269674,
+                     1740752, 1968596, 631872, 1734468,
+                     1799540, 1910984, 398440, 2024770,
+                     1940794, 1442408, 514826, 1403756,
+                     2277398, 2318284, 774498, 2269674,
+                     1740752, 1968596, 631872, 1734468,
+                     1799540, 1910984, 398440, 2024770,
+                     1940794, 1442408, 514826, 1403756,
+                     2277398, 2318284, 774498, 2269674,
+                     1740752, 1968596, 631872, 1734468,
+                     1799540, 1910984, 398440, 2024770,
+                     1299256, 1166912, 1555012, 1689928,
+                     978400,  2119248, 2650754, 1684488,
+                     884052,  1173252, 1993110, 1251508,
+                     1391660, 1674368, 1559846, 2850934,
+                     1299256, 1166912, 1555012, 1689928,
+                     978400,  2119248, 2650754, 1684488,
+                     884052,  1173252, 1993110, 1251508,
+                     1391660, 1674368, 1559846, 2850934,
+                     1299256, 1166912, 1555012, 1689928,
+                     978400,  2119248, 2650754, 1684488,
+                     884052,  1173252, 1993110, 1251508,
+                     1391660, 1674368, 1559846, 2850934),
+                   nrow(counts)),
+               nrow = nrow(counts), ncol = ncol(counts), byrow = T)
+    }
+    else {
+        stop("type must be either \"genome\" or \"exome\"")
+    }
+}
+
 #' Access stan models
 #' @export
 stan_models <- function() {
@@ -71,10 +153,12 @@ plot_spectrum <- function(samples, prob = 0.9, title = "Fitted spectrum", ...) {
     plt$bottom
 }
 
-#' Obtain summary values for a set of model parameters (signatures or exposures) from a stanfit object.
+#' Obtains summary values for a set of model parameters (signatures or exposures) from a stanfit object.
 #' @param object An object of class stanfit.
-#' @param feature Name of the parameter set to extract; eiter "signatures" or "exposures".
+#' @param feature Name of the parameter set to extract; either "signatures" or "exposures".
 #' @param prob A numeric scalar in the interval (0,1) giving the target probability content of the HPD intervals.
+#' @param signature_names Vector containing the names of the signatures used for fitting. Used only when 
+#' retrieving exposures from fitted signatures.
 #' @examples
 #' # Extract signatures using the EMu (Poisson) model
 #' samples <- sigfit::extract_signatures(mycounts, nsignatures = 3, method = "emu", opportunities = "human-genome")
@@ -88,36 +172,24 @@ plot_spectrum <- function(samples, prob = 0.9, title = "Fitted spectrum", ...) {
 #' @importFrom "rstan" extract
 #' @importFrom "coda" HPDinterval
 #' @export
-retrieve_pars <- function(object, feature, prob = 0.95) {
+retrieve_pars <- function(object, feature, prob = 0.95, signature_names = NULL) {
     feat <- rstan::extract(object, pars = feature)[[feature]]
-    # Create 3D-array
     # Multi-sample case
     if (length(dim(feat)) > 2) {
         names1 <- ifelse(feature == "signatures",
-                         paste("Signature", LETTERS[1:dim(feat)[2]]),
+                         ifelse(!is.null(signature_names),
+                                signature_names,
+                                paste("Signature", LETTERS[1:dim(feat)[2]])),
                          NULL)
         names2 <- ifelse(feature == "exposures",
-                         paste("Signature", LETTERS[1:dim(feat)[3]]),
+                         ifelse(!is.null(signature_names),
+                                signature_names,
+                                paste("Signature", LETTERS[1:dim(feat)[3]])),
                          NULL)
         # for signatures: dims = (signatures, categories, mean/lwr/upr)
         # for exposures: dims = (samples, signatures, mean/lwr/upr)
         feat.summ <- array(NA, dim = c(dim(feat)[2], dim(feat)[3], 3),
                            dimnames = list(names1, names2, c("mean", paste0(c("lower_", "upper_"), prob))))
-    } 
-    # Single-sample case
-    else {
-        names1 <- ifelse(feature == "signatures",
-                         "Signature 1",
-                         NULL)
-        names2 <- ifelse(feature == "exposures",
-                         paste("Signature", LETTERS[1:dim(feat)[2]]),
-                         NULL)
-        feat.summ <- array(NA, dim = c(1, dim(feat)[2], 3),
-                           dimnames = list(names1, names2, c("mean", paste0(c("lower_", "upper_"), prob))))
-    }
-    # Fill array
-    # Multi-sample case
-    if (length(dim(feat)) > 2) {
         for (i in 1:dim(feat.summ)[1]) {
             feat.summ[i,,1] <- colMeans(feat[,i,])
             feat.summ[i,,2:3] <- coda::HPDinterval(coda::as.mcmc(feat[,i,]), prob = prob)
@@ -125,6 +197,18 @@ retrieve_pars <- function(object, feature, prob = 0.95) {
     } 
     # Single-sample case
     else {
+        names1 <- ifelse(feature == "signatures",
+                         ifelse(!is.null(signature_names),
+                                signature_names,
+                                "Signature A"),
+                         NULL)
+        names2 <- ifelse(feature == "exposures",
+                         ifelse(!is.null(signature_names),
+                                signature_names,
+                                paste("Signature", LETTERS[1:dim(feat)[2]])),
+                         NULL)
+        feat.summ <- array(NA, dim = c(1, dim(feat)[2], 3),
+                           dimnames = list(names1, names2, c("mean", paste0(c("lower_", "upper_"), prob))))
         feat.summ[1,,1] <- colMeans(feat)
         feat.summ[1,,2:3] <- coda::HPDinterval(coda::as.mcmc(feat), prob = prob)
     }
@@ -225,62 +309,10 @@ extract_signatures <- function(counts, nsignatures, method = "emu",
             opportunities <- matrix(1, nrow = nrow(counts), ncol = ncol(counts))
         }
         else if (opportunities == "human-genome") {
-            # Human genome trinucleotide frequencies (from EMu)
-            opportunities <- matrix(rep(c(1.14e+08, 6.60e+07, 1.43e+07, 9.12e+07, # C>A @ AC[ACGT]
-                                          1.05e+08, 7.46e+07, 1.57e+07, 1.01e+08, # C>A @ CC[ACGT]
-                                          8.17e+07, 6.76e+07, 1.35e+07, 7.93e+07, # C>A @ GC[ACGT]
-                                          1.11e+08, 8.75e+07, 1.25e+07, 1.25e+08, # C>A @ TC[ACGT]
-                                          1.14e+08, 6.60e+07, 1.43e+07, 9.12e+07, # C>G @ AC[ACGT]
-                                          1.05e+08, 7.46e+07, 1.57e+07, 1.01e+08, # C>G @ CC[ACGT]
-                                          8.17e+07, 6.76e+07, 1.35e+07, 7.93e+07, # C>G @ GC[ACGT]
-                                          1.11e+08, 8.75e+07, 1.25e+07, 1.25e+08, # C>G @ TC[ACGT]
-                                          1.14e+08, 6.60e+07, 1.43e+07, 9.12e+07, # C>T @ AC[ACGT]
-                                          1.05e+08, 7.46e+07, 1.57e+07, 1.01e+08, # C>T @ CC[ACGT]
-                                          8.17e+07, 6.76e+07, 1.35e+07, 7.93e+07, # C>T @ GC[ACGT]
-                                          1.11e+08, 8.75e+07, 1.25e+07, 1.25e+08, # C>T @ TC[ACGT]
-                                          1.17e+08, 7.57e+07, 1.04e+08, 1.41e+08, # T>A @ AC[ACGT]
-                                          7.31e+07, 9.55e+07, 1.15e+08, 1.13e+08, # T>A @ CC[ACGT]
-                                          6.43e+07, 5.36e+07, 8.52e+07, 8.27e+07, # T>A @ GC[ACGT]
-                                          1.18e+08, 1.12e+08, 1.07e+08, 2.18e+08, # T>A @ TC[ACGT]
-                                          1.17e+08, 7.57e+07, 1.04e+08, 1.41e+08, # T>C @ AC[ACGT]
-                                          7.31e+07, 9.55e+07, 1.15e+08, 1.13e+08, # T>C @ CC[ACGT]
-                                          6.43e+07, 5.36e+07, 8.52e+07, 8.27e+07, # T>C @ GC[ACGT]
-                                          1.18e+08, 1.12e+08, 1.07e+08, 2.18e+08, # T>C @ TC[ACGT]
-                                          1.17e+08, 7.57e+07, 1.04e+08, 1.41e+08, # T>G @ AC[ACGT]
-                                          7.31e+07, 9.55e+07, 1.15e+08, 1.13e+08, # T>G @ AC[ACGT]
-                                          6.43e+07, 5.36e+07, 8.52e+07, 8.27e+07, # T>G @ AG[ACGT]
-                                          1.18e+08, 1.12e+08, 1.07e+08, 2.18e+08),# T>G @ AT[ACGT]
-                                        nrow(counts)),
-                                    nrow = nrow(counts), ncol = ncol(counts), byrow = T)
+            opportunities <- human_trinuc_freqs("genome")
         }
         else if (opportunities == "human-exome") {
-            # Human exome trinucleotide frequencies (from EMu)
-            opportunities <- matrix(rep(c(1940794, 1442408, 514826, 1403756,
-                                          2277398, 2318284, 774498, 2269674,
-                                          1740752, 1968596, 631872, 1734468,
-                                          1799540, 1910984, 398440, 2024770,
-                                          1940794, 1442408, 514826, 1403756,
-                                          2277398, 2318284, 774498, 2269674,
-                                          1740752, 1968596, 631872, 1734468,
-                                          1799540, 1910984, 398440, 2024770,
-                                          1940794, 1442408, 514826, 1403756,
-                                          2277398, 2318284, 774498, 2269674,
-                                          1740752, 1968596, 631872, 1734468,
-                                          1799540, 1910984, 398440, 2024770,
-                                          1299256, 1166912, 1555012, 1689928,
-                                          978400,  2119248, 2650754, 1684488,
-                                          884052,  1173252, 1993110, 1251508,
-                                          1391660, 1674368, 1559846, 2850934,
-                                          1299256, 1166912, 1555012, 1689928,
-                                          978400,  2119248, 2650754, 1684488,
-                                          884052,  1173252, 1993110, 1251508,
-                                          1391660, 1674368, 1559846, 2850934,
-                                          1299256, 1166912, 1555012, 1689928,
-                                          978400,  2119248, 2650754, 1684488,
-                                          884052,  1173252, 1993110, 1251508,
-                                          1391660, 1674368, 1559846, 2850934),
-                                        nrow(counts)),
-                                    nrow = nrow(counts), ncol = ncol(counts), byrow = T)
+            opportunities <- human_trinuc_freqs("exome")
         }
         stopifnot(all(dim(opportunities) == dim(counts)))
         
