@@ -6,6 +6,17 @@ remove_zeros_ <- function(mtx, min_allowed = 1e-9) {
     })
 }
 
+# Builds a mutational catalogue from a table containing the genomic location
+# and base change of each single-nucleotide variant.
+# @param variants Table with one row per single-nucleotide variant, and four columns:
+# Chromosome (character, must coincide with chromosome names in the reference genome); 
+# Position (integer); Ref base (character, 'A'/'C'/'G'/'T'); and Alt base (character, 
+# 'A'/'C'/'G'/'T').
+# @param genome Path to a FASTA file containing the reference genome to use. By default,
+# the human genome will be used ("human").
+# 
+# @export
+
 #' Fetches COSMIC's estimated mutational signatures
 #' @param reorder Reorders the matrix by substitution type and trinucleotide
 #' @export
@@ -17,7 +28,7 @@ fetch_cosmic_data <- function(reorder = TRUE, remove_zeros = TRUE) {
     }
     rownames(cosmic.sigs) <- cosmic.sigs[["Somatic Mutation Type"]]
     cosmic.sigs <- cosmic.sigs[, paste("Signature", 1:30)]
-    if(remove_zeros) cosmic.sigs <- remove_zeros_(cosmic.sigs)
+    if (remove_zeros) cosmic.sigs <- remove_zeros_(cosmic.sigs)
     cosmic.sigs
 }
 
@@ -173,19 +184,23 @@ plot_spectrum <- function(samples, prob = 0.9, title = "Fitted spectrum", ...) {
 #' retrieving exposures from fitted signatures.
 #' @examples
 #' # Extract signatures using the EMu (Poisson) model
-#' samples <- sigfit::extract_signatures(mycounts, nsignatures = 3, method = "emu", opportunities = "human-genome")
+#' samples <- extract_signatures(mycounts, nsignatures = 3, method = "emu", opportunities = "human-genome")
 #' 
 #' # Retrieve array of signatures
-#' signatures <- sigfit::retrieve_pars(samples, "signatures")
+#' signatures <- retrieve_pars(samples, "signatures")
 #' 
 #' # Retrieve array of exposures using 90% HPD intervals
-#' exposures <- sigfit::retrieve_pars(samples, "exposures", prob = 0.9)
+#' exposures <- retrieve_pars(samples, "exposures", prob = 0.9)
+#' 
+#' # Plot mean exposures
+#' barplot(exposures[,,1])  # or barplot(exposures[,,"mean"])
 #' @useDynLib sigfit, .registration = TRUE
 #' @importFrom "rstan" extract
 #' @importFrom "coda" HPDinterval
+#' @importFrom "coda" as.mcmc
 #' @export
 retrieve_pars <- function(object, feature, prob = 0.95, signature_names = NULL) {
-    feat <- rstan::extract(object, pars = feature)[[feature]]
+    feat <- extract(object, pars = feature)[[feature]]
     # Multi-sample case
     if (length(dim(feat)) > 2) {
         names1 <- ifelse(feature == "signatures",
@@ -204,7 +219,7 @@ retrieve_pars <- function(object, feature, prob = 0.95, signature_names = NULL) 
                            dimnames = list(names1, names2, c("mean", paste0(c("lower_", "upper_"), prob))))
         for (i in 1:dim(feat.summ)[1]) {
             feat.summ[i,,1] <- colMeans(feat[,i,])
-            feat.summ[i,,2:3] <- coda::HPDinterval(coda::as.mcmc(feat[,i,]), prob = prob)
+            feat.summ[i,,2:3] <- HPDinterval(as.mcmc(feat[,i,]), prob = prob)
         }
     } 
     # Single-sample case
@@ -222,7 +237,7 @@ retrieve_pars <- function(object, feature, prob = 0.95, signature_names = NULL) 
         feat.summ <- array(NA, dim = c(1, dim(feat)[2], 3),
                            dimnames = list(names1, names2, c("mean", paste0(c("lower_", "upper_"), prob))))
         feat.summ[1,,1] <- colMeans(feat)
-        feat.summ[1,,2:3] <- coda::HPDinterval(coda::as.mcmc(feat), prob = prob)
+        feat.summ[1,,2:3] <- HPDinterval(as.mcmc(feat), prob = prob)
     }
     feat.summ
 }
@@ -235,10 +250,10 @@ retrieve_pars <- function(object, feature, prob = 0.95, signature_names = NULL) 
 #' @param ... Arguments to pass to rstan::sampling.
 #' @examples
 #'  # Custom prior favours signature 1 over 2, 3 and 4
-#' samples <- sigfit::fit_signatures(mycounts, mysignatures, prior = c(5, 1, 1, 1))
+#' samples <- fit_signatures(mycounts, mysignatures, prior = c(5, 1, 1, 1))
 #' 
 #' # Run a single chain for quite a long time
-#' samples <- sigfit::fit_signatures(mycounts, mysignatures, chains = 1, niter = 13000, warmup = 3000)
+#' samples <- fit_signatures(mycounts, mysignatures, chains = 1, niter = 13000, warmup = 3000)
 #' @useDynLib sigfit, .registration = TRUE
 #' @importFrom "rstan" sampling
 #' @export
@@ -291,7 +306,7 @@ fit_signatures <- function(counts, signatures, prior = NULL, hierarchical = FALS
         )
         model <- stanmodels$sigfit_fit_nmf
     }
-    rstan::sampling(model, data = dat, ...)
+    sampling(model, data = dat, ...)
 }
 
 #' Extracts signatures from a set of mutation counts
@@ -299,10 +314,11 @@ fit_signatures <- function(counts, signatures, prior = NULL, hierarchical = FALS
 #' 
 #' @param counts Matrix of mutation counts for each sample (rows) in each category
 #' (columns).
-#' @param nsignatures Number of signatures to extract.
+#' @param nsignatures Number (or range of numbers) of signatures to extract.
 #' @param method Either "emu" or "nmf" (though currently "nmf" is experimental).
 #' @param opportunities Optional matrix of mutational opportunities for "emu" method; must have same dimension as counts. 
 #' If equals to "human-genome" or "human-exome", the reference human genome/exome opportunities will be used for every sample.
+#' @param exposures_prior Single numeric value to use for all the exposure priors; by default, 0.5 (i.e. Jeffreys prior).
 #' @param stanfunc "sampling"|"optimizing"|"vb" Choice of rstan inference strategy. 
 #' "sampling" is the full Bayesian MCMC approach, and is the default. "optimizing"
 #' returns the Maximum a Posteriori (MAP) point estimates via numerical optimization.
@@ -312,10 +328,13 @@ fit_signatures <- function(counts, signatures, prior = NULL, hierarchical = FALS
 #' @importFrom "rstan" sampling
 #' @importFrom "rstan" optimizing
 #' @importFrom "rstan" vb
+#' @importFrom "loo" loo
 #' @export
 extract_signatures <- function(counts, nsignatures, method = "emu", 
                                opportunities = NULL, exposures_prior = 0.5, 
                                stanfunc = "sampling", ...) {
+    out <- vector(mode = "list", length = max(nsignatures))
+    
     if (method == "emu") {
         if (is.null(opportunities)) {
             opportunities <- matrix(1, nrow = nrow(counts), ncol = ncol(counts))
@@ -332,38 +351,60 @@ extract_signatures <- function(counts, nsignatures, method = "emu",
         data <- list(
             N = ncol(counts),
             M = nrow(counts),
-            n = nsignatures,
+            n = 1,
             counts = as.matrix(counts),
             opps = as.matrix(opportunities)
         )
     }
-    
     else if (method == "nmf") {
         if (!is.null(opportunities)) {
-            warning("Using \"nmf\" model; opportunities will be ignored.")
+            warning("Using \"nmf\" model: opportunities will be ignored.")
         }
+        
         model <- stanmodels$sigfit_ext_nmf
         data <- list(
             G = nrow(counts),
             C = ncol(counts),
-            S = nsignatures,
+            S = 1,
             counts = counts,
             exposures_prior_val = exposures_prior
         )
     }
+        
+    # Extract signatures for each nsignatures value
+    for (n in nsignatures) {
+        cat("Extracting", n, "signatures\n")
+        
+        if (method == "emu") {
+            data$n <- n
+        }
+        else if (method == "nmf") {
+            data$S <- n
+        }
+        
+        if (stanfunc == "sampling") {
+            cat("Stan sampling:")
+            out[[n]] <- sampling(model, data = data, chains = 1, ...)
+        }
+        else if (stanfunc == "optimizing") {
+            cat("Stan optimizing:")
+            out[[n]] <- optimizing(model, data = data, ...)
+        }
+        else if (stanfunc == "vb") {
+            cat("Stan vb:")
+            out[[n]] <- vb(model, data = data, ...)
+        }
+    }
     
-    if (stanfunc == "sampling") {
-        cat("Stan sampling:")
-        return(sampling(model, data = data, chains = 1, ...))
+    # Identify best number of signatures using LOOIC
+    out$looic <- rep(NA, max(nsignatures))
+    for (n in nsignatures) {
+        out$looic[n] <- loo(extract_log_lik(out[[n]]))$looic
     }
-    else if (stanfunc == "optimizing") {
-        cat("Stan optimizing:")
-        return(optimizing(model, data = data, ...))
-    }
-    else if (stanfunc == "vb") {
-        cat("Stan vb")
-        return(vb(model, data = data, ...))
-    }
+    out$best_N <- which(min(out$looic, na.rm=T))
+    cat("Best number of signatures (lowest LOOIC) is", out$best_N)
+    
+    out
 }
 
 #' Fits signatures to estimate exposures in a set of mutation counts
@@ -408,14 +449,14 @@ fit_extract_signatures <- function(counts, signatures, num_extra_sigs,
     
     if (stanfunc == "sampling") {
         cat("Stan sampling:")
-        return(rstan::sampling(model, data = data, chains = 1, ...))
+        sampling(model, data = data, chains = 1, ...)
     }
     else if (stanfunc == "optimizing") {
         cat("Stan optimizing:")
-        return(rstan::optimizing(model, data = data, ...))
+        optimizing(model, data = data, ...)
     }
     else if (stanfunc == "vb") {
         cat("Stan vb")
-        return(rstan::vb(model, data = data, ...))
+        vb(model, data = data, ...)
     }
 }
