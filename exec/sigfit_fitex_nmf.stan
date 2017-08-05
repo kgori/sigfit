@@ -13,31 +13,31 @@ transformed data {
     for (c in 1:C) {
         signature_prior[c] = 0.5;
     }
-    for (s in 1:T) {
-        exposures_prior[s] = 0.5;
+    for (t in 1:T) {
+        exposures_prior[t] = 0.5;
     }
 }
 parameters {
     simplex[C] extra_sigs[N];  // additional signatures to extract
-    simplex[T] exposures[G];   // includes exposure for extra_signature
+    simplex[T] exposures[G];   // includes exposures for extra_sigs
 }
 transformed parameters {
     matrix[N, C] extra_sigs_mat;
     matrix[G, T] exposures_mat;
     matrix[T, C] signatures;
-    matrix<lower=0>[G, C] probabilities;
-    for (i in 1:G) {
-        for (j in 1:T) {
-            exposures_mat[i, j] = exposures[i, j];
+    matrix<lower=0>[G, C] probs;
+    for (g in 1:G) {
+        for (t in 1:T) {
+            exposures_mat[g, t] = exposures[g, t];
         }
     }
-    for (i in 1:N) {
-        for (j in 1:C) {
-            extra_sigs_mat[i, j] = extra_sigs[i, j];
+    for (n in 1:N) {
+        for (c in 1:C) {
+            extra_sigs_mat[n, c] = extra_sigs[n, c];
         }
     }
     signatures = append_row(fixed_sigs, extra_sigs_mat);
-    probabilities = exposures_mat * signatures;
+    probs = exposures_mat * signatures;
 }
 model {
     for (n in 1:N) {
@@ -45,12 +45,12 @@ model {
     }
     for (g in 1:G) {
         exposures[g] ~ dirichlet(exposures_prior);
-        counts[g] ~ multinomial(to_vector(probabilities[g]));
+        counts[g] ~ multinomial(to_vector(probs[g]));
     }
 }
 generated quantities {
     vector[G] log_lik;
     for (g in 1:G) {
-        log_lik[g] = multinomial_lpmf(counts[g] | to_vector(probabilities[g]));
+        log_lik[g] = multinomial_lpmf(counts[g] | to_vector(probs[g]));
     }
 }

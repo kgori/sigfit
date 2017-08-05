@@ -15,22 +15,22 @@ parameters {
 transformed parameters {
     matrix[G, S] exposures_mat;
     matrix<lower=0, upper=1>[G, C] probs;
-    for (i in 1:G) {
-        for (j in 1:S) {
-            exposures_mat[i, j] = exposures[i, j];
+    for (g in 1:G) {
+        for (s in 1:S) {
+            exposures_mat[g, s] = exposures[g, s];
         }
     }
     probs = exposures_mat * signatures;
 }
 model {
-    for (i in 1:G) {
-        exposures[i] ~ dirichlet(alpha);
-        counts[i] ~ multinomial(probs[i]);
+    for (g in 1:G) {
+        exposures[g] ~ dirichlet(alpha);
+        counts[g] ~ multinomial(probs[g]);
     }
 }
 generated quantities {
     vector[G] log_lik;
-    for (i in 1:G) {
-        log_lik[i] = multinomial_lpmf(counts[i] | probs[i]);
+    for (g in 1:G) {
+        log_lik[g] = multinomial_lpmf(counts[g] | probs[g]);
     }
 }
