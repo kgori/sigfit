@@ -6,16 +6,57 @@ remove_zeros_ <- function(mtx, min_allowed = 1e-9) {
     })
 }
 
-# Builds a mutational catalogue from a table containing the genomic location
-# and base change of each single-nucleotide variant.
-# @param variants Table with one row per single-nucleotide variant, and four columns:
-# Chromosome (character, must coincide with chromosome names in the reference genome); 
-# Position (integer); Ref base (character, 'A'/'C'/'G'/'T'); and Alt base (character, 
-# 'A'/'C'/'G'/'T').
-# @param genome Path to a FASTA file containing the reference genome to use. By default,
-# the human genome will be used ("human").
-# 
-# @export
+#' Reverse complement a nucleotide sequence string
+#' Input is string, output is char vector
+rev_comp <- function(nucleotides) {
+    as.character(rev(sapply(strsplit(nucleotides, "")[[1]], function(nuc) {
+        if (nuc == "A") "T"
+        else if (nuc == "C") "G"
+        else if (nuc == "G") "C"
+        else if (nuc == "T") "A"
+    })))
+}
+
+#' Builds a mutational catalogue from a table containing the base change and
+#' trinucleotide context of each single-nucleotide variant.
+#' @param variants Table with one row per single-nucleotide variant, and three columns:
+#' REF base (character in {A,C,G,T}); ALT base (character in {A,C,G,T}); and trinucleotide
+#' context at the variant location (sequence between the positions immediately after and 
+#' before the variant, in string format; e.g. "TCA").
+#' @export
+build_catalogue <- function(variants) {
+    # Check that REF base coincides with middle base in trinucleotide
+    if (any(variants[,1] != sapply(strsplit(variants[,3], split=""), function(x) x[2])))
+        stop("REF base (first column) must always be equal to middle base of the trinucleotide context (third column).")
+    
+    # Obtain mutation types, collapsed such that they refer to pyrimidine bases
+    vars_collapsed <- apply(variants, 1, function(var) {
+        if (var[1] %in% c("C", "T")) {
+            trinuc <- strsplit(var[3], "")[[1]]
+            alt <- var[2]
+        }
+        else {
+            trinuc <- rev_comp(var[3])
+            alt <- rev_comp(var[2])
+        }
+        paste0(paste(trinuc, collapse=""), ">", trinuc[1], alt, trinuc[3])
+    })
+    
+    # Define the 96 (pyrimidine) trinucleotide mutation types
+    bases <- c("A", "C", "G", "T")
+    mut_types <- paste0(rep(rep(bases, each = 4), 6),
+                        rep(bases[c(2, 4)], each = 48),
+                        rep(bases, 6 * 16 / 4),
+                        ">",
+                        rep(rep(bases, each = 4), 6),
+                        c(rep(bases[-2], each = 16), rep(bases[-4], each = 16)),
+                        rep(bases, 6 * 16 / 4))
+
+    # Count number of occurrences of each type
+    sapply(mut_types, function(type) {
+        sum(grepl(type, vars_collapsed, fixed = TRUE))
+    })
+}
 
 #' Fetches COSMIC's estimated mutational signatures
 #' @param reorder Reorders the matrix by substitution type and trinucleotide
@@ -44,7 +85,7 @@ fetch_cosmic_data <- function(reorder = TRUE, remove_zeros = TRUE) {
 #' 
 #' # De-normalize (mean) extracted signatures
 #' freqs <- human_trinuc_freqs("exome")
-#' denorm_sigs <- apply(sigs, 1, function(sig) { 
+#' sigs_denorm <- apply(sigs, 1, function(sig) { 
 #'      tmp <- sig[,1] * freqs
 #'      tmp / sum(tmp)
 #' })
