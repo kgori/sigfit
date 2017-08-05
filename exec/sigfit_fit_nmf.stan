@@ -25,12 +25,12 @@ transformed parameters {
 model {
     for (g in 1:G) {
         exposures[g] ~ dirichlet(alpha);
-        counts[g] ~ multinomial(probs[g]);
+        counts[g] ~ multinomial(to_vector(probs[g]));
     }
 }
 generated quantities {
     vector[G] log_lik;
     for (g in 1:G) {
-        log_lik[g] = multinomial_lpmf(counts[g] | probs[g]);
+        log_lik[g] = multinomial_lpmf(counts[g] | to_vector(probs[g]));
     }
 }
