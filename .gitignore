@@ -10,3 +10,4 @@ src/*.dll
 sigfit.Rproj
 src/include/models.hpp.bak
 tools/make_cpp.Rout
+src/RcppExports.cpp
