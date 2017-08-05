@@ -1,8 +1,8 @@
 data {
-    int<lower=1> G;
-    int<lower=1> C;
-    int<lower=1> S;
-    int<lower=0> counts[G, C];
+    int<lower=1> C;  // number of mutation categories
+    int<lower=1> S;  // number of mutational signatures
+    int<lower=1> G;  // number of genomes
+    int<lower=0> counts[G, C];  // data = counts per category (columns) per genome sample (rows)
     real<lower=0> exposures_prior_val;
     // real<lower=0> signatures_prior[S, C];
 }
@@ -28,23 +28,23 @@ parameters {
     simplex[C] signatures[S];
 }
 transformed parameters {
-    matrix<lower=0>[G, C] probabilities;
+    matrix<lower=0>[G, C] probs;
     {
-        matrix[G, S] exposuresMat;
-        matrix[S, C] signaturesMat;
+        matrix[G, S] exposures_mat;
+        matrix[S, C] signatures_mat;
     
-        for (i in 1:G) {
-            for (j in 1:S) {
-                exposuresMat[i, j] = exposures[i, j];
+        for (g in 1:G) {
+            for (s in 1:S) {
+                exposures_mat[g, s] = exposures[g, s];
             }
         }
         
-        for (i in 1:S) {
-            for (j in 1:C) {
-                signaturesMat[i, j] = signatures[i, j];
+        for (s in 1:S) {
+            for (c in 1:C) {
+                signatures_mat[s, c] = signatures[s, c];
             }
         }
-        probabilities = exposuresMat * signaturesMat;
+        probs = exposures_mat * signatures_mat;
     }
 }
 model {
@@ -60,12 +60,12 @@ model {
     
     for (g in 1:G) {
         exposures[g] ~ dirichlet(exposures_prior);
-        counts[g] ~ multinomial(to_vector(probabilities[g]));
+        counts[g] ~ multinomial(to_vector(probs[g]));
     }
 }
 generated quantities {
     vector[G] log_lik;
     for (g in 1:G) {
-        log_lik[g] = multinomial_lpmf(counts[g] | to_vector(probabilities[g]));
+        log_lik[g] = multinomial_lpmf(counts[g] | to_vector(probs[g]));
     }
 }

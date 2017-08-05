@@ -6,16 +6,57 @@ remove_zeros_ <- function(mtx, min_allowed = 1e-9) {
     })
 }
 
-# Builds a mutational catalogue from a table containing the genomic location
-# and base change of each single-nucleotide variant.
-# @param variants Table with one row per single-nucleotide variant, and four columns:
-# Chromosome (character, must coincide with chromosome names in the reference genome); 
-# Position (integer); Ref base (character, 'A'/'C'/'G'/'T'); and Alt base (character, 
-# 'A'/'C'/'G'/'T').
-# @param genome Path to a FASTA file containing the reference genome to use. By default,
-# the human genome will be used ("human").
-# 
-# @export
+#' Reverse complement a nucleotide sequence string
+#' Input is string, output is char vector
+rev_comp <- function(nucleotides) {
+    as.character(rev(sapply(strsplit(nucleotides, "")[[1]], function(nuc) {
+        if (nuc == "A") "T"
+        else if (nuc == "C") "G"
+        else if (nuc == "G") "C"
+        else if (nuc == "T") "A"
+    })))
+}
+
+#' Builds a mutational catalogue from a table containing the base change and
+#' trinucleotide context of each single-nucleotide variant.
+#' @param variants Table with one row per single-nucleotide variant, and three columns:
+#' REF base (character in {A,C,G,T}); ALT base (character in {A,C,G,T}); and trinucleotide
+#' context at the variant location (sequence between the positions immediately after and 
+#' before the variant, in string format; e.g. "TCA").
+#' @export
+build_catalogue <- function(variants) {
+    # Check that REF base coincides with middle base in trinucleotide
+    if (any(variants[,1] != sapply(strsplit(variants[,3], split=""), function(x) x[2])))
+        stop("REF base (first column) must always be equal to middle base of the trinucleotide context (third column).")
+    
+    # Obtain mutation types, collapsed such that they refer to pyrimidine bases
+    vars_collapsed <- apply(variants, 1, function(var) {
+        if (var[1] %in% c("C", "T")) {
+            trinuc <- strsplit(var[3], "")[[1]]
+            alt <- var[2]
+        }
+        else {
+            trinuc <- rev_comp(var[3])
+            alt <- rev_comp(var[2])
+        }
+        paste0(paste(trinuc, collapse=""), ">", trinuc[1], alt, trinuc[3])
+    })
+    
+    # Define the 96 (pyrimidine) trinucleotide mutation types
+    bases <- c("A", "C", "G", "T")
+    mut_types <- paste0(rep(rep(bases, each = 4), 6),
+                        rep(bases[c(2, 4)], each = 48),
+                        rep(bases, 6 * 16 / 4),
+                        ">",
+                        rep(rep(bases, each = 4), 6),
+                        c(rep(bases[-2], each = 16), rep(bases[-4], each = 16)),
+                        rep(bases, 6 * 16 / 4))
+
+    # Count number of occurrences of each type
+    sapply(mut_types, function(type) {
+        sum(grepl(type, vars_collapsed, fixed = TRUE))
+    })
+}
 
 #' Fetches COSMIC's estimated mutational signatures
 #' @param reorder Reorders the matrix by substitution type and trinucleotide
@@ -44,7 +85,7 @@ fetch_cosmic_data <- function(reorder = TRUE, remove_zeros = TRUE) {
 #' 
 #' # De-normalize (mean) extracted signatures
 #' freqs <- human_trinuc_freqs("exome")
-#' denorm_sigs <- apply(sigs, 1, function(sig) { 
+#' sigs_denorm <- apply(sigs, 1, function(sig) { 
 #'      tmp <- sig[,1] * freqs
 #'      tmp / sum(tmp)
 #' })
@@ -53,61 +94,57 @@ fetch_cosmic_data <- function(reorder = TRUE, remove_zeros = TRUE) {
 human_trinuc_freqs <- function(type = "genome", counts) {
     if (type == "genome") {
         # Human genome trinucleotide frequencies (from EMu)
-        matrix(rep(c(1.14e+08, 6.60e+07, 1.43e+07, 9.12e+07, # C>A @ AC[ACGT]
-                     1.05e+08, 7.46e+07, 1.57e+07, 1.01e+08, # C>A @ CC[ACGT]
-                     8.17e+07, 6.76e+07, 1.35e+07, 7.93e+07, # C>A @ GC[ACGT]
-                     1.11e+08, 8.75e+07, 1.25e+07, 1.25e+08, # C>A @ TC[ACGT]
-                     1.14e+08, 6.60e+07, 1.43e+07, 9.12e+07, # C>G @ AC[ACGT]
-                     1.05e+08, 7.46e+07, 1.57e+07, 1.01e+08, # C>G @ CC[ACGT]
-                     8.17e+07, 6.76e+07, 1.35e+07, 7.93e+07, # C>G @ GC[ACGT]
-                     1.11e+08, 8.75e+07, 1.25e+07, 1.25e+08, # C>G @ TC[ACGT]
-                     1.14e+08, 6.60e+07, 1.43e+07, 9.12e+07, # C>T @ AC[ACGT]
-                     1.05e+08, 7.46e+07, 1.57e+07, 1.01e+08, # C>T @ CC[ACGT]
-                     8.17e+07, 6.76e+07, 1.35e+07, 7.93e+07, # C>T @ GC[ACGT]
-                     1.11e+08, 8.75e+07, 1.25e+07, 1.25e+08, # C>T @ TC[ACGT]
-                     1.17e+08, 7.57e+07, 1.04e+08, 1.41e+08, # T>A @ AC[ACGT]
-                     7.31e+07, 9.55e+07, 1.15e+08, 1.13e+08, # T>A @ CC[ACGT]
-                     6.43e+07, 5.36e+07, 8.52e+07, 8.27e+07, # T>A @ GC[ACGT]
-                     1.18e+08, 1.12e+08, 1.07e+08, 2.18e+08, # T>A @ TC[ACGT]
-                     1.17e+08, 7.57e+07, 1.04e+08, 1.41e+08, # T>C @ AC[ACGT]
-                     7.31e+07, 9.55e+07, 1.15e+08, 1.13e+08, # T>C @ CC[ACGT]
-                     6.43e+07, 5.36e+07, 8.52e+07, 8.27e+07, # T>C @ GC[ACGT]
-                     1.18e+08, 1.12e+08, 1.07e+08, 2.18e+08, # T>C @ TC[ACGT]
-                     1.17e+08, 7.57e+07, 1.04e+08, 1.41e+08, # T>G @ AC[ACGT]
-                     7.31e+07, 9.55e+07, 1.15e+08, 1.13e+08, # T>G @ AC[ACGT]
-                     6.43e+07, 5.36e+07, 8.52e+07, 8.27e+07, # T>G @ AG[ACGT]
-                     1.18e+08, 1.12e+08, 1.07e+08, 2.18e+08),# T>G @ AT[ACGT]
-                   nrow(counts)),
-               nrow = nrow(counts), ncol = ncol(counts), byrow = T)
+        c(1.14e+08, 6.60e+07, 1.43e+07, 9.12e+07, # C>A @ AC[ACGT]
+          1.05e+08, 7.46e+07, 1.57e+07, 1.01e+08, # C>A @ CC[ACGT]
+          8.17e+07, 6.76e+07, 1.35e+07, 7.93e+07, # C>A @ GC[ACGT]
+          1.11e+08, 8.75e+07, 1.25e+07, 1.25e+08, # C>A @ TC[ACGT]
+          1.14e+08, 6.60e+07, 1.43e+07, 9.12e+07, # C>G @ AC[ACGT]
+          1.05e+08, 7.46e+07, 1.57e+07, 1.01e+08, # C>G @ CC[ACGT]
+          8.17e+07, 6.76e+07, 1.35e+07, 7.93e+07, # C>G @ GC[ACGT]
+          1.11e+08, 8.75e+07, 1.25e+07, 1.25e+08, # C>G @ TC[ACGT]
+          1.14e+08, 6.60e+07, 1.43e+07, 9.12e+07, # C>T @ AC[ACGT]
+          1.05e+08, 7.46e+07, 1.57e+07, 1.01e+08, # C>T @ CC[ACGT]
+          8.17e+07, 6.76e+07, 1.35e+07, 7.93e+07, # C>T @ GC[ACGT]
+          1.11e+08, 8.75e+07, 1.25e+07, 1.25e+08, # C>T @ TC[ACGT]
+          1.17e+08, 7.57e+07, 1.04e+08, 1.41e+08, # T>A @ AC[ACGT]
+          7.31e+07, 9.55e+07, 1.15e+08, 1.13e+08, # T>A @ CC[ACGT]
+          6.43e+07, 5.36e+07, 8.52e+07, 8.27e+07, # T>A @ GC[ACGT]
+          1.18e+08, 1.12e+08, 1.07e+08, 2.18e+08, # T>A @ TC[ACGT]
+          1.17e+08, 7.57e+07, 1.04e+08, 1.41e+08, # T>C @ AC[ACGT]
+          7.31e+07, 9.55e+07, 1.15e+08, 1.13e+08, # T>C @ CC[ACGT]
+          6.43e+07, 5.36e+07, 8.52e+07, 8.27e+07, # T>C @ GC[ACGT]
+          1.18e+08, 1.12e+08, 1.07e+08, 2.18e+08, # T>C @ TC[ACGT]
+          1.17e+08, 7.57e+07, 1.04e+08, 1.41e+08, # T>G @ AC[ACGT]
+          7.31e+07, 9.55e+07, 1.15e+08, 1.13e+08, # T>G @ AC[ACGT]
+          6.43e+07, 5.36e+07, 8.52e+07, 8.27e+07, # T>G @ AG[ACGT]
+          1.18e+08, 1.12e+08, 1.07e+08, 2.18e+08) # T>G @ AT[ACGT]
     }
     else if (type == "exome") {
         # Human exome trinucleotide frequencies (from EMu)
-        matrix(rep(c(1940794, 1442408, 514826, 1403756,
-                     2277398, 2318284, 774498, 2269674,
-                     1740752, 1968596, 631872, 1734468,
-                     1799540, 1910984, 398440, 2024770,
-                     1940794, 1442408, 514826, 1403756,
-                     2277398, 2318284, 774498, 2269674,
-                     1740752, 1968596, 631872, 1734468,
-                     1799540, 1910984, 398440, 2024770,
-                     1940794, 1442408, 514826, 1403756,
-                     2277398, 2318284, 774498, 2269674,
-                     1740752, 1968596, 631872, 1734468,
-                     1799540, 1910984, 398440, 2024770,
-                     1299256, 1166912, 1555012, 1689928,
-                     978400,  2119248, 2650754, 1684488,
-                     884052,  1173252, 1993110, 1251508,
-                     1391660, 1674368, 1559846, 2850934,
-                     1299256, 1166912, 1555012, 1689928,
-                     978400,  2119248, 2650754, 1684488,
-                     884052,  1173252, 1993110, 1251508,
-                     1391660, 1674368, 1559846, 2850934,
-                     1299256, 1166912, 1555012, 1689928,
-                     978400,  2119248, 2650754, 1684488,
-                     884052,  1173252, 1993110, 1251508,
-                     1391660, 1674368, 1559846, 2850934),
-                   nrow(counts)),
-               nrow = nrow(counts), ncol = ncol(counts), byrow = T)
+        c(1940794, 1442408, 514826, 1403756,
+          2277398, 2318284, 774498, 2269674,
+          1740752, 1968596, 631872, 1734468,
+          1799540, 1910984, 398440, 2024770,
+          1940794, 1442408, 514826, 1403756,
+          2277398, 2318284, 774498, 2269674,
+          1740752, 1968596, 631872, 1734468,
+          1799540, 1910984, 398440, 2024770,
+          1940794, 1442408, 514826, 1403756,
+          2277398, 2318284, 774498, 2269674,
+          1740752, 1968596, 631872, 1734468,
+          1799540, 1910984, 398440, 2024770,
+          1299256, 1166912, 1555012, 1689928,
+          978400,  2119248, 2650754, 1684488,
+          884052,  1173252, 1993110, 1251508,
+          1391660, 1674368, 1559846, 2850934,
+          1299256, 1166912, 1555012, 1689928,
+          978400,  2119248, 2650754, 1684488,
+          884052,  1173252, 1993110, 1251508,
+          1391660, 1674368, 1559846, 2850934,
+          1299256, 1166912, 1555012, 1689928,
+          978400,  2119248, 2650754, 1684488,
+          884052,  1173252, 1993110, 1251508,
+          1391660, 1674368, 1559846, 2850934)
     }
     else {
         stop("type must be either \"genome\" or \"exome\"")
@@ -341,10 +378,12 @@ extract_signatures <- function(counts, nsignatures, method = "emu",
             opportunities <- matrix(1, nrow = nrow(counts), ncol = ncol(counts))
         }
         else if (opportunities == "human-genome") {
-            opportunities <- human_trinuc_freqs("genome", counts)
+            opportunities <- matrix(rep(human_trinuc_freqs("genome"), nrow(counts)),
+                                    nrow = nrow(counts), ncol = ncol(counts), byrow = T)
         }
         else if (opportunities == "human-exome") {
-            opportunities <- human_trinuc_freqs("exome", counts)
+            opportunities <- matrix(rep(human_trinuc_freqs("exome"), nrow(counts)),
+                                    nrow = nrow(counts), ncol = ncol(counts), byrow = T)
         }
         stopifnot(all(dim(opportunities) == dim(counts)))
         
