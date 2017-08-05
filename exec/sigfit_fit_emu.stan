@@ -5,7 +5,7 @@ data {
     matrix[S, C] signatures;  // matrix of signatures (columns) to be fitted
     int counts[G, C];         // data = counts per category (columns) per genome sample (rows)
     vector<lower=0>[S] alpha; // prior on exposures (i.e. mixing proportions of signatures)
-    int opps[G, C];       // Matrix of opportunities
+    int opps[G, C];           // Matrix of opportunities
 }
 parameters {
     simplex[S] exposure_probs[G];
@@ -13,8 +13,8 @@ parameters {
 }
 transformed parameters {
     matrix[G, S] exposures;
-    for (i in 1:G) {
-        exposures[i] = to_row_vector(exposure_probs[i]) * multiplier;
+    for (g in 1:G) {
+        exposures[g] = to_row_vector(exposure_probs[g]) * multiplier;
     }
 }
 model {
@@ -22,14 +22,20 @@ model {
         matrix[G, C] lambda; // poisson parameters
         lambda = (exposures * signatures) .* to_matrix(opps);
         
-        for (i in 1:G) {
-            exposure_probs[i] ~ dirichlet(alpha);
+        for (g in 1:G) {
+            exposure_probs[g] ~ dirichlet(alpha);
         }
         multiplier ~ cauchy(0, 1);
         
         // Likelihood
-        for (i in 1:G) {
-            counts[i] ~ poisson(lambda[i]);
+        for (g in 1:G) {
+            counts[g] ~ poisson(lambda[g]);
         }
+    }
+}
+generated quantities {
+    vector[G] log_lik;
+    for (g in 1:G) {
+        log_lik[g] = poisson_lpmf(counts[g] | lambda[g]);
     }
 }
