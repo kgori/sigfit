@@ -8,28 +8,46 @@ data {
     int opps[G, C];       // Matrix of opportunities
 }
 parameters {
-    simplex[S] exposure_probs[G];
-    real<lower=0> multiplier;
-}
-transformed parameters {
-    matrix[G, S] exposures;
-    for (i in 1:G) {
-        exposures[i] = to_row_vector(exposure_probs[i]) * multiplier;
-    }
+    simplex[S] exposures[G];
+    real<lower=0> multiplier[G];
 }
 model {
     {
+        // Set parameters for likelihood
+        matrix[G, S] scaled_exposures;
         matrix[G, C] lambda; // poisson parameters
-        lambda = (exposures * signatures) .* to_matrix(opps);
-        
         for (i in 1:G) {
-            exposure_probs[i] ~ dirichlet(alpha);
+            scaled_exposures[i] = to_row_vector(exposures[i]) * multiplier[i];
         }
-        multiplier ~ cauchy(0, 1);
+        lambda = (scaled_exposures * signatures) .* to_matrix(opps);
+        
+        // Priors
+        for (i in 1:G) {
+            exposures[i] ~ dirichlet(alpha);
+            multiplier ~ cauchy(0, 1);
+        }
         
         // Likelihood
         for (i in 1:G) {
             counts[i] ~ poisson(lambda[i]);
+        }
+    }
+}
+generated quantities {
+    vector[G*C] log_lik;
+    {
+        matrix[G, S] scaled_exposures;
+        matrix[G, C] lambda; // poisson parameters
+
+        for (i in 1:G) {
+            scaled_exposures[i] = to_row_vector(exposures[i]) * multiplier[i];
+        }
+
+        lambda = (scaled_exposures * signatures) .* to_matrix(opps);
+        for (i in 1:G) {
+            for (j in 1:C) {
+                log_lik[(i-1)*C + j] = poisson_lpmf(counts[i, j] | lambda[i, j]);
+            }
         }
     }
 }

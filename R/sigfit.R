@@ -50,7 +50,7 @@ fetch_cosmic_data <- function(reorder = TRUE, remove_zeros = TRUE) {
 #' })
 #' @useDynLib sigfit, .registration = TRUE
 #' @export
-human_trinuc_freqs <- function(type = "genome") {
+human_trinuc_freqs <- function(type = "genome", counts) {
     if (type == "genome") {
         # Human genome trinucleotide frequencies (from EMu)
         matrix(rep(c(1.14e+08, 6.60e+07, 1.43e+07, 9.12e+07, # C>A @ AC[ACGT]
@@ -276,12 +276,13 @@ fit_signatures <- function(counts, signatures, prior = NULL, hierarchical = FALS
     if (method == "emu") {
         # NEED TO IMPLEMENT alpha
         dat = list(
-            N = ncol(counts),
-            n = ncol(signatures),
-            M = nrow(counts),
-            mu = t(as.matrix(signatures)),
-            X = t(as.matrix(counts)),
-            w = t(as.matrix(opportunities))
+            C = ncol(counts),
+            S = ncol(signatures),
+            G = nrow(counts),
+            signatures = t(as.matrix(signatures)),
+            counts = as.matrix(counts),
+            opps = matrix(1, nrow=nrow(counts), ncol=ncol(counts)),  # TODO: properly build opportunites matrix
+            alpha = rep(1, ncol(signatures))  # TODO: properly build/pass alpha vector
         )
         model <- stanmodels$sigfit_fit_emu
     }
@@ -340,10 +341,10 @@ extract_signatures <- function(counts, nsignatures, method = "emu",
             opportunities <- matrix(1, nrow = nrow(counts), ncol = ncol(counts))
         }
         else if (opportunities == "human-genome") {
-            opportunities <- human_trinuc_freqs("genome")
+            opportunities <- human_trinuc_freqs("genome", counts)
         }
         else if (opportunities == "human-exome") {
-            opportunities <- human_trinuc_freqs("exome")
+            opportunities <- human_trinuc_freqs("exome", counts)
         }
         stopifnot(all(dim(opportunities) == dim(counts)))
         

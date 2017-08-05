@@ -23,8 +23,8 @@ Runs MCMC to fit signatures and estimate exposures
 }
 \examples{
  # Custom prior favours signature 1 over 2, 3 and 4
-samples <- sigfit::fit_signatures(mycounts, mysignatures, prior = c(5, 1, 1, 1))
+samples <- fit_signatures(mycounts, mysignatures, prior = c(5, 1, 1, 1))
 
 # Run a single chain for quite a long time
-samples <- sigfit::fit_signatures(mycounts, mysignatures, chains = 1, niter = 13000, warmup = 3000)
+samples <- fit_signatures(mycounts, mysignatures, chains = 1, niter = 13000, warmup = 3000)
 }
