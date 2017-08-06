@@ -21,8 +21,8 @@ rev_comp <- function(nucleotides) {
 #' trinucleotide context of each single-nucleotide variant.
 #' @param variants Table with one row per single-nucleotide variant, and three columns:
 #' REF base (character in {A,C,G,T}); ALT base (character in {A,C,G,T}); and trinucleotide
-#' context at the variant location (sequence between the positions immediately after and 
-#' before the variant, in string format; e.g. "TCA").
+#' context at the variant location (sequence between the positions immediately before and 
+#' after the variant, in string format; e.g. "TCA").
 #' @export
 build_catalogue <- function(variants) {
     # Check that REF base coincides with middle base in trinucleotide
@@ -62,15 +62,15 @@ build_catalogue <- function(variants) {
 #' @param reorder Reorders the matrix by substitution type and trinucleotide
 #' @export
 fetch_cosmic_data <- function(reorder = TRUE, remove_zeros = TRUE) {
-    cosmic.sigs <- read.table('http://cancer.sanger.ac.uk/cancergenome/assets/signatures_probabilities.txt', 
+    cosmic_sigs <- read.table('http://cancer.sanger.ac.uk/cancergenome/assets/signatures_probabilities.txt', 
                               header = TRUE, sep = '\t', check.names = FALSE)
     if (reorder) {
-        cosmic.sigs <- cosmic.sigs[order(cosmic.sigs[["Substitution Type"]], cosmic.sigs[["Trinucleotide"]]),]
+        cosmic_sigs <- cosmic_sigs[order(cosmic_sigs[["Substitution Type"]], cosmic_sigs[["Trinucleotide"]]),]
     }
-    rownames(cosmic.sigs) <- cosmic.sigs[["Somatic Mutation Type"]]
-    cosmic.sigs <- cosmic.sigs[, paste("Signature", 1:30)]
-    if (remove_zeros) cosmic.sigs <- remove_zeros_(cosmic.sigs)
-    cosmic.sigs
+    rownames(cosmic_sigs) <- cosmic_sigs[["Somatic Mutation Type"]]
+    cosmic_sigs <- cosmic_sigs[, paste("Signature", 1:30)]
+    if (remove_zeros) cosmic_sigs <- remove_zeros_(cosmic_sigs)
+    cosmic_sigs
 }
 
 #' Returns human genome or exome trinucleotide frequencies. This is useful to
@@ -230,7 +230,7 @@ plot_spectrum <- function(samples, prob = 0.9, title = "Fitted spectrum", ...) {
 #' exposures <- retrieve_pars(samples, "exposures", prob = 0.9)
 #' 
 #' # Plot mean exposures
-#' barplot(exposures[,,1])  # or barplot(exposures[,,"mean"])
+#' barplot(exposures$mean)  ## or barplot(exposures[[1]])
 #' @useDynLib sigfit, .registration = TRUE
 #' @importFrom "rstan" extract
 #' @importFrom "coda" HPDinterval
@@ -250,31 +250,36 @@ retrieve_pars <- function(object, feature, prob = 0.95, signature_names = NULL) 
                                 signature_names,
                                 paste("Signature", LETTERS[1:dim(feat)[3]])),
                          NULL)
-        # for signatures: dims = (signatures, categories, mean/lwr/upr)
-        # for exposures: dims = (samples, signatures, mean/lwr/upr)
-        feat.summ <- array(NA, dim = c(dim(feat)[2], dim(feat)[3], 3),
-                           dimnames = list(names1, names2, c("mean", paste0(c("lower_", "upper_"), prob))))
+        # for signatures: Signatures x Categories
+        # for exposures: Samples x Signatures
+        feat.summ <- list(matrix(NA, nrow = dim(feat)[2], ncol = dim(feat)[3], dimnames = list(names1, names2)),
+                          matrix(NA, nrow = dim(feat)[2], ncol = dim(feat)[3], dimnames = list(names1, names2)),
+                          matrix(NA, nrow = dim(feat)[2], ncol = dim(feat)[3], dimnames = list(names1, names2)))
+        names(feat.summ) <- c("mean", paste0(c("lower_", "upper_"), prob * 100))
         for (i in 1:dim(feat.summ)[1]) {
-            feat.summ[i,,1] <- colMeans(feat[,i,])
-            feat.summ[i,,2:3] <- HPDinterval(as.mcmc(feat[,i,]), prob = prob)
+            hpd <- HPDinterval(as.mcmc(feat[,i,]), prob = prob)
+            feat.summ[[1]][i,] <- colMeans(feat[,i,])
+            feat.summ[[2]][i,] <- hpd[,1]
+            feat.summ[[3]][i,] <- hpd[,2]
         }
     } 
-    # Single-sample case
+    # Single-sample case (only possible in fitting)
     else {
-        names1 <- ifelse(feature == "signatures",
-                         ifelse(!is.null(signature_names),
-                                signature_names,
-                                "Signature A"),
-                         NULL)
         names2 <- ifelse(feature == "exposures",
                          ifelse(!is.null(signature_names),
                                 signature_names,
                                 paste("Signature", LETTERS[1:dim(feat)[2]])),
                          NULL)
-        feat.summ <- array(NA, dim = c(1, dim(feat)[2], 3),
-                           dimnames = list(names1, names2, c("mean", paste0(c("lower_", "upper_"), prob))))
-        feat.summ[1,,1] <- colMeans(feat)
-        feat.summ[1,,2:3] <- HPDinterval(as.mcmc(feat), prob = prob)
+        feat.summ <- list(matrix(NA, nrow = 1, ncol = dim(feat)[2], dimnames = list(NULL, names2)),
+                          matrix(NA, nrow = 1, ncol = dim(feat)[2], dimnames = list(NULL, names2)),
+                          matrix(NA, nrow = 1, ncol = dim(feat)[2], dimnames = list(NULL, names2)))
+        names(feat.summ) <- c("mean", paste0(c("lower_", "upper_"), prob * 100))
+        for (i in 1:dim(feat.summ)[1]) {
+            hpd <- HPDinterval(as.mcmc(feat), prob = prob)
+            feat.summ[[1]][1,] <- colMeans(feat)
+            feat.summ[[2]][1,] <- hpd[,1]
+            feat.summ[[3]][1,] <- hpd[,2]
+        }
     }
     feat.summ
 }
