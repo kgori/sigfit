@@ -1232,7 +1232,7 @@ static int current_statement_begin__;
 stan::io::program_reader prog_reader__() {
     stan::io::program_reader reader;
     reader.add_event(0, 0, "start", "model_sigfit_fit_emu");
-    reader.add_event(35, 35, "end", "model_sigfit_fit_emu");
+    reader.add_event(59, 59, "end", "model_sigfit_fit_emu");
     return reader;
 }
 
@@ -1368,10 +1368,11 @@ public:
         // validate, set parameter ranges
         num_params_r__ = 0U;
         param_ranges_i__.clear();
-        validate_non_negative_index("exposure_probs", "S", S);
-        validate_non_negative_index("exposure_probs", "G", G);
+        validate_non_negative_index("exposures", "S", S);
+        validate_non_negative_index("exposures", "G", G);
         num_params_r__ += (S - 1) * G;
-        ++num_params_r__;
+        validate_non_negative_index("multiplier", "G", G);
+        num_params_r__ += G;
     }
 
     ~model_sigfit_fit_emu() { }
@@ -1387,35 +1388,38 @@ public:
         std::vector<double> vals_r__;
         std::vector<int> vals_i__;
 
-        if (!(context__.contains_r("exposure_probs")))
-            throw std::runtime_error("variable exposure_probs missing");
-        vals_r__ = context__.vals_r("exposure_probs");
+        if (!(context__.contains_r("exposures")))
+            throw std::runtime_error("variable exposures missing");
+        vals_r__ = context__.vals_r("exposures");
         pos__ = 0U;
-        validate_non_negative_index("exposure_probs", "G", G);
-        validate_non_negative_index("exposure_probs", "S", S);
-        context__.validate_dims("initialization", "exposure_probs", "vector_d", context__.to_vec(G,S));
-        // generate_declaration exposure_probs
-        std::vector<vector_d> exposure_probs(G,vector_d(static_cast<Eigen::VectorXd::Index>(S)));
+        validate_non_negative_index("exposures", "G", G);
+        validate_non_negative_index("exposures", "S", S);
+        context__.validate_dims("initialization", "exposures", "vector_d", context__.to_vec(G,S));
+        // generate_declaration exposures
+        std::vector<vector_d> exposures(G,vector_d(static_cast<Eigen::VectorXd::Index>(S)));
         for (int j1__ = 0U; j1__ < S; ++j1__)
             for (int i0__ = 0U; i0__ < G; ++i0__)
-                exposure_probs[i0__](j1__) = vals_r__[pos__++];
+                exposures[i0__](j1__) = vals_r__[pos__++];
         for (int i0__ = 0U; i0__ < G; ++i0__)
             try {
-            writer__.simplex_unconstrain(exposure_probs[i0__]);
+            writer__.simplex_unconstrain(exposures[i0__]);
         } catch (const std::exception& e) { 
-            throw std::runtime_error(std::string("Error transforming variable exposure_probs: ") + e.what());
+            throw std::runtime_error(std::string("Error transforming variable exposures: ") + e.what());
         }
 
         if (!(context__.contains_r("multiplier")))
             throw std::runtime_error("variable multiplier missing");
         vals_r__ = context__.vals_r("multiplier");
         pos__ = 0U;
-        context__.validate_dims("initialization", "multiplier", "double", context__.to_vec());
+        validate_non_negative_index("multiplier", "G", G);
+        context__.validate_dims("initialization", "multiplier", "double", context__.to_vec(G));
         // generate_declaration multiplier
-        double multiplier(0);
-        multiplier = vals_r__[pos__++];
-        try {
-            writer__.scalar_lb_unconstrain(0,multiplier);
+        std::vector<double> multiplier(G,double(0));
+        for (int i0__ = 0U; i0__ < G; ++i0__)
+            multiplier[i0__] = vals_r__[pos__++];
+        for (int i0__ = 0U; i0__ < G; ++i0__)
+            try {
+            writer__.scalar_lb_unconstrain(0,multiplier[i0__]);
         } catch (const std::exception& e) { 
             throw std::runtime_error(std::string("Error transforming variable multiplier: ") + e.what());
         }
@@ -1450,39 +1454,31 @@ public:
         // model parameters
         stan::io::reader<T__> in__(params_r__,params_i__);
 
-        vector<Eigen::Matrix<T__,Eigen::Dynamic,1> > exposure_probs;
-        size_t dim_exposure_probs_0__ = G;
-        exposure_probs.reserve(dim_exposure_probs_0__);
-        for (size_t k_0__ = 0; k_0__ < dim_exposure_probs_0__; ++k_0__) {
+        vector<Eigen::Matrix<T__,Eigen::Dynamic,1> > exposures;
+        size_t dim_exposures_0__ = G;
+        exposures.reserve(dim_exposures_0__);
+        for (size_t k_0__ = 0; k_0__ < dim_exposures_0__; ++k_0__) {
             if (jacobian__)
-                exposure_probs.push_back(in__.simplex_constrain(S,lp__));
+                exposures.push_back(in__.simplex_constrain(S,lp__));
             else
-                exposure_probs.push_back(in__.simplex_constrain(S));
+                exposures.push_back(in__.simplex_constrain(S));
         }
 
-        T__ multiplier;
-        (void) multiplier;  // dummy to suppress unused var warning
-        if (jacobian__)
-            multiplier = in__.scalar_lb_constrain(0,lp__);
-        else
-            multiplier = in__.scalar_lb_constrain(0);
+        vector<T__> multiplier;
+        size_t dim_multiplier_0__ = G;
+        multiplier.reserve(dim_multiplier_0__);
+        for (size_t k_0__ = 0; k_0__ < dim_multiplier_0__; ++k_0__) {
+            if (jacobian__)
+                multiplier.push_back(in__.scalar_lb_constrain(0,lp__));
+            else
+                multiplier.push_back(in__.scalar_lb_constrain(0));
+        }
 
 
         // transformed parameters
-        validate_non_negative_index("exposures", "G", G);
-        validate_non_negative_index("exposures", "S", S);
-        Eigen::Matrix<T__,Eigen::Dynamic,Eigen::Dynamic>  exposures(static_cast<Eigen::VectorXd::Index>(G),static_cast<Eigen::VectorXd::Index>(S));
-        (void) exposures;  // dummy to suppress unused var warning
-
-        stan::math::initialize(exposures, DUMMY_VAR__);
-        stan::math::fill(exposures,DUMMY_VAR__);
 
 
         try {
-            for (int i = 1; i <= G; ++i) {
-
-                stan::math::assign(get_base1_lhs(exposures,i,"exposures",1), multiply(to_row_vector(get_base1(exposure_probs,i,"exposure_probs",1)),multiplier));
-            }
         } catch (const std::exception& e) {
             stan::lang::rethrow_located(e, current_statement_begin__, prog_reader__());
             // Next line prevents compiler griping about no return
@@ -1490,15 +1486,6 @@ public:
         }
 
         // validate transformed parameters
-        for (int i0__ = 0; i0__ < G; ++i0__) {
-            for (int i1__ = 0; i1__ < S; ++i1__) {
-                if (stan::math::is_uninitialized(exposures(i0__,i1__))) {
-                    std::stringstream msg__;
-                    msg__ << "Undefined transformed parameter: exposures" << '[' << i0__ << ']' << '[' << i1__ << ']';
-                    throw std::runtime_error(msg__.str());
-                }
-            }
-        }
 
         const char* function__ = "validate transformed params";
         (void) function__;  // dummy to suppress unused var warning
@@ -1507,6 +1494,13 @@ public:
         try {
 
             {
+                validate_non_negative_index("scaled_exposures", "G", G);
+                validate_non_negative_index("scaled_exposures", "S", S);
+                Eigen::Matrix<T__,Eigen::Dynamic,Eigen::Dynamic>  scaled_exposures(static_cast<Eigen::VectorXd::Index>(G),static_cast<Eigen::VectorXd::Index>(S));
+                (void) scaled_exposures;  // dummy to suppress unused var warning
+
+                stan::math::initialize(scaled_exposures, DUMMY_VAR__);
+                stan::math::fill(scaled_exposures,DUMMY_VAR__);
                 validate_non_negative_index("lambda", "G", G);
                 validate_non_negative_index("lambda", "C", C);
                 Eigen::Matrix<T__,Eigen::Dynamic,Eigen::Dynamic>  lambda(static_cast<Eigen::VectorXd::Index>(G),static_cast<Eigen::VectorXd::Index>(C));
@@ -1516,12 +1510,16 @@ public:
                 stan::math::fill(lambda,DUMMY_VAR__);
 
 
-                stan::math::assign(lambda, elt_multiply(multiply(exposures,signatures),to_matrix(opps)));
                 for (int i = 1; i <= G; ++i) {
 
-                    lp_accum__.add(dirichlet_log<propto__>(get_base1(exposure_probs,i,"exposure_probs",1), alpha));
+                    stan::math::assign(get_base1_lhs(scaled_exposures,i,"scaled_exposures",1), multiply(to_row_vector(get_base1(exposures,i,"exposures",1)),get_base1(multiplier,i,"multiplier",1)));
                 }
-                lp_accum__.add(cauchy_log<propto__>(multiplier, 0, 1));
+                stan::math::assign(lambda, elt_multiply(multiply(scaled_exposures,signatures),to_matrix(opps)));
+                for (int i = 1; i <= G; ++i) {
+
+                    lp_accum__.add(dirichlet_log<propto__>(get_base1(exposures,i,"exposures",1), alpha));
+                    lp_accum__.add(cauchy_log<propto__>(multiplier, 0, 1));
+                }
                 for (int i = 1; i <= G; ++i) {
 
                     lp_accum__.add(poisson_log<propto__>(get_base1(counts,i,"counts",1), get_base1(lambda,i,"lambda",1)));
@@ -1552,9 +1550,9 @@ public:
 
     void get_param_names(std::vector<std::string>& names__) const {
         names__.resize(0);
-        names__.push_back("exposure_probs");
-        names__.push_back("multiplier");
         names__.push_back("exposures");
+        names__.push_back("multiplier");
+        names__.push_back("log_lik");
     }
 
 
@@ -1566,10 +1564,10 @@ public:
         dims__.push_back(S);
         dimss__.push_back(dims__);
         dims__.resize(0);
+        dims__.push_back(G);
         dimss__.push_back(dims__);
         dims__.resize(0);
-        dims__.push_back(G);
-        dims__.push_back(S);
+        dims__.push_back((G * C));
         dimss__.push_back(dims__);
     }
 
@@ -1586,18 +1584,24 @@ public:
         static const char* function__ = "model_sigfit_fit_emu_namespace::write_array";
         (void) function__;  // dummy to suppress unused var warning
         // read-transform, write parameters
-        vector<vector_d> exposure_probs;
-        size_t dim_exposure_probs_0__ = G;
-        for (size_t k_0__ = 0; k_0__ < dim_exposure_probs_0__; ++k_0__) {
-            exposure_probs.push_back(in__.simplex_constrain(S));
+        vector<vector_d> exposures;
+        size_t dim_exposures_0__ = G;
+        for (size_t k_0__ = 0; k_0__ < dim_exposures_0__; ++k_0__) {
+            exposures.push_back(in__.simplex_constrain(S));
         }
-        double multiplier = in__.scalar_lb_constrain(0);
+        vector<double> multiplier;
+        size_t dim_multiplier_0__ = G;
+        for (size_t k_0__ = 0; k_0__ < dim_multiplier_0__; ++k_0__) {
+            multiplier.push_back(in__.scalar_lb_constrain(0));
+        }
         for (int k_1__ = 0; k_1__ < S; ++k_1__) {
             for (int k_0__ = 0; k_0__ < G; ++k_0__) {
-                vars__.push_back(exposure_probs[k_0__][k_1__]);
+                vars__.push_back(exposures[k_0__][k_1__]);
             }
         }
-        vars__.push_back(multiplier);
+        for (int k_0__ = 0; k_0__ < G; ++k_0__) {
+            vars__.push_back(multiplier[k_0__]);
+        }
 
         if (!include_tparams__) return;
         // declare and define transformed parameters
@@ -1608,20 +1612,9 @@ public:
         double DUMMY_VAR__(std::numeric_limits<double>::quiet_NaN());
         (void) DUMMY_VAR__;  // suppress unused var warning
 
-        validate_non_negative_index("exposures", "G", G);
-        validate_non_negative_index("exposures", "S", S);
-        matrix_d exposures(static_cast<Eigen::VectorXd::Index>(G),static_cast<Eigen::VectorXd::Index>(S));
-        (void) exposures;  // dummy to suppress unused var warning
-
-        stan::math::initialize(exposures, std::numeric_limits<double>::quiet_NaN());
-        stan::math::fill(exposures,DUMMY_VAR__);
 
 
         try {
-            for (int i = 1; i <= G; ++i) {
-
-                stan::math::assign(get_base1_lhs(exposures,i,"exposures",1), multiply(to_row_vector(get_base1(exposure_probs,i,"exposure_probs",1)),multiplier));
-            }
         } catch (const std::exception& e) {
             stan::lang::rethrow_located(e, current_statement_begin__, prog_reader__());
             // Next line prevents compiler griping about no return
@@ -1631,17 +1624,48 @@ public:
         // validate transformed parameters
 
         // write transformed parameters
-        for (int k_1__ = 0; k_1__ < S; ++k_1__) {
-            for (int k_0__ = 0; k_0__ < G; ++k_0__) {
-                vars__.push_back(exposures(k_0__, k_1__));
-            }
-        }
 
         if (!include_gqs__) return;
         // declare and define generated quantities
+        validate_non_negative_index("log_lik", "(G * C)", (G * C));
+        vector_d log_lik(static_cast<Eigen::VectorXd::Index>((G * C)));
+        (void) log_lik;  // dummy to suppress unused var warning
+
+        stan::math::initialize(log_lik, std::numeric_limits<double>::quiet_NaN());
+        stan::math::fill(log_lik,DUMMY_VAR__);
 
 
         try {
+            {
+                validate_non_negative_index("scaled_exposures", "G", G);
+                validate_non_negative_index("scaled_exposures", "S", S);
+                matrix_d scaled_exposures(static_cast<Eigen::VectorXd::Index>(G),static_cast<Eigen::VectorXd::Index>(S));
+                (void) scaled_exposures;  // dummy to suppress unused var warning
+
+                stan::math::initialize(scaled_exposures, std::numeric_limits<double>::quiet_NaN());
+                stan::math::fill(scaled_exposures,DUMMY_VAR__);
+                validate_non_negative_index("lambda", "G", G);
+                validate_non_negative_index("lambda", "C", C);
+                matrix_d lambda(static_cast<Eigen::VectorXd::Index>(G),static_cast<Eigen::VectorXd::Index>(C));
+                (void) lambda;  // dummy to suppress unused var warning
+
+                stan::math::initialize(lambda, std::numeric_limits<double>::quiet_NaN());
+                stan::math::fill(lambda,DUMMY_VAR__);
+
+
+                for (int i = 1; i <= G; ++i) {
+
+                    stan::math::assign(get_base1_lhs(scaled_exposures,i,"scaled_exposures",1), multiply(to_row_vector(get_base1(exposures,i,"exposures",1)),get_base1(multiplier,i,"multiplier",1)));
+                }
+                stan::math::assign(lambda, elt_multiply(multiply(scaled_exposures,signatures),to_matrix(opps)));
+                for (int i = 1; i <= G; ++i) {
+
+                    for (int j = 1; j <= C; ++j) {
+
+                        stan::math::assign(get_base1_lhs(log_lik,(((i - 1) * C) + j),"log_lik",1), poisson_log(get_base1(get_base1(counts,i,"counts",1),j,"counts",2),get_base1(lambda,i,j,"lambda",1)));
+                    }
+                }
+            }
         } catch (const std::exception& e) {
             stan::lang::rethrow_located(e, current_statement_begin__, prog_reader__());
             // Next line prevents compiler griping about no return
@@ -1651,6 +1675,10 @@ public:
         // validate generated quantities
 
         // write generated quantities
+        for (int k_0__ = 0; k_0__ < (G * C); ++k_0__) {
+            vars__.push_back(log_lik[k_0__]);
+        }
+
     }
 
     template <typename RNG>
@@ -1683,24 +1711,24 @@ public:
         for (int k_1__ = 1; k_1__ <= S; ++k_1__) {
             for (int k_0__ = 1; k_0__ <= G; ++k_0__) {
                 param_name_stream__.str(std::string());
-                param_name_stream__ << "exposure_probs" << '.' << k_0__ << '.' << k_1__;
-                param_names__.push_back(param_name_stream__.str());
-            }
-        }
-        param_name_stream__.str(std::string());
-        param_name_stream__ << "multiplier";
-        param_names__.push_back(param_name_stream__.str());
-
-        if (!include_gqs__ && !include_tparams__) return;
-        for (int k_1__ = 1; k_1__ <= S; ++k_1__) {
-            for (int k_0__ = 1; k_0__ <= G; ++k_0__) {
-                param_name_stream__.str(std::string());
                 param_name_stream__ << "exposures" << '.' << k_0__ << '.' << k_1__;
                 param_names__.push_back(param_name_stream__.str());
             }
         }
+        for (int k_0__ = 1; k_0__ <= G; ++k_0__) {
+            param_name_stream__.str(std::string());
+            param_name_stream__ << "multiplier" << '.' << k_0__;
+            param_names__.push_back(param_name_stream__.str());
+        }
+
+        if (!include_gqs__ && !include_tparams__) return;
 
         if (!include_gqs__) return;
+        for (int k_0__ = 1; k_0__ <= (G * C); ++k_0__) {
+            param_name_stream__.str(std::string());
+            param_name_stream__ << "log_lik" << '.' << k_0__;
+            param_names__.push_back(param_name_stream__.str());
+        }
     }
 
 
@@ -1711,24 +1739,24 @@ public:
         for (int k_1__ = 1; k_1__ <= (S - 1); ++k_1__) {
             for (int k_0__ = 1; k_0__ <= G; ++k_0__) {
                 param_name_stream__.str(std::string());
-                param_name_stream__ << "exposure_probs" << '.' << k_0__ << '.' << k_1__;
-                param_names__.push_back(param_name_stream__.str());
-            }
-        }
-        param_name_stream__.str(std::string());
-        param_name_stream__ << "multiplier";
-        param_names__.push_back(param_name_stream__.str());
-
-        if (!include_gqs__ && !include_tparams__) return;
-        for (int k_1__ = 1; k_1__ <= S; ++k_1__) {
-            for (int k_0__ = 1; k_0__ <= G; ++k_0__) {
-                param_name_stream__.str(std::string());
                 param_name_stream__ << "exposures" << '.' << k_0__ << '.' << k_1__;
                 param_names__.push_back(param_name_stream__.str());
             }
         }
+        for (int k_0__ = 1; k_0__ <= G; ++k_0__) {
+            param_name_stream__.str(std::string());
+            param_name_stream__ << "multiplier" << '.' << k_0__;
+            param_names__.push_back(param_name_stream__.str());
+        }
+
+        if (!include_gqs__ && !include_tparams__) return;
 
         if (!include_gqs__) return;
+        for (int k_0__ = 1; k_0__ <= (G * C); ++k_0__) {
+            param_name_stream__.str(std::string());
+            param_name_stream__ << "log_lik" << '.' << k_0__;
+            param_names__.push_back(param_name_stream__.str());
+        }
     }
 
 }; // model
@@ -1762,7 +1790,7 @@ static int current_statement_begin__;
 stan::io::program_reader prog_reader__() {
     stan::io::program_reader reader;
     reader.add_event(0, 0, "start", "model_sigfit_fit_nmf");
-    reader.add_event(39, 39, "end", "model_sigfit_fit_nmf");
+    reader.add_event(47, 47, "end", "model_sigfit_fit_nmf");
     return reader;
 }
 
@@ -2021,18 +2049,9 @@ public:
 
 
         // transformed parameters
-        validate_non_negative_index("probs", "C", C);
-        validate_non_negative_index("probs", "G", G);
-        vector<Eigen::Matrix<T__,Eigen::Dynamic,1> > probs(G, (Eigen::Matrix<T__,Eigen::Dynamic,1> (static_cast<Eigen::VectorXd::Index>(C))));
-        stan::math::initialize(probs, DUMMY_VAR__);
-        stan::math::fill(probs,DUMMY_VAR__);
 
 
         try {
-            for (int i = 1; i <= G; ++i) {
-
-                stan::math::assign(get_base1_lhs(probs,i,"probs",1), scale_to_sum_1(multiply(signatures,get_base1(exposures,i,"exposures",1)), pstream__));
-            }
         } catch (const std::exception& e) {
             stan::lang::rethrow_located(e, current_statement_begin__, prog_reader__());
             // Next line prevents compiler griping about no return
@@ -2040,30 +2059,28 @@ public:
         }
 
         // validate transformed parameters
-        for (int i0__ = 0; i0__ < G; ++i0__) {
-            for (int i1__ = 0; i1__ < C; ++i1__) {
-                if (stan::math::is_uninitialized(probs[i0__](i1__))) {
-                    std::stringstream msg__;
-                    msg__ << "Undefined transformed parameter: probs" << '[' << i0__ << ']' << '[' << i1__ << ']';
-                    throw std::runtime_error(msg__.str());
-                }
-            }
-        }
 
         const char* function__ = "validate transformed params";
         (void) function__;  // dummy to suppress unused var warning
-        for (int k0__ = 0; k0__ < G; ++k0__) {
-            check_greater_or_equal(function__,"probs[k0__]",probs[k0__],0);
-            check_less_or_equal(function__,"probs[k0__]",probs[k0__],1);
-        }
 
         // model body
         try {
 
-            for (int i = 1; i <= G; ++i) {
+            {
+                validate_non_negative_index("probs", "C", C);
+                Eigen::Matrix<T__,Eigen::Dynamic,1>  probs(static_cast<Eigen::VectorXd::Index>(C));
+                (void) probs;  // dummy to suppress unused var warning
 
-                lp_accum__.add(dirichlet_log<propto__>(get_base1(exposures,i,"exposures",1), alpha));
-                lp_accum__.add(multinomial_log<propto__>(get_base1(counts,i,"counts",1), get_base1(probs,i,"probs",1)));
+                stan::math::initialize(probs, DUMMY_VAR__);
+                stan::math::fill(probs,DUMMY_VAR__);
+
+
+                for (int i = 1; i <= G; ++i) {
+
+                    stan::math::assign(probs, scale_to_sum_1(multiply(signatures,get_base1(exposures,i,"exposures",1)), pstream__));
+                    lp_accum__.add(dirichlet_log<propto__>(get_base1(exposures,i,"exposures",1), alpha));
+                    lp_accum__.add(multinomial_log<propto__>(get_base1(counts,i,"counts",1), probs));
+                }
             }
         } catch (const std::exception& e) {
             stan::lang::rethrow_located(e, current_statement_begin__, prog_reader__());
@@ -2091,7 +2108,6 @@ public:
     void get_param_names(std::vector<std::string>& names__) const {
         names__.resize(0);
         names__.push_back("exposures");
-        names__.push_back("probs");
         names__.push_back("log_lik");
     }
 
@@ -2102,10 +2118,6 @@ public:
         dims__.resize(0);
         dims__.push_back(G);
         dims__.push_back(S);
-        dimss__.push_back(dims__);
-        dims__.resize(0);
-        dims__.push_back(G);
-        dims__.push_back(C);
         dimss__.push_back(dims__);
         dims__.resize(0);
         dims__.push_back(G);
@@ -2145,18 +2157,9 @@ public:
         double DUMMY_VAR__(std::numeric_limits<double>::quiet_NaN());
         (void) DUMMY_VAR__;  // suppress unused var warning
 
-        validate_non_negative_index("probs", "C", C);
-        validate_non_negative_index("probs", "G", G);
-        vector<vector_d> probs(G, (vector_d(static_cast<Eigen::VectorXd::Index>(C))));
-        stan::math::initialize(probs, std::numeric_limits<double>::quiet_NaN());
-        stan::math::fill(probs,DUMMY_VAR__);
 
 
         try {
-            for (int i = 1; i <= G; ++i) {
-
-                stan::math::assign(get_base1_lhs(probs,i,"probs",1), scale_to_sum_1(multiply(signatures,get_base1(exposures,i,"exposures",1)), pstream__));
-            }
         } catch (const std::exception& e) {
             stan::lang::rethrow_located(e, current_statement_begin__, prog_reader__());
             // Next line prevents compiler griping about no return
@@ -2164,17 +2167,8 @@ public:
         }
 
         // validate transformed parameters
-        for (int k0__ = 0; k0__ < G; ++k0__) {
-            check_greater_or_equal(function__,"probs[k0__]",probs[k0__],0);
-            check_less_or_equal(function__,"probs[k0__]",probs[k0__],1);
-        }
 
         // write transformed parameters
-        for (int k_1__ = 0; k_1__ < C; ++k_1__) {
-            for (int k_0__ = 0; k_0__ < G; ++k_0__) {
-                vars__.push_back(probs[k_0__][k_1__]);
-            }
-        }
 
         if (!include_gqs__) return;
         // declare and define generated quantities
@@ -2187,9 +2181,20 @@ public:
 
 
         try {
-            for (int i = 1; i <= G; ++i) {
+            {
+                validate_non_negative_index("probs", "C", C);
+                vector_d probs(static_cast<Eigen::VectorXd::Index>(C));
+                (void) probs;  // dummy to suppress unused var warning
 
-                stan::math::assign(get_base1_lhs(log_lik,i,"log_lik",1), multinomial_log(get_base1(counts,i,"counts",1),get_base1(probs,i,"probs",1)));
+                stan::math::initialize(probs, std::numeric_limits<double>::quiet_NaN());
+                stan::math::fill(probs,DUMMY_VAR__);
+
+
+                for (int i = 1; i <= G; ++i) {
+
+                    stan::math::assign(probs, scale_to_sum_1(multiply(signatures,get_base1(exposures,i,"exposures",1)), pstream__));
+                    stan::math::assign(get_base1_lhs(log_lik,i,"log_lik",1), multinomial_log(get_base1(counts,i,"counts",1),probs));
+                }
             }
         } catch (const std::exception& e) {
             stan::lang::rethrow_located(e, current_statement_begin__, prog_reader__());
@@ -2242,13 +2247,6 @@ public:
         }
 
         if (!include_gqs__ && !include_tparams__) return;
-        for (int k_1__ = 1; k_1__ <= C; ++k_1__) {
-            for (int k_0__ = 1; k_0__ <= G; ++k_0__) {
-                param_name_stream__.str(std::string());
-                param_name_stream__ << "probs" << '.' << k_0__ << '.' << k_1__;
-                param_names__.push_back(param_name_stream__.str());
-            }
-        }
 
         if (!include_gqs__) return;
         for (int k_0__ = 1; k_0__ <= G; ++k_0__) {
@@ -2272,13 +2270,6 @@ public:
         }
 
         if (!include_gqs__ && !include_tparams__) return;
-        for (int k_1__ = 1; k_1__ <= C; ++k_1__) {
-            for (int k_0__ = 1; k_0__ <= G; ++k_0__) {
-                param_name_stream__.str(std::string());
-                param_name_stream__ << "probs" << '.' << k_0__ << '.' << k_1__;
-                param_names__.push_back(param_name_stream__.str());
-            }
-        }
 
         if (!include_gqs__) return;
         for (int k_0__ = 1; k_0__ <= G; ++k_0__) {
