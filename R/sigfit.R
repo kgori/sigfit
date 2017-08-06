@@ -91,7 +91,7 @@ fetch_cosmic_data <- function(reorder = TRUE, remove_zeros = TRUE) {
 #' })
 #' @useDynLib sigfit, .registration = TRUE
 #' @export
-human_trinuc_freqs <- function(type = "genome", counts) {
+human_trinuc_freqs <- function(type = "genome") {
     if (type == "genome") {
         # Human genome trinucleotide frequencies (from EMu)
         c(1.14e+08, 6.60e+07, 1.43e+07, 9.12e+07, # C>A @ AC[ACGT]
@@ -288,7 +288,9 @@ retrieve_pars <- function(object, feature, prob = 0.95, signature_names = NULL) 
 #' @param counts Matrix of mutation counts per category (columns) per genome sample (rows).
 #' @param signatures Matrix of mutational signatures (columns) to be fitted.
 #' @param prior Vector of the same length as signatures, to be used as the Dirichlet prior in the sampling chain. Default prior is uniform (uninformative).
-#' @param method Either "emu" or "nmf".
+#' @param method Either "nmf" (default) or "emu".
+#' @param opportunities Optional matrix of mutational opportunities for "emu" method; must have same dimension as counts. 
+#' If equals to "human-genome" or "human-exome", the reference human genome/exome opportunities will be used for every sample.
 #' @param ... Arguments to pass to rstan::sampling.
 #' @examples
 #'  # Custom prior favours signature 1 over 2, 3 and 4
@@ -299,7 +301,8 @@ retrieve_pars <- function(object, feature, prob = 0.95, signature_names = NULL) 
 #' @useDynLib sigfit, .registration = TRUE
 #' @importFrom "rstan" sampling
 #' @export
-fit_signatures <- function(counts, signatures, prior = NULL, hierarchical = FALSE, method = "nmf", ...) {
+fit_signatures <- function(counts, signatures, prior = NULL, hierarchical = FALSE, 
+                           method = "nmf", opportunities = NULL, ...) {
     if (is.null(prior)) {
         prior = rep(1, ncol(signatures))
     }
@@ -316,6 +319,19 @@ fit_signatures <- function(counts, signatures, prior = NULL, hierarchical = FALS
     signatures <- remove_zeros_(signatures)
     
     if (method == "emu") {
+        if (is.null(opportunities)) {
+            opportunities <- matrix(1, nrow = nrow(counts), ncol = ncol(counts))
+        }
+        else if (opportunities == "human-genome") {
+            opportunities <- matrix(rep(human_trinuc_freqs("genome"), nrow(counts)),
+                                    nrow = nrow(counts), ncol = ncol(counts), byrow = T)
+        }
+        else if (opportunities == "human-exome") {
+            opportunities <- matrix(rep(human_trinuc_freqs("exome"), nrow(counts)),
+                                    nrow = nrow(counts), ncol = ncol(counts), byrow = T)
+        }
+        stopifnot(all(dim(opportunities) == dim(counts)))
+        
         # NEED TO IMPLEMENT alpha
         dat = list(
             C = ncol(counts),
@@ -323,7 +339,7 @@ fit_signatures <- function(counts, signatures, prior = NULL, hierarchical = FALS
             G = nrow(counts),
             signatures = t(as.matrix(signatures)),
             counts = as.matrix(counts),
-            opps = matrix(1, nrow=nrow(counts), ncol=ncol(counts)),  # TODO: properly build opportunites matrix
+            opps = opportunities,
             alpha = rep(1, ncol(signatures))  # TODO: properly build/pass alpha vector
         )
         model <- stanmodels$sigfit_fit_emu
