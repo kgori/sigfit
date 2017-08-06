@@ -286,7 +286,7 @@ retrieve_pars <- function(object, feature, prob = 0.95, signature_names = NULL) 
 
 #' Runs MCMC to fit signatures and estimate exposures
 #' @param counts Matrix of mutation counts per category (columns) per genome sample (rows).
-#' @param signatures Matrix of mutational signatures (columns) to be fitted.
+#' @param signatures Matrix of mutational signatures (rows) to be fitted.
 #' @param prior Vector of the same length as signatures, to be used as the Dirichlet prior in the sampling chain. Default prior is uniform (uninformative).
 #' @param method Either "nmf" (default) or "emu".
 #' @param opportunities Optional matrix of mutational opportunities for "emu" method; must have same dimension as counts. 
