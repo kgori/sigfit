@@ -392,7 +392,6 @@ fit_signatures <- function(counts, signatures, prior = NULL, hierarchical = FALS
 extract_signatures <- function(counts, nsignatures, method = "emu", 
                                opportunities = NULL, exposures_prior = 0.5, 
                                stanfunc = "sampling", ...) {
-    out <- vector(mode = "list", length = max(nsignatures))
     
     if (method == "emu") {
         if (is.null(opportunities)) {
@@ -410,9 +409,9 @@ extract_signatures <- function(counts, nsignatures, method = "emu",
         
         model <- stanmodels$sigfit_ext_emu
         data <- list(
-            N = ncol(counts),
-            M = nrow(counts),
-            n = 1,
+            C = ncol(counts),
+            G = nrow(counts),
+            S = nsignatures[1],
             counts = as.matrix(counts),
             opps = as.matrix(opportunities)
         )
@@ -424,47 +423,58 @@ extract_signatures <- function(counts, nsignatures, method = "emu",
         
         model <- stanmodels$sigfit_ext_nmf
         data <- list(
-            G = nrow(counts),
             C = ncol(counts),
-            S = 1,
-            counts = counts,
+            G = nrow(counts),
+            S = nsignatures[1],
+            counts = as.matrix(counts),
             exposures_prior_val = exposures_prior
         )
     }
-        
+    
     # Extract signatures for each nsignatures value
-    for (n in nsignatures) {
-        cat("Extracting", n, "signatures\n")
-        
-        if (method == "emu") {
-            data$n <- n
-        }
-        else if (method == "nmf") {
+    if (length(nsignatures) > 1) {
+        out <- vector(mode = "list", length = max(nsignatures))
+        for (n in nsignatures) {
+            cat("Extracting", n, "signatures\n")
             data$S <- n
+            if (stanfunc == "sampling") {
+                cat("Stan sampling:")
+                out[[n]] <- sampling(model, data = data, chains = 1, ...)
+            }
+            else if (stanfunc == "optimizing") {
+                cat("Stan optimizing:")
+                out[[n]] <- optimizing(model, data = data, ...)
+            }
+            else if (stanfunc == "vb") {
+                cat("Stan vb:")
+                out[[n]] <- vb(model, data = data, ...)
+            }
         }
         
+        # Identify best number of signatures using LOOIC
+        out$looic <- rep(NA, max(nsignatures))
+        for (n in nsignatures) {
+            out$looic[n] <- loo(extract_log_lik(out[[n]]))$looic
+        }
+        out$best_N <- which(min(out$looic, na.rm=T))
+        cat("Best number of signatures (lowest LOOIC) is", out$best_N)
+    }
+    # Single nsignatures value case
+    else {
+        cat("Extracting", nsignatures, "signatures\n")
         if (stanfunc == "sampling") {
             cat("Stan sampling:")
-            out[[n]] <- sampling(model, data = data, chains = 1, ...)
+            out <- sampling(model, data = data, chains = 1, ...)
         }
         else if (stanfunc == "optimizing") {
             cat("Stan optimizing:")
-            out[[n]] <- optimizing(model, data = data, ...)
+            out <- optimizing(model, data = data, ...)
         }
         else if (stanfunc == "vb") {
             cat("Stan vb:")
-            out[[n]] <- vb(model, data = data, ...)
+            out <- vb(model, data = data, ...)
         }
     }
-    
-    # Identify best number of signatures using LOOIC
-    out$looic <- rep(NA, max(nsignatures))
-    for (n in nsignatures) {
-        out$looic[n] <- loo(extract_log_lik(out[[n]]))$looic
-    }
-    out$best_N <- which(min(out$looic, na.rm=T))
-    cat("Best number of signatures (lowest LOOIC) is", out$best_N)
-    
     out
 }
 
