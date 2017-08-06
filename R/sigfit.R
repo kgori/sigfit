@@ -80,7 +80,8 @@ fetch_cosmic_data <- function(reorder = TRUE, remove_zeros = TRUE) {
 #' @param type Either "genome" (default) or "exome".
 #' @examples
 #' Extract signatures using human exome opportunitites
-#' samples <- sigfit::extract_signatures(mycounts, nsignatures = 3, method = "emu", opportunities = "human-exome")
+#' samples <- extract_signatures(mycounts, nsignatures = 3, method = "emu", 
+#' opportunities = "human-exome")
 #' sigs <- retrieve_pars(samples, "signatures")
 #' 
 #' # De-normalize (mean) extracted signatures
@@ -221,7 +222,8 @@ plot_spectrum <- function(samples, prob = 0.9, title = "Fitted spectrum", ...) {
 #' retrieving exposures from fitted signatures.
 #' @examples
 #' # Extract signatures using the EMu (Poisson) model
-#' samples <- extract_signatures(mycounts, nsignatures = 3, method = "emu", opportunities = "human-genome")
+#' samples <- extract_signatures(mycounts, nsignatures = 3, method = "emu", 
+#' opportunities = "human-genome")
 #' 
 #' # Retrieve array of signatures
 #' signatures <- retrieve_pars(samples, "signatures")
