@@ -39,9 +39,9 @@ sigs <- sigfit::fetch_cosmic_data(reorder = TRUE)  # reorder: sorts by substitut
 Let's use these signatures to simulate some mutation data. This code will generate 20000 mutations from a 4:3:2:1 mixture of signatures 1, 5, 7 and 11.
 ```{r sim}
 set.seed(1)
-probs <- as.matrix(sigs[, c(1, 5, 7, 11)]) %*% c(0.4, 0.3, 0.2, 0.1)
+probs <- c(0.4, 0.3, 0.2, 0.1) %*% as.matrix(sigs[c(1, 5, 7, 11), ])
 mutations <- as.vector(rmultinom(1, 20000, probs))
-names(mutations) <- rownames(sigs)
+names(mutations) <- colnames(sigs)
 ```
 
 Here is what our simulated counts look like:

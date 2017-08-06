@@ -311,9 +311,9 @@ fit_signatures <- function(counts, signatures, prior = NULL, hierarchical = FALS
     if (is.vector(counts)) counts <- matrix(counts, nrow = 1)
     
     # Check dimensions are correct. Should be:
-    # counts[NSAMPLES, NCAT], signatures[NCAT, NSIG]
-    stopifnot(ncol(counts) == nrow(signatures))
-    stopifnot(length(prior) == ncol(signatures))
+    # counts[NSAMPLES, NCAT], signatures[NSIG, NCAT]
+    stopifnot(ncol(counts) == ncol(signatures))
+    stopifnot(length(prior) == nrow(signatures))
     
     # Add pseudocounts to signatures
     signatures <- remove_zeros_(signatures)
@@ -491,8 +491,8 @@ fit_extract_signatures <- function(counts, signatures, num_extra_sigs,
     if (is.vector(counts)) counts <- matrix(counts, nrow = 1)
     
     # Check dimensions are correct. Should be:
-    # counts[NSAMPLES, NCAT], signatures[NCAT, NSIG]
-    stopifnot(ncol(counts) == nrow(signatures))
+    # counts[NSAMPLES, NCAT], signatures[NSIG, NCAT]
+    stopifnot(ncol(counts) == ncol(signatures))
     
     # Add pseudocounts to signatures
     signatures <- remove_zeros_(signatures)
