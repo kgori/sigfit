@@ -1,9 +1,9 @@
 #' Deal with zero values in a signature
 remove_zeros_ <- function(mtx, min_allowed = 1e-9) {
-    apply(mtx, 2, function(col) {
-        col[col < min_allowed] <- min_allowed
-        col / sum(col)
-    })
+    t(apply(mtx, 1, function(row) {
+        row[row < min_allowed] <- min_allowed
+        row / sum(row)
+    }))
 }
 
 #' Reverse complement a nucleotide sequence string
@@ -304,7 +304,7 @@ retrieve_pars <- function(object, feature, prob = 0.95, signature_names = NULL) 
 fit_signatures <- function(counts, signatures, prior = NULL, hierarchical = FALSE, 
                            method = "nmf", opportunities = NULL, ...) {
     if (is.null(prior)) {
-        prior = rep(1, ncol(signatures))
+        prior = rep(1, nrow(signatures))
     }
     
     # If counts is a vector, convert it to a single row matrix
@@ -335,19 +335,19 @@ fit_signatures <- function(counts, signatures, prior = NULL, hierarchical = FALS
         # NEED TO IMPLEMENT alpha
         dat = list(
             C = ncol(counts),
-            S = ncol(signatures),
+            S = nrow(signatures),
             G = nrow(counts),
-            signatures = t(as.matrix(signatures)),
+            signatures = as.matrix(signatures),
             counts = as.matrix(counts),
             opps = opportunities,
-            alpha = rep(1, ncol(signatures))  # TODO: properly build/pass alpha vector
+            alpha = rep(1, nrow(signatures))  # TODO: properly build/pass alpha vector
         )
         model <- stanmodels$sigfit_fit_emu
     }
     else if (hierarchical) {
         dat = list(
             C = ncol(counts),
-            S = ncol(signatures),
+            S = nrow(signatures),
             G = nrow(counts),
             signatures = as.matrix(signatures),
             counts = as.matrix(counts)
@@ -357,7 +357,7 @@ fit_signatures <- function(counts, signatures, prior = NULL, hierarchical = FALS
     else {
         dat = list(
             C = ncol(counts),
-            S = ncol(signatures),
+            S = nrow(signatures),
             G = nrow(counts),
             signatures = as.matrix(signatures),
             counts = as.matrix(counts),
@@ -499,10 +499,10 @@ fit_extract_signatures <- function(counts, signatures, num_extra_sigs,
     
     dat = list(
         C = ncol(counts),
-        S = ncol(signatures),
+        S = nrow(signatures),
         G = nrow(counts),
         N = num_extra_sigs,
-        fixed_sigs = t(as.matrix(signatures)),
+        fixed_sigs = as.matrix(signatures),
         counts = as.matrix(counts)
     )
     ## Only NMF implemented so far
