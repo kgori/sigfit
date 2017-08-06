@@ -3,8 +3,8 @@ Type: Package
 Title: Discovering mutational signatures through Bayesian inference
 Version: 1.0
 Date: 2017-03-10
-Authors@R: c(person("Kevin", "Gori", email = "kg8@sanger.ac.uk", role = c("aut", "cre")),
-             person("Adrian", "Baez-Ortega", email = "ao7@sanger.ac.uk", role = "ctb"))
+Authors@R: c(person("Kevin", "Gori", email = "kcg25@cam.ac.uk", role = c("aut", "cre")),
+             person("Adrian", "Baez-Ortega", email = "ab2324@cam.ac.uk", role = "ctb"))
 Description: This package implements Bayesian models for fitting and extracting
     mixtures of mutational signatures from mutation count data. It provides
     interfaces to a Poisson model and a Dirichlet-Multinomial NMF model, as well
