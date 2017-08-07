@@ -68,9 +68,9 @@ fetch_cosmic_data <- function(reorder = TRUE, remove_zeros = TRUE) {
         cosmic_sigs <- cosmic_sigs[order(cosmic_sigs[["Substitution Type"]], cosmic_sigs[["Trinucleotide"]]),]
     }
     rownames(cosmic_sigs) <- cosmic_sigs[["Somatic Mutation Type"]]
-    cosmic_sigs <- cosmic_sigs[, paste("Signature", 1:30)]
+    cosmic_sigs <- t(cosmic_sigs[, paste("Signature", 1:30)])
     if (remove_zeros) cosmic_sigs <- remove_zeros_(cosmic_sigs)
-    t(cosmic_sigs)
+    cosmic_sigs
 }
 
 #' Returns human genome or exome trinucleotide frequencies. This is useful to
