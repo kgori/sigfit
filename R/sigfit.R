@@ -17,6 +17,18 @@ rev_comp <- function(nucleotides) {
     })))
 }
 
+#' Returns character vector of 96 (pyrimidine) trinucleotide mutation types
+mut_types <- function() {
+    bases <- c("A", "C", "G", "T")
+    paste0(rep(rep(bases, each = 4), 6),
+           rep(bases[c(2, 4)], each = 48),
+           rep(bases, 6 * 16 / 4),
+           ">",
+           rep(rep(bases, each = 4), 6),
+           c(rep(bases[-2], each = 16), rep(bases[-4], each = 16)),
+           rep(bases, 6 * 16 / 4))
+}
+
 #' Builds a mutational catalogue from a table containing the base change and
 #' trinucleotide context of each single-nucleotide variant.
 #' @param variants Table with one row per single-nucleotide variant, and three columns:
@@ -41,19 +53,9 @@ build_catalogue <- function(variants) {
         }
         paste0(paste(trinuc, collapse=""), ">", trinuc[1], alt, trinuc[3])
     })
-    
-    # Define the 96 (pyrimidine) trinucleotide mutation types
-    bases <- c("A", "C", "G", "T")
-    mut_types <- paste0(rep(rep(bases, each = 4), 6),
-                        rep(bases[c(2, 4)], each = 48),
-                        rep(bases, 6 * 16 / 4),
-                        ">",
-                        rep(rep(bases, each = 4), 6),
-                        c(rep(bases[-2], each = 16), rep(bases[-4], each = 16)),
-                        rep(bases, 6 * 16 / 4))
 
-    # Count number of occurrences of each type
-    sapply(mut_types, function(type) {
+    # Count number of occurrences of each mutation type
+    sapply(mut_types(), function(type) {
         sum(grepl(type, vars_collapsed, fixed = TRUE))
     })
 }
@@ -242,18 +244,31 @@ retrieve_pars <- function(object, feature, prob = 0.95, signature_names = NULL) 
     feat <- extract(object, pars = feature)[[feature]]
     # Multi-sample case
     if (length(dim(feat)) > 2) {
-        names1 <- ifelse(feature == "signatures",
-                         ifelse(!is.null(signature_names),
-                                signature_names,
-                                paste("Signature", LETTERS[1:dim(feat)[2]])),
-                         NULL)
-        names2 <- ifelse(feature == "exposures",
-                         ifelse(!is.null(signature_names),
-                                signature_names,
-                                paste("Signature", LETTERS[1:dim(feat)[3]])),
-                         NULL)
-        # for signatures: Signatures x Categories
-        # for exposures: Samples x Signatures
+        # Assign dimension names
+        if (feature == "signatures") {
+            names2 <- mut_types()
+            if (is.null(signature_names)) {
+                names1 <- paste("Signature", LETTERS[1:dim(feat)[2]])
+            }
+            else {
+                if (dim(feat)[2] != length(signature_names)) 
+                    stop("signature_names must have length equal to number of signatures")
+                names1 <- signature_names
+            }
+        }
+        else if (feature == "exposures") {
+            names1 <- NULL
+            if (is.null(signature_names)) {
+                names2 <- paste("Signature", LETTERS[1:dim(feat)[3]])
+            }
+            else {
+                if (dim(feat)[3] != length(signature_names)) 
+                    stop("signature_names must have length equal to number of signatures")
+                names2 <- signature_names
+            }
+        }
+        # for signatures: Signatures x Categories matrix
+        # for exposures: Samples x Signatures matrix
         feat.summ <- list(matrix(NA, nrow = dim(feat)[2], ncol = dim(feat)[3], dimnames = list(names1, names2)),
                           matrix(NA, nrow = dim(feat)[2], ncol = dim(feat)[3], dimnames = list(names1, names2)),
                           matrix(NA, nrow = dim(feat)[2], ncol = dim(feat)[3], dimnames = list(names1, names2)))
@@ -267,14 +282,18 @@ retrieve_pars <- function(object, feature, prob = 0.95, signature_names = NULL) 
     } 
     # Single-sample case (only possible in fitting)
     else {
-        names2 <- ifelse(feature == "exposures",
-                         ifelse(!is.null(signature_names),
-                                signature_names,
-                                paste("Signature", LETTERS[1:dim(feat)[2]])),
-                         NULL)
-        feat.summ <- list(matrix(NA, nrow = 1, ncol = dim(feat)[2], dimnames = list(NULL, names2)),
-                          matrix(NA, nrow = 1, ncol = dim(feat)[2], dimnames = list(NULL, names2)),
-                          matrix(NA, nrow = 1, ncol = dim(feat)[2], dimnames = list(NULL, names2)))
+        names1 <- NULL
+        if (is.null(signature_names)) {
+            names2 <- paste("Signature", LETTERS[1:dim(feat)[3]])
+        }
+        else {
+            if (dim(feat)[3] != length(signature_names)) 
+                stop("signature_names must have length equal to number of signatures")
+            names2 <- signature_names
+        }
+        feat.summ <- list(matrix(NA, nrow = 1, ncol = dim(feat)[2], dimnames = list(names1, names2)),
+                          matrix(NA, nrow = 1, ncol = dim(feat)[2], dimnames = list(names1, names2)),
+                          matrix(NA, nrow = 1, ncol = dim(feat)[2], dimnames = list(names1, names2)))
         names(feat.summ) <- c("mean", paste0(c("lower_", "upper_"), prob * 100))
         for (i in 1:dim(feat.summ)[1]) {
             hpd <- HPDinterval(as.mcmc(feat), prob = prob)
@@ -341,7 +360,7 @@ fit_signatures <- function(counts, signatures, prior = NULL, hierarchical = FALS
             G = nrow(counts),
             signatures = as.matrix(signatures),
             counts = as.matrix(counts),
-            opps = opportunities,
+            opps = as.matrix(opportunities),
             alpha = rep(1, nrow(signatures))  # TODO: properly build/pass alpha vector
         )
         model <- stanmodels$sigfit_fit_emu
