@@ -273,7 +273,7 @@ retrieve_pars <- function(object, feature, prob = 0.95, signature_names = NULL) 
                           matrix(NA, nrow = dim(feat)[2], ncol = dim(feat)[3], dimnames = list(names1, names2)),
                           matrix(NA, nrow = dim(feat)[2], ncol = dim(feat)[3], dimnames = list(names1, names2)))
         names(feat.summ) <- c("mean", paste0(c("lower_", "upper_"), prob * 100))
-        for (i in 1:dim(feat.summ)[1]) {
+        for (i in 1:nrow(feat.summ[[1]])) {
             hpd <- HPDinterval(as.mcmc(feat[,i,]), prob = prob)
             feat.summ[[1]][i,] <- colMeans(feat[,i,])
             feat.summ[[2]][i,] <- hpd[,1]
@@ -295,7 +295,7 @@ retrieve_pars <- function(object, feature, prob = 0.95, signature_names = NULL) 
                           matrix(NA, nrow = 1, ncol = dim(feat)[2], dimnames = list(names1, names2)),
                           matrix(NA, nrow = 1, ncol = dim(feat)[2], dimnames = list(names1, names2)))
         names(feat.summ) <- c("mean", paste0(c("lower_", "upper_"), prob * 100))
-        for (i in 1:dim(feat.summ)[1]) {
+        for (i in 1:nrow(feat.summ[[1]])) {
             hpd <- HPDinterval(as.mcmc(feat), prob = prob)
             feat.summ[[1]][1,] <- colMeans(feat)
             feat.summ[[2]][1,] <- hpd[,1]
@@ -409,6 +409,7 @@ fit_signatures <- function(counts, signatures, prior = NULL, hierarchical = FALS
 #' @importFrom "rstan" optimizing
 #' @importFrom "rstan" vb
 #' @importFrom "loo" loo
+#' @importFrom "loo" extract_log_lik
 #' @export
 extract_signatures <- function(counts, nsignatures, method = "emu", 
                                opportunities = NULL, exposures_prior = 0.5, 
