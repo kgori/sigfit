@@ -1,5 +1,5 @@
 # sigfit
-*Discovering mutational signatures through Bayesian inference*
+**Discovering mutational signatures through Bayesian inference**
 
 ## Installation
 sigfit is an R package. It can be installed from inside an R session using the devtools library
@@ -26,4 +26,7 @@ that produces Markov Chain Monte Carlo samples.
     mcmc_samples <- sigfit::run_sampling(counts = mutations, signatures = sigs,
                                          iter = 1500, warmup = 500)
                                          
-See the vignettes for more a detailed example.
+See the package vignettes for more a detailed example.
+
+    browseVignettes("sigfit")
+
