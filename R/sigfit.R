@@ -408,8 +408,8 @@ fit_signatures <- function(counts, signatures, prior = NULL, hierarchical = FALS
 #' @importFrom "rstan" sampling
 #' @importFrom "rstan" optimizing
 #' @importFrom "rstan" vb
-#' @importFrom "loo" loo
 #' @importFrom "loo" extract_log_lik
+#' @importFrom "loo" loo
 #' @export
 extract_signatures <- function(counts, nsignatures, method = "emu", 
                                opportunities = NULL, exposures_prior = 0.5, 
@@ -476,9 +476,9 @@ extract_signatures <- function(counts, nsignatures, method = "emu",
         # Identify best number of signatures using LOOIC
         out$looic <- rep(NA, max(nsignatures))
         for (n in nsignatures) {
-            out$looic[n] <- loo(extract_log_lik(out[[n]]))$looic
+            out$looic[n] <- loo(loo::extract_log_lik(out[[n]]))$looic
         }
-        out$best_N <- which(min(out$looic, na.rm=T))
+        out$best_N <- which.min(out$looic)
         cat("Best number of signatures (lowest LOOIC) is", out$best_N)
     }
     # Single nsignatures value case
