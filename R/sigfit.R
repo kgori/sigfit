@@ -395,7 +395,7 @@ fit_signatures <- function(counts, signatures, prior = NULL, hierarchical = FALS
 #' @param counts Matrix of mutation counts for each sample (rows) in each category
 #' (columns).
 #' @param nsignatures Number (or range of numbers) of signatures to extract.
-#' @param method Either "emu" or "nmf" (though currently "nmf" is experimental).
+#' @param method Either "emu" (default) or "nmf" (though currently "nmf" is experimental).
 #' @param opportunities Optional matrix of mutational opportunities for "emu" method; must have same dimension as counts. 
 #' If equals to "human-genome" or "human-exome", the reference human genome/exome opportunities will be used for every sample.
 #' @param exposures_prior Single numeric value to use for all the exposure priors; by default, 0.5 (i.e. Jeffreys prior).
