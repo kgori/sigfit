@@ -17,7 +17,7 @@ parameters {
 }
 transformed parameters {
     // Precomputation
-    matrix[G, C] sig_expo_opps;    // elementwise product of sig_expo and opps
+    matrix[G, C] lambda;    // elementwise product of sig_expo and opps
     {
         matrix[S, C] signatures_mat;    // signatures recast as matrix
     
@@ -26,7 +26,7 @@ transformed parameters {
                 signatures_mat[s, c] = signatures[s, c];
             }
         }
-        sig_expo_opps = exposures * signatures_mat .* opps;
+        lambda = exposures * signatures_mat .* opps;
     }
 }
 model {
@@ -42,18 +42,15 @@ model {
     
     // Likelihood
     for (g in 1:G) {
-        counts[g] ~ poisson(sig_expo_opps[g]);
+        counts[g] ~ poisson(lambda[g]);
     }
 }
 generated quantities {
-    vector[G] log_lik;
-    for (g in 1:G) {
-        log_lik[g] = poisson_lpmf(counts[g] | sig_expo_opps[g]);
+    vector[G*C] log_lik;
+    for (i in 1:G) {
+        for (j in 1:C) {
+            // TODO: vectorise this?
+            log_lik[(i-1)*C + j] = poisson_lpmf(counts[i, j] | lambda[i, j]);
+        }
     }
-    //matrix[G, C] log_lik;
-    //for (g in 1:G) {
-    //    for (c in 1:C) {
-    //        log_lik[g, c] = poisson_lpmf(counts[g, c] | sig_expo_opps[g, c]);
-    //    }
-    //}
 }
