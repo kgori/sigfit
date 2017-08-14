@@ -1,5 +1,5 @@
 # sigfit
-Fit mutational signatures with a Bayesian model
+#### Discovering mutational signatures through Bayesian inference 
 
 ## Installation
 sigfit is an R package. It can be installed from inside an R session using the devtools library
@@ -23,7 +23,10 @@ Now we can estimate the exposure of the data to each signature (pretending we do
 it was generated from 1, 5, 7, 11). ```sigfit``` uses [Stan](http://mc-stan.org/) to run a Bayesian model
 that produces Markov Chain Monte Carlo samples.
 
-    mcmc_samples <- sigfit::run_sampling(counts = mutations, signatures = sigs,
-                                         iter = 1500, warmup = 500)
+    mcmc_samples <- sigfit::fit_signatures(counts = mutations, signatures = sigs,
+                                           iter = 1500, warmup = 500)
                                          
-See the vignettes for more a detailed example.
+See the package vignettes for more a detailed example.
+
+    browseVignettes("sigfit")
+

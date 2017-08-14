@@ -1,9 +1,9 @@
 #' Deal with zero values in a signature
 remove_zeros_ <- function(mtx, min_allowed = 1e-9) {
-    apply(mtx, 2, function(col) {
-        col[col < min_allowed] <- min_allowed
-        col / sum(col)
-    })
+    t(apply(mtx, 1, function(row) {
+        row[row < min_allowed] <- min_allowed
+        row / sum(row)
+    }))
 }
 
 #' Reverse complement a nucleotide sequence string
@@ -17,12 +17,24 @@ rev_comp <- function(nucleotides) {
     })))
 }
 
+#' Returns character vector of 96 (pyrimidine) trinucleotide mutation types
+mut_types <- function() {
+    bases <- c("A", "C", "G", "T")
+    paste0(rep(rep(bases, each = 4), 6),
+           rep(bases[c(2, 4)], each = 48),
+           rep(bases, 6 * 16 / 4),
+           ">",
+           rep(rep(bases, each = 4), 6),
+           c(rep(bases[-2], each = 16), rep(bases[-4], each = 16)),
+           rep(bases, 6 * 16 / 4))
+}
+
 #' Builds a mutational catalogue from a table containing the base change and
 #' trinucleotide context of each single-nucleotide variant.
 #' @param variants Table with one row per single-nucleotide variant, and three columns:
 #' REF base (character in {A,C,G,T}); ALT base (character in {A,C,G,T}); and trinucleotide
-#' context at the variant location (sequence between the positions immediately after and 
-#' before the variant, in string format; e.g. "TCA").
+#' context at the variant location (sequence between the positions immediately before and 
+#' after the variant, in string format; e.g. "TCA").
 #' @export
 build_catalogue <- function(variants) {
     # Check that REF base coincides with middle base in trinucleotide
@@ -41,19 +53,9 @@ build_catalogue <- function(variants) {
         }
         paste0(paste(trinuc, collapse=""), ">", trinuc[1], alt, trinuc[3])
     })
-    
-    # Define the 96 (pyrimidine) trinucleotide mutation types
-    bases <- c("A", "C", "G", "T")
-    mut_types <- paste0(rep(rep(bases, each = 4), 6),
-                        rep(bases[c(2, 4)], each = 48),
-                        rep(bases, 6 * 16 / 4),
-                        ">",
-                        rep(rep(bases, each = 4), 6),
-                        c(rep(bases[-2], each = 16), rep(bases[-4], each = 16)),
-                        rep(bases, 6 * 16 / 4))
 
-    # Count number of occurrences of each type
-    sapply(mut_types, function(type) {
+    # Count number of occurrences of each mutation type
+    sapply(mut_types(), function(type) {
         sum(grepl(type, vars_collapsed, fixed = TRUE))
     })
 }
@@ -62,15 +64,15 @@ build_catalogue <- function(variants) {
 #' @param reorder Reorders the matrix by substitution type and trinucleotide
 #' @export
 fetch_cosmic_data <- function(reorder = TRUE, remove_zeros = TRUE) {
-    cosmic.sigs <- read.table('http://cancer.sanger.ac.uk/cancergenome/assets/signatures_probabilities.txt', 
+    cosmic_sigs <- read.table('http://cancer.sanger.ac.uk/cancergenome/assets/signatures_probabilities.txt', 
                               header = TRUE, sep = '\t', check.names = FALSE)
     if (reorder) {
-        cosmic.sigs <- cosmic.sigs[order(cosmic.sigs[["Substitution Type"]], cosmic.sigs[["Trinucleotide"]]),]
+        cosmic_sigs <- cosmic_sigs[order(cosmic_sigs[["Substitution Type"]], cosmic_sigs[["Trinucleotide"]]),]
     }
-    rownames(cosmic.sigs) <- cosmic.sigs[["Somatic Mutation Type"]]
-    cosmic.sigs <- cosmic.sigs[, paste("Signature", 1:30)]
-    if (remove_zeros) cosmic.sigs <- remove_zeros_(cosmic.sigs)
-    cosmic.sigs
+    rownames(cosmic_sigs) <- cosmic_sigs[["Somatic Mutation Type"]]
+    cosmic_sigs <- t(cosmic_sigs[, paste("Signature", 1:30)])
+    if (remove_zeros) cosmic_sigs <- remove_zeros_(cosmic_sigs)
+    cosmic_sigs
 }
 
 #' Returns human genome or exome trinucleotide frequencies. This is useful to
@@ -80,7 +82,8 @@ fetch_cosmic_data <- function(reorder = TRUE, remove_zeros = TRUE) {
 #' @param type Either "genome" (default) or "exome".
 #' @examples
 #' Extract signatures using human exome opportunitites
-#' samples <- sigfit::extract_signatures(mycounts, nsignatures = 3, method = "emu", opportunities = "human-exome")
+#' samples <- extract_signatures(mycounts, nsignatures = 3, method = "emu", 
+#' opportunities = "human-exome")
 #' sigs <- retrieve_pars(samples, "signatures")
 #' 
 #' # De-normalize (mean) extracted signatures
@@ -91,7 +94,7 @@ fetch_cosmic_data <- function(reorder = TRUE, remove_zeros = TRUE) {
 #' })
 #' @useDynLib sigfit, .registration = TRUE
 #' @export
-human_trinuc_freqs <- function(type = "genome", counts) {
+human_trinuc_freqs <- function(type = "genome") {
     if (type == "genome") {
         # Human genome trinucleotide frequencies (from EMu)
         c(1.14e+08, 6.60e+07, 1.43e+07, 9.12e+07, # C>A @ AC[ACGT]
@@ -221,7 +224,8 @@ plot_spectrum <- function(samples, prob = 0.9, title = "Fitted spectrum", ...) {
 #' retrieving exposures from fitted signatures.
 #' @examples
 #' # Extract signatures using the EMu (Poisson) model
-#' samples <- extract_signatures(mycounts, nsignatures = 3, method = "emu", opportunities = "human-genome")
+#' samples <- extract_signatures(mycounts, nsignatures = 3, method = "emu", 
+#' opportunities = "human-genome")
 #' 
 #' # Retrieve array of signatures
 #' signatures <- retrieve_pars(samples, "signatures")
@@ -230,7 +234,7 @@ plot_spectrum <- function(samples, prob = 0.9, title = "Fitted spectrum", ...) {
 #' exposures <- retrieve_pars(samples, "exposures", prob = 0.9)
 #' 
 #' # Plot mean exposures
-#' barplot(exposures[,,1])  # or barplot(exposures[,,"mean"])
+#' barplot(exposures$mean)  ## or barplot(exposures[[1]])
 #' @useDynLib sigfit, .registration = TRUE
 #' @importFrom "rstan" extract
 #' @importFrom "coda" HPDinterval
@@ -240,50 +244,74 @@ retrieve_pars <- function(object, feature, prob = 0.95, signature_names = NULL) 
     feat <- extract(object, pars = feature)[[feature]]
     # Multi-sample case
     if (length(dim(feat)) > 2) {
-        names1 <- ifelse(feature == "signatures",
-                         ifelse(!is.null(signature_names),
-                                signature_names,
-                                paste("Signature", LETTERS[1:dim(feat)[2]])),
-                         NULL)
-        names2 <- ifelse(feature == "exposures",
-                         ifelse(!is.null(signature_names),
-                                signature_names,
-                                paste("Signature", LETTERS[1:dim(feat)[3]])),
-                         NULL)
-        # for signatures: dims = (signatures, categories, mean/lwr/upr)
-        # for exposures: dims = (samples, signatures, mean/lwr/upr)
-        feat.summ <- array(NA, dim = c(dim(feat)[2], dim(feat)[3], 3),
-                           dimnames = list(names1, names2, c("mean", paste0(c("lower_", "upper_"), prob))))
-        for (i in 1:dim(feat.summ)[1]) {
-            feat.summ[i,,1] <- colMeans(feat[,i,])
-            feat.summ[i,,2:3] <- HPDinterval(as.mcmc(feat[,i,]), prob = prob)
+        # Assign dimension names
+        if (feature == "signatures") {
+            names2 <- mut_types()
+            if (is.null(signature_names)) {
+                names1 <- paste("Signature", LETTERS[1:dim(feat)[2]])
+            }
+            else {
+                if (dim(feat)[2] != length(signature_names)) 
+                    stop("signature_names must have length equal to number of signatures")
+                names1 <- signature_names
+            }
+        }
+        else if (feature == "exposures") {
+            names1 <- NULL
+            if (is.null(signature_names)) {
+                names2 <- paste("Signature", LETTERS[1:dim(feat)[3]])
+            }
+            else {
+                if (dim(feat)[3] != length(signature_names)) 
+                    stop("signature_names must have length equal to number of signatures")
+                names2 <- signature_names
+            }
+        }
+        # for signatures: Signatures x Categories matrix
+        # for exposures: Samples x Signatures matrix
+        feat.summ <- list(matrix(NA, nrow = dim(feat)[2], ncol = dim(feat)[3], dimnames = list(names1, names2)),
+                          matrix(NA, nrow = dim(feat)[2], ncol = dim(feat)[3], dimnames = list(names1, names2)),
+                          matrix(NA, nrow = dim(feat)[2], ncol = dim(feat)[3], dimnames = list(names1, names2)))
+        names(feat.summ) <- c("mean", paste0(c("lower_", "upper_"), prob * 100))
+        for (i in 1:nrow(feat.summ[[1]])) {
+            hpd <- HPDinterval(as.mcmc(feat[,i,]), prob = prob)
+            feat.summ[[1]][i,] <- colMeans(feat[,i,])
+            feat.summ[[2]][i,] <- hpd[,1]
+            feat.summ[[3]][i,] <- hpd[,2]
         }
     } 
-    # Single-sample case
+    # Single-sample case (only possible in fitting)
     else {
-        names1 <- ifelse(feature == "signatures",
-                         ifelse(!is.null(signature_names),
-                                signature_names,
-                                "Signature A"),
-                         NULL)
-        names2 <- ifelse(feature == "exposures",
-                         ifelse(!is.null(signature_names),
-                                signature_names,
-                                paste("Signature", LETTERS[1:dim(feat)[2]])),
-                         NULL)
-        feat.summ <- array(NA, dim = c(1, dim(feat)[2], 3),
-                           dimnames = list(names1, names2, c("mean", paste0(c("lower_", "upper_"), prob))))
-        feat.summ[1,,1] <- colMeans(feat)
-        feat.summ[1,,2:3] <- HPDinterval(as.mcmc(feat), prob = prob)
+        names1 <- NULL
+        if (is.null(signature_names)) {
+            names2 <- paste("Signature", LETTERS[1:dim(feat)[3]])
+        }
+        else {
+            if (dim(feat)[3] != length(signature_names)) 
+                stop("signature_names must have length equal to number of signatures")
+            names2 <- signature_names
+        }
+        feat.summ <- list(matrix(NA, nrow = 1, ncol = dim(feat)[2], dimnames = list(names1, names2)),
+                          matrix(NA, nrow = 1, ncol = dim(feat)[2], dimnames = list(names1, names2)),
+                          matrix(NA, nrow = 1, ncol = dim(feat)[2], dimnames = list(names1, names2)))
+        names(feat.summ) <- c("mean", paste0(c("lower_", "upper_"), prob * 100))
+        for (i in 1:nrow(feat.summ[[1]])) {
+            hpd <- HPDinterval(as.mcmc(feat), prob = prob)
+            feat.summ[[1]][1,] <- colMeans(feat)
+            feat.summ[[2]][1,] <- hpd[,1]
+            feat.summ[[3]][1,] <- hpd[,2]
+        }
     }
     feat.summ
 }
 
 #' Runs MCMC to fit signatures and estimate exposures
 #' @param counts Matrix of mutation counts per category (columns) per genome sample (rows).
-#' @param signatures Matrix of mutational signatures (columns) to be fitted.
+#' @param signatures Matrix of mutational signatures (rows) to be fitted.
 #' @param prior Vector of the same length as signatures, to be used as the Dirichlet prior in the sampling chain. Default prior is uniform (uninformative).
-#' @param method Either "emu" or "nmf".
+#' @param method Either "nmf" (default) or "emu".
+#' @param opportunities Optional matrix of mutational opportunities for "emu" method; must have same dimension as counts. 
+#' If equals to "human-genome" or "human-exome", the reference human genome/exome opportunities will be used for every sample.
 #' @param ... Arguments to pass to rstan::sampling.
 #' @examples
 #'  # Custom prior favours signature 1 over 2, 3 and 4
@@ -294,39 +322,53 @@ retrieve_pars <- function(object, feature, prob = 0.95, signature_names = NULL) 
 #' @useDynLib sigfit, .registration = TRUE
 #' @importFrom "rstan" sampling
 #' @export
-fit_signatures <- function(counts, signatures, prior = NULL, hierarchical = FALSE, method = "nmf", ...) {
+fit_signatures <- function(counts, signatures, prior = NULL, hierarchical = FALSE, 
+                           method = "nmf", opportunities = NULL, ...) {
     if (is.null(prior)) {
-        prior = rep(1, ncol(signatures))
+        prior = rep(1, nrow(signatures))
     }
     
     # If counts is a vector, convert it to a single row matrix
     if (is.vector(counts)) counts <- matrix(counts, nrow = 1)
     
     # Check dimensions are correct. Should be:
-    # counts[NSAMPLES, NCAT], signatures[NCAT, NSIG]
-    stopifnot(ncol(counts) == nrow(signatures))
-    stopifnot(length(prior) == ncol(signatures))
+    # counts[NSAMPLES, NCAT], signatures[NSIG, NCAT]
+    stopifnot(ncol(counts) == ncol(signatures))
+    stopifnot(length(prior) == nrow(signatures))
     
     # Add pseudocounts to signatures
     signatures <- remove_zeros_(signatures)
     
     if (method == "emu") {
+        if (is.null(opportunities)) {
+            opportunities <- matrix(1, nrow = nrow(counts), ncol = ncol(counts))
+        }
+        else if (opportunities == "human-genome") {
+            opportunities <- matrix(rep(human_trinuc_freqs("genome"), nrow(counts)),
+                                    nrow = nrow(counts), ncol = ncol(counts), byrow = T)
+        }
+        else if (opportunities == "human-exome") {
+            opportunities <- matrix(rep(human_trinuc_freqs("exome"), nrow(counts)),
+                                    nrow = nrow(counts), ncol = ncol(counts), byrow = T)
+        }
+        stopifnot(all(dim(opportunities) == dim(counts)))
+        
         # NEED TO IMPLEMENT alpha
         dat = list(
             C = ncol(counts),
-            S = ncol(signatures),
+            S = nrow(signatures),
             G = nrow(counts),
-            signatures = t(as.matrix(signatures)),
+            signatures = as.matrix(signatures),
             counts = as.matrix(counts),
-            opps = matrix(1, nrow=nrow(counts), ncol=ncol(counts)),  # TODO: properly build opportunites matrix
-            alpha = rep(1, ncol(signatures))  # TODO: properly build/pass alpha vector
+            opps = as.matrix(opportunities),
+            alpha = rep(1, nrow(signatures))  # TODO: properly build/pass alpha vector
         )
         model <- stanmodels$sigfit_fit_emu
     }
     else if (hierarchical) {
         dat = list(
             C = ncol(counts),
-            S = ncol(signatures),
+            S = nrow(signatures),
             G = nrow(counts),
             signatures = as.matrix(signatures),
             counts = as.matrix(counts)
@@ -336,7 +378,7 @@ fit_signatures <- function(counts, signatures, prior = NULL, hierarchical = FALS
     else {
         dat = list(
             C = ncol(counts),
-            S = ncol(signatures),
+            S = nrow(signatures),
             G = nrow(counts),
             signatures = as.matrix(signatures),
             counts = as.matrix(counts),
@@ -353,7 +395,7 @@ fit_signatures <- function(counts, signatures, prior = NULL, hierarchical = FALS
 #' @param counts Matrix of mutation counts for each sample (rows) in each category
 #' (columns).
 #' @param nsignatures Number (or range of numbers) of signatures to extract.
-#' @param method Either "emu" or "nmf" (though currently "nmf" is experimental).
+#' @param method Either "emu" (default) or "nmf" (though currently "nmf" is experimental).
 #' @param opportunities Optional matrix of mutational opportunities for "emu" method; must have same dimension as counts. 
 #' If equals to "human-genome" or "human-exome", the reference human genome/exome opportunities will be used for every sample.
 #' @param exposures_prior Single numeric value to use for all the exposure priors; by default, 0.5 (i.e. Jeffreys prior).
@@ -366,12 +408,12 @@ fit_signatures <- function(counts, signatures, prior = NULL, hierarchical = FALS
 #' @importFrom "rstan" sampling
 #' @importFrom "rstan" optimizing
 #' @importFrom "rstan" vb
+#' @importFrom "loo" extract_log_lik
 #' @importFrom "loo" loo
 #' @export
 extract_signatures <- function(counts, nsignatures, method = "emu", 
                                opportunities = NULL, exposures_prior = 0.5, 
                                stanfunc = "sampling", ...) {
-    out <- vector(mode = "list", length = max(nsignatures))
     
     if (method == "emu") {
         if (is.null(opportunities)) {
@@ -389,9 +431,9 @@ extract_signatures <- function(counts, nsignatures, method = "emu",
         
         model <- stanmodels$sigfit_ext_emu
         data <- list(
-            N = ncol(counts),
-            M = nrow(counts),
-            n = 1,
+            C = ncol(counts),
+            G = nrow(counts),
+            S = nsignatures[1],
             counts = as.matrix(counts),
             opps = as.matrix(opportunities)
         )
@@ -403,47 +445,58 @@ extract_signatures <- function(counts, nsignatures, method = "emu",
         
         model <- stanmodels$sigfit_ext_nmf
         data <- list(
-            G = nrow(counts),
             C = ncol(counts),
-            S = 1,
-            counts = counts,
+            G = nrow(counts),
+            S = nsignatures[1],
+            counts = as.matrix(counts),
             exposures_prior_val = exposures_prior
         )
     }
-        
+    
     # Extract signatures for each nsignatures value
-    for (n in nsignatures) {
-        cat("Extracting", n, "signatures\n")
-        
-        if (method == "emu") {
-            data$n <- n
-        }
-        else if (method == "nmf") {
+    if (length(nsignatures) > 1) {
+        out <- vector(mode = "list", length = max(nsignatures))
+        for (n in nsignatures) {
+            cat("Extracting", n, "signatures\n")
             data$S <- n
+            if (stanfunc == "sampling") {
+                cat("Stan sampling:")
+                out[[n]] <- sampling(model, data = data, chains = 1, ...)
+            }
+            else if (stanfunc == "optimizing") {
+                cat("Stan optimizing:")
+                out[[n]] <- optimizing(model, data = data, ...)
+            }
+            else if (stanfunc == "vb") {
+                cat("Stan vb:")
+                out[[n]] <- vb(model, data = data, ...)
+            }
         }
         
+        # Identify best number of signatures using LOOIC
+        out$looic <- rep(NA, max(nsignatures))
+        for (n in nsignatures) {
+            out$looic[n] <- loo(loo::extract_log_lik(out[[n]]))$looic
+        }
+        out$best_N <- which.min(out$looic)
+        cat("Best number of signatures (lowest LOOIC) is", out$best_N)
+    }
+    # Single nsignatures value case
+    else {
+        cat("Extracting", nsignatures, "signatures\n")
         if (stanfunc == "sampling") {
             cat("Stan sampling:")
-            out[[n]] <- sampling(model, data = data, chains = 1, ...)
+            out <- sampling(model, data = data, chains = 1, ...)
         }
         else if (stanfunc == "optimizing") {
             cat("Stan optimizing:")
-            out[[n]] <- optimizing(model, data = data, ...)
+            out <- optimizing(model, data = data, ...)
         }
         else if (stanfunc == "vb") {
             cat("Stan vb:")
-            out[[n]] <- vb(model, data = data, ...)
+            out <- vb(model, data = data, ...)
         }
     }
-    
-    # Identify best number of signatures using LOOIC
-    out$looic <- rep(NA, max(nsignatures))
-    for (n in nsignatures) {
-        out$looic[n] <- loo(extract_log_lik(out[[n]]))$looic
-    }
-    out$best_N <- which(min(out$looic, na.rm=T))
-    cat("Best number of signatures (lowest LOOIC) is", out$best_N)
-    
     out
 }
 
@@ -470,18 +523,18 @@ fit_extract_signatures <- function(counts, signatures, num_extra_sigs,
     if (is.vector(counts)) counts <- matrix(counts, nrow = 1)
     
     # Check dimensions are correct. Should be:
-    # counts[NSAMPLES, NCAT], signatures[NCAT, NSIG]
-    stopifnot(ncol(counts) == nrow(signatures))
+    # counts[NSAMPLES, NCAT], signatures[NSIG, NCAT]
+    stopifnot(ncol(counts) == ncol(signatures))
     
     # Add pseudocounts to signatures
     signatures <- remove_zeros_(signatures)
     
     dat = list(
         C = ncol(counts),
-        S = ncol(signatures),
+        S = nrow(signatures),
         G = nrow(counts),
         N = num_extra_sigs,
-        fixed_sigs = t(as.matrix(signatures)),
+        fixed_sigs = as.matrix(signatures),
         counts = as.matrix(counts)
     )
     ## Only NMF implemented so far

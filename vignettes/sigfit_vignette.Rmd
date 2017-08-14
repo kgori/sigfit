@@ -39,9 +39,9 @@ sigs <- sigfit::fetch_cosmic_data(reorder = TRUE)  # reorder: sorts by substitut
 Let's use these signatures to simulate some mutation data. This code will generate 20000 mutations from a 4:3:2:1 mixture of signatures 1, 5, 7 and 11.
 ```{r sim}
 set.seed(1)
-probs <- as.matrix(sigs[, c(1, 5, 7, 11)]) %*% c(0.4, 0.3, 0.2, 0.1)
+probs <- c(0.4, 0.3, 0.2, 0.1) %*% as.matrix(sigs[c(1, 5, 7, 11), ])
 mutations <- as.vector(rmultinom(1, 20000, probs))
-names(mutations) <- rownames(sigs)
+names(mutations) <- colnames(sigs)
 ```
 
 Here is what our simulated counts look like:
@@ -63,7 +63,7 @@ mcmc_samples <- sigfit::fit_signatures(counts = mutations, signatures = sigs,
                                        iter = 1500, warmup = 500, seed = 1)
 ```
 
-#### Visualisation
+#### Visualisation
 We can look at the fitted spectrum using ```plot_spectrum```. This function can pass through arguments to ```barplot```
 ```{r fig.width=7.5, fig.height=5, echo=FALSE}
 anon <- suppressWarnings(sigfit::plot_spectrum(mcmc_samples, names.arg = rownames(mutations),
@@ -91,9 +91,9 @@ Here is a similar example where we have multiple samples - 10 samples with 2000 
 
 ```{r multisim}
 set.seed(1)
-probs <- as.matrix(sigs[, c(1, 5, 7, 11)]) %*% c(0.4, 0.3, 0.2, 0.1)
+probs <- c(0.4, 0.3, 0.2, 0.1) %*% as.matrix(sigs[c(1, 5, 7, 11), ])
 mmutations <- t(rmultinom(10, 2000, probs))
-colnames(mmutations) <- rownames(sigs)
+colnames(mmutations) <- colnames(sigs)
 ```
 
 ```{r plotmultisim}
@@ -115,7 +115,8 @@ mmcmc_samples <- sigfit::fit_signatures(counts = mmutations, signatures = sigs,
 
 #### Visualisation
 Here is the best fit spectrum over all samples.
-```{r fig.width=7.5, fig.height=5, echo=FALSE}
+```{r fig.width=7.5, fig.height=5, echo=FALSE, eval=FALSE}
+# NOT RUNNING FOR NOW
 anon <- suppressWarnings(sigfit::plot_spectrum(mmcmc_samples, names.arg = rownames(mmutations),
                                                  cex.names = 0.4, las = 2))
 ```
@@ -126,7 +127,8 @@ sigfit::plot_spectrum(mmcmc_samples, names.arg = rownames(mmutations),
 ```
 
 And the exposures
-```{r fig.width=7.5, fig.height=5, multiexposures}
+```{r fig.width=7.5, fig.height=5, multiexposures, eval=FALSE}
+# NOT RUNNING FOR NOW
 sigfit::plot_exposures(mmcmc_samples, prob = 0.9, thresh = 0.01,
                          cex.names = 0.7, las = 2)
 ```
