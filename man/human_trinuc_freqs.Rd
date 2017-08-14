@@ -25,7 +25,7 @@ sigs <- retrieve_pars(samples, "signatures")
 
 # De-normalize (mean) extracted signatures
 freqs <- human_trinuc_freqs("exome")
-denorm_sigs <- apply(sigs, 1, function(sig) { 
+sigs_denorm <- apply(sigs, 1, function(sig) { 
      tmp <- sig[,1] * freqs
      tmp / sum(tmp)
 })
