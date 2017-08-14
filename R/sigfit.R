@@ -338,7 +338,7 @@ fit_signatures <- function(counts, signatures, prior = NULL, hierarchical = FALS
             C = ncol(counts),
             S = ncol(signatures),
             G = nrow(counts),
-            signatures = as.matrix(signatures),
+            signatures = t(as.matrix(signatures)),
             counts = as.matrix(counts),
             alpha = prior
         )
@@ -366,7 +366,7 @@ fit_signatures <- function(counts, signatures, prior = NULL, hierarchical = FALS
 #' @importFrom "rstan" sampling
 #' @importFrom "rstan" optimizing
 #' @importFrom "rstan" vb
-#' @importFrom "loo" loo
+#' @importFrom "loo" loo extract_log_lik
 #' @export
 extract_signatures <- function(counts, nsignatures, method = "emu", 
                                opportunities = NULL, exposures_prior = 0.5, 
@@ -389,9 +389,9 @@ extract_signatures <- function(counts, nsignatures, method = "emu",
         
         model <- stanmodels$sigfit_ext_emu
         data <- list(
-            N = ncol(counts),
-            M = nrow(counts),
-            n = 1,
+            G = nrow(counts),
+            C = ncol(counts),
+            S = 1,
             counts = as.matrix(counts),
             opps = as.matrix(opportunities)
         )
@@ -414,13 +414,8 @@ extract_signatures <- function(counts, nsignatures, method = "emu",
     # Extract signatures for each nsignatures value
     for (n in nsignatures) {
         cat("Extracting", n, "signatures\n")
-        
-        if (method == "emu") {
-            data$n <- n
-        }
-        else if (method == "nmf") {
-            data$S <- n
-        }
+
+        data$S <- n
         
         if (stanfunc == "sampling") {
             cat("Stan sampling:")
@@ -438,12 +433,26 @@ extract_signatures <- function(counts, nsignatures, method = "emu",
     
     # Identify best number of signatures using LOOIC
     out$looic <- rep(NA, max(nsignatures))
+    out$waic <- rep(NA, max(nsignatures))
     for (n in nsignatures) {
-        out$looic[n] <- loo(extract_log_lik(out[[n]]))$looic
+        ll <- extract_log_lik(out[[n]])
+        out$looic[n] <- loo(ll)$looic
+        out$waic[n] <- waic(ll)$waic
     }
-    out$best_N <- which(min(out$looic, na.rm=T))
-    cat("Best number of signatures (lowest LOOIC) is", out$best_N)
-    
+    tryCatch(
+        {
+            out$best_N <- which.min(out$looic)
+            cat("Best number of signatures (lowest LOOIC) is", out$best_N)
+        },
+        error=function(cond) {
+            message("Examining LOO caused an error: ")
+            message(cond)
+        },
+        warning=function(cond) {
+            message("Examining LOO caused a warning: ")
+            message(cond)
+        }
+    )
     out
 }
 
