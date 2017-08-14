@@ -421,11 +421,11 @@ extract_signatures <- function(counts, nsignatures, method = "emu",
         }
         else if (opportunities == "human-genome") {
             opportunities <- matrix(rep(human_trinuc_freqs("genome"), nrow(counts)),
-                                    nrow = nrow(counts), ncol = ncol(counts), byrow = T)
+                                    nrow = nrow(counts), ncol = ncol(counts), byrow = TRUE)
         }
         else if (opportunities == "human-exome") {
             opportunities <- matrix(rep(human_trinuc_freqs("exome"), nrow(counts)),
-                                    nrow = nrow(counts), ncol = ncol(counts), byrow = T)
+                                    nrow = nrow(counts), ncol = ncol(counts), byrow = TRUE)
         }
         stopifnot(all(dim(opportunities) == dim(counts)))
         
@@ -458,7 +458,7 @@ extract_signatures <- function(counts, nsignatures, method = "emu",
         out <- vector(mode = "list", length = max(nsignatures))
         for (n in nsignatures) {
             cat("Extracting", n, "signatures\n")
-            data$S <- n
+            data$S <- as.integer(n)
             if (stanfunc == "sampling") {
                 cat("Stan sampling:")
                 out[[n]] <- sampling(model, data = data, chains = 1, ...)
