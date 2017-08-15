@@ -354,7 +354,7 @@ fit_signatures <- function(counts, signatures, prior = NULL, hierarchical = FALS
         stopifnot(all(dim(opportunities) == dim(counts)))
         
         # NEED TO IMPLEMENT alpha
-        dat = list(
+        dat <- list(
             C = ncol(counts),
             S = nrow(signatures),
             G = nrow(counts),
@@ -366,7 +366,7 @@ fit_signatures <- function(counts, signatures, prior = NULL, hierarchical = FALS
         model <- stanmodels$sigfit_fit_emu
     }
     else if (hierarchical) {
-        dat = list(
+        dat <- list(
             C = ncol(counts),
             S = nrow(signatures),
             G = nrow(counts),
@@ -376,7 +376,7 @@ fit_signatures <- function(counts, signatures, prior = NULL, hierarchical = FALS
         model <- stanmodels$sigfit_fit_nmf_hier
     }
     else {
-        dat = list(
+        dat <- list(
             C = ncol(counts),
             S = nrow(signatures),
             G = nrow(counts),
@@ -429,7 +429,7 @@ extract_signatures <- function(counts, nsignatures, method = "emu",
         stopifnot(all(dim(opportunities) == dim(counts)))
         
         model <- stanmodels$sigfit_ext_emu
-        data <- list(
+        dat <- list(
             C = ncol(counts),
             G = nrow(counts),
             S = nsignatures[1],
@@ -443,7 +443,7 @@ extract_signatures <- function(counts, nsignatures, method = "emu",
         }
         
         model <- stanmodels$sigfit_ext_nmf
-        data <- list(
+        dat <- list(
             C = ncol(counts),
             G = nrow(counts),
             S = nsignatures[1],
@@ -457,18 +457,18 @@ extract_signatures <- function(counts, nsignatures, method = "emu",
         out <- vector(mode = "list", length = max(nsignatures))
         for (n in nsignatures) {
             cat("Extracting", n, "signatures\n")
-            data$S <- as.integer(n)
+            dat$S <- as.integer(n)
             if (stanfunc == "sampling") {
                 cat("Stan sampling:")
-                out[[n]] <- sampling(model, data = data, chains = 1, ...)
+                out[[n]] <- sampling(model, data = dat, chains = 1, ...)
             }
             else if (stanfunc == "optimizing") {
                 cat("Stan optimizing:")
-                out[[n]] <- optimizing(model, data = data, ...)
+                out[[n]] <- optimizing(model, data = dat, ...)
             }
             else if (stanfunc == "vb") {
                 cat("Stan vb:")
-                out[[n]] <- vb(model, data = data, ...)
+                out[[n]] <- vb(model, data = dat, ...)
             }
         }
         
@@ -485,15 +485,15 @@ extract_signatures <- function(counts, nsignatures, method = "emu",
         cat("Extracting", nsignatures, "signatures\n")
         if (stanfunc == "sampling") {
             cat("Stan sampling:")
-            out <- sampling(model, data = data, chains = 1, ...)
+            out <- sampling(model, data = dat, chains = 1, ...)
         }
         else if (stanfunc == "optimizing") {
             cat("Stan optimizing:")
-            out <- optimizing(model, data = data, ...)
+            out <- optimizing(model, data = dat, ...)
         }
         else if (stanfunc == "vb") {
             cat("Stan vb:")
-            out <- vb(model, data = data, ...)
+            out <- vb(model, data = dat, ...)
         }
     }
     out
@@ -528,7 +528,7 @@ fit_extract_signatures <- function(counts, signatures, num_extra_sigs,
     # Add pseudocounts to signatures
     signatures <- remove_zeros_(signatures)
     
-    dat = list(
+    dat <- list(
         C = ncol(counts),
         S = nrow(signatures),
         G = nrow(counts),
@@ -541,14 +541,14 @@ fit_extract_signatures <- function(counts, signatures, num_extra_sigs,
     
     if (stanfunc == "sampling") {
         cat("Stan sampling:")
-        sampling(model, data = data, chains = 1, ...)
+        sampling(model, data = dat, chains = 1, ...)
     }
     else if (stanfunc == "optimizing") {
         cat("Stan optimizing:")
-        optimizing(model, data = data, ...)
+        optimizing(model, data = dat, ...)
     }
     else if (stanfunc == "vb") {
         cat("Stan vb")
-        vb(model, data = data, ...)
+        vb(model, data = dat, ...)
     }
 }
