@@ -7,7 +7,7 @@ remove_zeros_ <- function(mtx, min_allowed = 1e-9) {
 }
 
 #' Reverse complement a nucleotide sequence string
-#' Input is string, output is char vector
+#' Input is string, output is character vector.
 rev_comp <- function(nucleotides) {
     as.character(rev(sapply(strsplit(nucleotides, "")[[1]], function(nuc) {
         if (nuc == "A") "T"
