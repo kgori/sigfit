@@ -380,7 +380,7 @@ fit_signatures <- function(counts, signatures, prior = NULL, hierarchical = FALS
             C = ncol(counts),
             S = nrow(signatures),
             G = nrow(counts),
-            signatures = as.matrix(signatures),
+            signatures = t(as.matrix(signatures)),
             counts = as.matrix(counts),
             alpha = prior
         )
@@ -408,8 +408,7 @@ fit_signatures <- function(counts, signatures, prior = NULL, hierarchical = FALS
 #' @importFrom "rstan" sampling
 #' @importFrom "rstan" optimizing
 #' @importFrom "rstan" vb
-#' @importFrom "loo" extract_log_lik
-#' @importFrom "loo" loo
+#' @importFrom "loo" loo extract_log_lik
 #' @export
 extract_signatures <- function(counts, nsignatures, method = "emu", 
                                opportunities = NULL, exposures_prior = 0.5, 
