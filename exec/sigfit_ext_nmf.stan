@@ -65,7 +65,13 @@ model {
 }
 generated quantities {
     vector[G] log_lik;
+    real bic;
+    
+    // Compute log_lik
     for (g in 1:G) {
         log_lik[g] = multinomial_lpmf(counts[g] | to_vector(probs[g]));
     }
+    
+    // Compute bic
+    bic = 2 * sum(log_lik) - log(G) * (G*(S-1) + S*(C-1));
 }
