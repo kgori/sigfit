@@ -322,7 +322,7 @@ retrieve_pars <- function(object, feature, prob = 0.95, signature_names = NULL) 
 #' @useDynLib sigfit, .registration = TRUE
 #' @importFrom "rstan" sampling
 #' @export
-fit_signatures <- function(counts, signatures, prior = NULL, hierarchical = FALSE, 
+fit_signatures <- function(counts, signatures, prior = NULL,
                            method = "nmf", opportunities = NULL, ...) {
     if (is.null(prior)) {
         prior = rep(1, nrow(signatures))
@@ -365,16 +365,7 @@ fit_signatures <- function(counts, signatures, prior = NULL, hierarchical = FALS
         )
         model <- stanmodels$sigfit_fit_emu
     }
-    else if (hierarchical) {
-        dat <- list(
-            C = ncol(counts),
-            S = nrow(signatures),
-            G = nrow(counts),
-            signatures = as.matrix(signatures),
-            counts = as.matrix(counts)
-        )
-        model <- stanmodels$sigfit_fit_nmf_hier
-    }
+    
     else {
         dat <- list(
             C = ncol(counts),
