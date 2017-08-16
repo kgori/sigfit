@@ -6,33 +6,49 @@ data {
     matrix[G, C] opps; // Matrix of opportunities per sample (rows) per category
 }
 transformed data {
+    // uniform priors for Dirichlets
     vector[C] alpha;
+    vector[S] kappa;
+    
     for (c in 1:C) {
         alpha[c] = 1;
     }
+    
+    for (s in 1:S) {
+        kappa[s] = 1;
+    }
 }
 parameters {
-    simplex[C] signatures[S];           // Matrix of signatures, with simplex constraint
-    matrix<lower=0>[G, S] exposures;
+    simplex[C] signatures[S]; // Matrix of signatures, with simplex constraint
+    simplex[S] exposures[G];
+    vector<lower=0>[G] multiplier;
 }
 transformed parameters {
     // Precomputation
-    matrix[G, C] lambda;    // elementwise product of sig_expo and opps
-    {
+    matrix[G, C] lambda; // Poisson parameters
+    {                 
         matrix[S, C] signatures_mat;    // signatures recast as matrix
-    
+        matrix[G, S] exposures_mat;    // exposures recast as matrix
+        
         for (s in 1:S) {
             for (c in 1:C) {
                 signatures_mat[s, c] = signatures[s, c];
             }
         }
-        lambda = exposures * signatures_mat .* opps;
+        
+        for (g in 1:G) {
+            for (s in 1:S) {
+                exposures_mat[g, s] = exposures[g, s] * multiplier[g];
+            }
+        }
+        lambda = exposures_mat * signatures_mat .* opps;
     }
 }
 model {
     // Priors for exposures
     for (g in 1:G) {
-        exposures[g] ~ cauchy(0, 2.5); // need something positive continuous
+        exposures[g] ~ dirichlet(kappa);
+        multiplier[g] ~ cauchy(0, 1);
     }
     
     // Priors for signatures
