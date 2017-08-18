@@ -21,7 +21,8 @@ Obtains summary values for a set of model parameters (signatures or exposures) f
 }
 \examples{
 # Extract signatures using the EMu (Poisson) model
-samples <- extract_signatures(mycounts, nsignatures = 3, method = "emu", opportunities = "human-genome")
+samples <- extract_signatures(mycounts, nsignatures = 3, method = "emu", 
+opportunities = "human-genome")
 
 # Retrieve array of signatures
 signatures <- retrieve_pars(samples, "signatures")
@@ -30,5 +31,5 @@ signatures <- retrieve_pars(samples, "signatures")
 exposures <- retrieve_pars(samples, "exposures", prob = 0.9)
 
 # Plot mean exposures
-barplot(exposures[,,1])  # or barplot(exposures[,,"mean"])
+barplot(exposures$mean)  ## or barplot(exposures[[1]])
 }

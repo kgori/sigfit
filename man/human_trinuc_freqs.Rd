@@ -7,7 +7,7 @@ de-normalize signatures that were obtained using the mutational opportunities
 from the human genome/exome, in order to compare them to signatures extracted
 without incorporating opportunities.}
 \usage{
-human_trinuc_freqs(type = "genome", counts)
+human_trinuc_freqs(type = "genome")
 }
 \arguments{
 \item{type}{Either "genome" (default) or "exome".}
@@ -20,7 +20,8 @@ without incorporating opportunities.
 }
 \examples{
 Extract signatures using human exome opportunitites
-samples <- sigfit::extract_signatures(mycounts, nsignatures = 3, method = "emu", opportunities = "human-exome")
+samples <- extract_signatures(mycounts, nsignatures = 3, method = "emu", 
+opportunities = "human-exome")
 sigs <- retrieve_pars(samples, "signatures")
 
 # De-normalize (mean) extracted signatures

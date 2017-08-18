@@ -4,17 +4,20 @@
 \alias{fit_signatures}
 \title{Runs MCMC to fit signatures and estimate exposures}
 \usage{
-fit_signatures(counts, signatures, prior = NULL, hierarchical = FALSE,
-  method = "nmf", ...)
+fit_signatures(counts, signatures, prior = NULL, method = "nmf",
+  opportunities = NULL, ...)
 }
 \arguments{
 \item{counts}{Matrix of mutation counts per category (columns) per genome sample (rows).}
 
-\item{signatures}{Matrix of mutational signatures (columns) to be fitted.}
+\item{signatures}{Matrix of mutational signatures (rows) to be fitted.}
 
 \item{prior}{Vector of the same length as signatures, to be used as the Dirichlet prior in the sampling chain. Default prior is uniform (uninformative).}
 
-\item{method}{Either "emu" or "nmf".}
+\item{method}{Either "nmf" (default) or "emu".}
+
+\item{opportunities}{Optional matrix of mutational opportunities for "emu" method; must have same dimension as counts. 
+If equals to "human-genome" or "human-exome", the reference human genome/exome opportunities will be used for every sample.}
 
 \item{...}{Arguments to pass to rstan::sampling.}
 }

@@ -14,7 +14,7 @@ extract_signatures(counts, nsignatures, method = "emu",
 
 \item{nsignatures}{Number (or range of numbers) of signatures to extract.}
 
-\item{method}{Either "emu" or "nmf" (though currently "nmf" is experimental).}
+\item{method}{Either "emu" (default) or "nmf" (though currently "nmf" is experimental).}
 
 \item{opportunities}{Optional matrix of mutational opportunities for "emu" method; must have same dimension as counts. 
 If equals to "human-genome" or "human-exome", the reference human genome/exome opportunities will be used for every sample.}

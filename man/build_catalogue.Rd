@@ -10,8 +10,8 @@ build_catalogue(variants)
 \arguments{
 \item{variants}{Table with one row per single-nucleotide variant, and three columns:
 REF base (character in {A,C,G,T}); ALT base (character in {A,C,G,T}); and trinucleotide
-context at the variant location (sequence between the positions immediately after and 
-before the variant, in string format; e.g. "TCA").}
+context at the variant location (sequence between the positions immediately before and 
+after the variant, in string format; e.g. "TCA").}
 }
 \description{
 Builds a mutational catalogue from a table containing the base change and

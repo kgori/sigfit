@@ -8,6 +8,8 @@ src/*.dll
 
 # Project specific
 sigfit.Rproj
+src/Modules.cpp
+src/include/models.hpp
 src/include/models.hpp.bak
 tools/make_cpp.Rout
 src/RcppExports.cpp

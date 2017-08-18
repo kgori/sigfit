@@ -3,11 +3,11 @@
 \name{rev_comp}
 \alias{rev_comp}
 \title{Reverse complement a nucleotide sequence string
-Input is string, output is char vector}
+Input is string, output is character vector}
 \usage{
 rev_comp(nucleotides)
 }
 \description{
 Reverse complement a nucleotide sequence string
-Input is string, output is char vector
+Input is string, output is character vector
 }
