@@ -203,17 +203,89 @@ plot_exposures <- function(samples, prob = 0.9, thresh = 1e-3,
     legend("topright", legend = sprintf("%.0f%% HPD > %.3f", prob*100, thresh), fill = primary_col)
 }
 
-#' Plots the fitted spectrum
-#' @param samples The MCMC samples
-#' @param prob The width of the HPD interval
-#' @param title The main title of this plot
-#' @importFrom "rstan" extract
+# Plots the fitted spectrum
+# @param samples The MCMC samples
+# @param prob The width of the HPD interval
+# @param title The main title of this plot
+# @importFrom "rstan" extract
+# @export
+# plot_spectrum <- function(samples, prob = 0.9, title = "Fitted spectrum", ...) {
+#     plt <- gen_bar_plot(samples, "probs", title, prob, 0, ...)
+#     plt$bars
+#     plt$top
+#     plt$bottom
+# }
+
+#' Plots one or more spectra, which can be either mutational catalogues or mutational
+#' signatures. For multiple spectra, one plot per spectrum will be generated.
+#' @spectra Either a vector with 96 elements, a matrix with 96 columns and one row per signature/catalogue,
+#' or a list of signature matrices, obtained via retrieve_pars(). In the latter case, HPD intervals will
+#' also be plotted.
+#' @counts Do the values in 'spectra' represent mutation counts instead of mutation probabilities?
+#' @examples
+#' # Extract signatures using the EMu (Poisson) model
+#' samples <- extract_signatures(mycounts, nsignatures = 3, method = "emu", 
+#' opportunities = "human-genome")
+#' 
+#' # Retrieve array of signatures
+#' signatures <- retrieve_pars(samples, "signatures")
+#' 
+#' # Plot mean exposures
+#' plot_spectrum(signatures)
+#' @useDynLib sigfit, .registration = TRUE
 #' @export
-plot_spectrum <- function(samples, prob = 0.9, title = "Fitted spectrum", ...) {
-    plt <- gen_bar_plot(samples, "probs", title, prob, 0, ...)
-    plt$bars
-    plt$top
-    plt$bottom
+plot_spectrum <- function(spectra, counts = FALSE) {
+    NCAT <- 96  # number of categories
+    # Fetch HPD interval values, if present
+    if (is.list(spectra)) {
+        spec <- spectra[[1]]
+        lwr <- spectra[[2]]
+        upr <- spectra[[3]]
+    }
+    else {
+        spec <- spectra
+        lwr <- NULL
+        upr <- NULL
+    }
+    # Ensure spectrum is a matrix (96 columns)
+    if (is.vector(spec)) 
+        spec <- matrix(spec, nrow = 1)
+    stopifnot(ncol(spec) == NCAT)
+    
+    # Plot each spectrum
+    COLORS <- c("deepskyblue", "black", "firebrick2", "gray76", "darkolivegreen3", "rosybrown2")
+    TYPES <- c('C>A', 'C>G', 'C>T', 'T>A', 'T>C', 'T>G')
+    max_y <- ifelse(is.null(upr), max(spec) * 1.1, max(upr) * 1.1)
+    if (!counts)
+        probs <- seq(0, 1, 0.05)
+        max_y <- probs[which.max(probs > max_y)]
+    for (i in 1:nrow(spec)) {
+        # Plot spectrum bars
+        bars <- barplot(spec[i,],
+                        col = rep(COLORS, each = 16), border = "white",
+                        yaxt = "n", ylim = c(0, max_y), xlim = c(-1, 116),
+                        cex = 1.3, cex.axis = 1.5, cex.lab = 1.7, 
+                        las = 2, xaxs = "i", family = "mono")
+        axis(side = 2, at = seq(0, max_y, 0.05), las = 2, cex.axis = 1.25)
+        label <- ifelse(counts, "Mutation count", "Mutation probability")
+        n_text <- ifelse(counts, paste0(" (N = ", sum(spec[i,]), " mutations)"), "")
+        mtext(label, side = 2, cex = 1.7, line = 4.5)
+        title(paste0("Mutational spectrum #", i, "\n", rownames(spec)[i], n_text), 
+              line = 1.5, cex.main = 2)
+        # Plot HPD intervals
+        if (!is.null(lwr)) {
+            arrows(bars, spec[i,], bars, lwr[i,], angle = 90, 
+                   length = 0.05, lwd = 1.5, col = "darkgrey")
+            arrows(bars, spec[i,], bars, upr[i,], angle = 90, 
+                   length = 0.05, lwd = 1.5, col = "darkgrey")
+        }
+        # Plot mutation type labels
+        xleft <- c(0.2, 19.4, 38.6, 57.8, 77, 96.2)
+        xright <- c(19.2, 38.4, 57.6, 76.8, 96, 115.2)
+        rect(xleft = xleft, xright = xright, ybottom = max_y * 0.95, ytop = max_y, 
+             col = COLORS, border = "white") #, lty = par("lty"), lwd = par("lwd"))
+        text(x = (xleft + xright) / 2, y = max_y * 0.9, labels = TYPES, cex = 2.25)
+    }
 }
 
 #' Obtains summary values for a set of model parameters (signatures or exposures) from a stanfit object.
