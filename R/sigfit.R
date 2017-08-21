@@ -60,12 +60,12 @@ build_catalogue <- function(variants) {
     })
 }
 
-#' Fetches COSMIC's estimated mutational signatures
+#' Fetches COSMIC mutational signatures
 #' @param reorder Reorders the matrix by substitution type and trinucleotide
 #' @export
 fetch_cosmic_data <- function(reorder = TRUE, remove_zeros = TRUE) {
-    cosmic_sigs <- read.table('http://cancer.sanger.ac.uk/cancergenome/assets/signatures_probabilities.txt', 
-                              header = TRUE, sep = '\t', check.names = FALSE)
+    cosmic_sigs <- read.table("http://cancer.sanger.ac.uk/cancergenome/assets/signatures_probabilities.txt", 
+                              header = TRUE, sep = "\t", check.names = FALSE)
     if (reorder) {
         cosmic_sigs <- cosmic_sigs[order(cosmic_sigs[["Substitution Type"]], cosmic_sigs[["Trinucleotide"]]),]
     }
@@ -217,24 +217,26 @@ plot_exposures <- function(samples, prob = 0.9, thresh = 1e-3,
 # }
 
 #' Plots one or more spectra, which can be either mutational catalogues or mutational
-#' signatures. For multiple spectra, one plot per spectrum will be generated.
-#' @spectra Either a vector with 96 elements, a matrix with 96 columns and one row per signature/catalogue,
+#' signatures. If multiple spectra are provided, generates one plot per spectrum.
+#' @param spectra Either a vector with 96 elements, a matrix with 96 columns and one row per signature/catalogue,
 #' or a list of signature matrices, obtained via retrieve_pars(). In the latter case, HPD intervals will
-#' also be plotted.
-#' @counts Do the values in 'spectra' represent mutation counts instead of mutation probabilities?
+#' also be plotted. Rownames are interpreted as the sample/signature names.
+#' @param counts Do the values in 'spectra' represent mutation counts instead of mutation probabilities?
+#' @param name Name to include in the plot title; useful when plotting a single spectrum.
 #' @examples
 #' # Extract signatures using the EMu (Poisson) model
 #' samples <- extract_signatures(mycounts, nsignatures = 3, method = "emu", 
 #' opportunities = "human-genome")
 #' 
-#' # Retrieve array of signatures
+#' # Retrieve and plot signatures
 #' signatures <- retrieve_pars(samples, "signatures")
-#' 
-#' # Plot mean exposures
+#' pdf("Signatures.pdf", width=24, height=11)
+#' par(mar=c(9, 8, 6, 2.75))
 #' plot_spectrum(signatures)
+#' dev.off()
 #' @useDynLib sigfit, .registration = TRUE
 #' @export
-plot_spectrum <- function(spectra, counts = FALSE) {
+plot_spectrum <- function(spectra, counts = FALSE, name = NULL) {
     NCAT <- 96  # number of categories
     # Fetch HPD interval values, if present
     if (is.list(spectra)) {
@@ -254,38 +256,147 @@ plot_spectrum <- function(spectra, counts = FALSE) {
     
     # Plot each spectrum
     COLORS <- c("deepskyblue", "black", "firebrick2", "gray76", "darkolivegreen3", "rosybrown2")
-    TYPES <- c('C>A', 'C>G', 'C>T', 'T>A', 'T>C', 'T>G')
-    max_y <- ifelse(is.null(upr), max(spec) * 1.1, max(upr) * 1.1)
-    if (!counts)
+    TYPES <- c("C>A", "C>G", "C>T", "T>A", "T>C", "T>G")
+    XL <- c(0.2, 19.4, 38.6, 57.8, 77, 96.2)
+    XR <- c(19.2, 38.4, 57.6, 76.8, 96, 115.2)
+    FACTOR <- ifelse(counts, 1.4, 1.1)
+    max_y <- ifelse(is.null(upr), max(spec) * FACTOR, max(upr) * FACTOR)
+    if (!counts) {
         probs <- seq(0, 1, 0.05)
         max_y <- probs[which.max(probs > max_y)]
+    }
     for (i in 1:nrow(spec)) {
         # Plot spectrum bars
-        bars <- barplot(spec[i,],
+        bars <- barplot(spec[i,], 
+                        names.arg = mut_types(),
                         col = rep(COLORS, each = 16), border = "white",
                         yaxt = "n", ylim = c(0, max_y), xlim = c(-1, 116),
                         cex = 1.3, cex.axis = 1.5, cex.lab = 1.7, 
                         las = 2, xaxs = "i", family = "mono")
-        axis(side = 2, at = seq(0, max_y, 0.05), las = 2, cex.axis = 1.25)
+        if (counts)
+            axis(side = 2, las = 2, cex.axis = 1.25)
+        else
+            axis(side = 2, at = seq(0, max_y, 0.05), las = 2, cex.axis = 1.25)
         label <- ifelse(counts, "Mutation count", "Mutation probability")
         n_text <- ifelse(counts, paste0(" (N = ", sum(spec[i,]), " mutations)"), "")
         mtext(label, side = 2, cex = 1.7, line = 4.5)
-        title(paste0("Mutational spectrum #", i, "\n", rownames(spec)[i], n_text), 
+        num <- ifelse(nrow(spec) > 1, paste0(" #", i), "")
+        nme <- ifelse(is.null(name), rownames(spec)[i], name)
+        title(paste0("Mutational spectrum", num, "\n", nme, n_text), 
               line = 1.5, cex.main = 2)
         # Plot HPD intervals
         if (!is.null(lwr)) {
             arrows(bars, spec[i,], bars, lwr[i,], angle = 90, 
-                   length = 0.05, lwd = 1.5, col = "darkgrey")
+                   length = 0.05, lwd = 1.5, col = "dimgrey")
             arrows(bars, spec[i,], bars, upr[i,], angle = 90, 
-                   length = 0.05, lwd = 1.5, col = "darkgrey")
+                   length = 0.05, lwd = 1.5, col = "dimgrey")
         }
         # Plot mutation type labels
-        xleft <- c(0.2, 19.4, 38.6, 57.8, 77, 96.2)
-        xright <- c(19.2, 38.4, 57.6, 76.8, 96, 115.2)
-        rect(xleft = xleft, xright = xright, ybottom = max_y * 0.95, ytop = max_y, 
-             col = COLORS, border = "white") #, lty = par("lty"), lwd = par("lwd"))
-        text(x = (xleft + xright) / 2, y = max_y * 0.9, labels = TYPES, cex = 2.25)
+        rect(xleft = XL, xright = XR, ybottom = max_y * 0.95, ytop = max_y, 
+             col = COLORS, border = "white")
+        text(x = (XL + XR) / 2, y = max_y * 0.9, labels = TYPES, cex = 2.25)
     }
+}
+
+#' Plots a reconstruction of the original mutational catalogues using signature 
+#' extraction or fitting results. If provided with multiple catalogues, generates one
+#' plot per catalogue.
+#' @param catalogues Matrix of original mutation counts, with 96 columns and
+#' one row per sample.
+#' @param signatures Matrix of mutational signatures, with 96 columns and one row per
+#' signature.
+#' @param exposures Matrix of signature exposures, with one row per sample and one column 
+#' per signature.
+#' @param opportunities If signatures and exposures were extracted/fitted using method="emu",
+#' these must be the opportunities used for extraction/fitting. Admits values "human-genome"
+#' and "human-exome".
+#' @examples
+#' # Extract signatures using the EMu (Poisson) model
+#' samples <- extract_signatures(mycounts, nsignatures = 3, method = "emu", 
+#' opportunities = "human-genome")
+#' 
+#' # Retrieve signatures and exposures
+#' signatures <- retrieve_pars(samples, "signatures")
+#' exposures <- retrieve_pars(samples, "exposures")
+#' 
+#' # Plot reconstructed catalogues
+#' pdf("Reconstruction.pdf", width=24, height=22)
+#' par(mar=c(9, 8, 6, 2.75))
+#' plot_reconstruction(mycounts, signatures, exposures, opportunities = "human-genome")
+#' dev.off()
+#' @importFrom "lsa" cosine
+#' @useDynLib sigfit, .registration = TRUE
+#' @export
+plot_reconstruction <- function(counts, signatures, exposures, opportunities = NULL) {
+    NCAT <- 96  # number of categories
+    if (is.list(signatures))
+        signatures <- signatures[[1]]
+    if (is.list(exposures))
+        exposures <- exposures[[1]]
+    if (is.vector(counts))
+        counts <- matrix(counts, nrow = 1)
+    if (is.vector(signatures))
+        signatures <- matrix(signatures, nrow = 1)
+    if (is.vector(exposures))
+        exposures <- matrix(exposures, nrow = 1)
+    if (!is.null(opportunities)) {
+        if (opportunities == "human-genome") {
+            opportunities <- matrix(rep(human_trinuc_freqs("genome"), nrow(counts)),
+                                    nrow = nrow(counts), ncol = ncol(counts), byrow = TRUE)
+        }
+        else if (opportunities == "human-exome") {
+            opportunities <- matrix(rep(human_trinuc_freqs("exome"), nrow(counts)),
+                                    nrow = nrow(counts), ncol = ncol(counts), byrow = TRUE)
+        }
+        stopifnot(all(dim(opportunities) == dim(counts)))
+    }
+    stopifnot(ncol(counts) == NCAT & ncol(signatures) == NCAT)
+    stopifnot(nrow(exposures) == nrow(counts))
+    stopifnot(ncol(exposures) == nrow(signatures))
+    
+    SIGCOLS <- c("#E41A1C", "#377EB8", "#4DAF4A", "#984EA3", "#FF7F00", 
+                 "#FFFF33", "#A65628", "#F781BF", "#999999")[1:nrow(signatures)]
+    COLORS <- c("deepskyblue", "black", "firebrick2", "gray76", "darkolivegreen3", "rosybrown2")
+    TYPES <- c("C>A", "C>G", "C>T", "T>A", "T>C", "T>G")
+    XL <- c(0.2, 19.4, 38.6, 57.8, 77, 96.2)
+    XR <- c(19.2, 38.4, 57.6, 76.8, 96, 115.2)
+    par(mfrow = c(2, 1))
+    
+    for (i in 1:nrow(counts)) {
+        # Plot original catalogue
+        plot_spectrum(counts[i,], counts = TRUE, name = rownames(counts)[i])
+        
+        # Plot catalogue reconstruction
+        reconstruction <- exposures[i,] * signatures
+        if (!is.null(opportunities))
+            reconstruction <- reconstruction * opportunities[i,]
+        probs <- seq(0, 1, 0.05)
+        max_y <- probs[which.max(probs > max(colSums(reconstruction)) * 1.1)]
+        barplot(reconstruction, 
+                col = SIGCOLS,
+                yaxt = "n", ylim = c(0, max_y), xlim = c(-1, 116),
+                cex = 1.3, cex.axis = 1.5, cex.lab = 1, las = 2, 
+                xaxs = "i", family = "mono")
+        axis(side = 2, at = seq(0, max_y, 0.05), las = 2, cex.axis = 1.25)
+        mtext("Mutation probability", side = 2, cex = 1.5, line = 4.5)
+        title(paste0("Reconstructed mutational spectrum\nCosine similarity = ", 
+                     round(cosine(counts[i,], colSums(reconstruction)), 3)),
+              line = 1, cex.main = 2)
+        # Mutation type labels
+        rect(xleft = XL, xright = XR, ybottom = max_y * 0.95, ytop = max_y, 
+             col = COLORS, border = "white")
+        text(x = (XL + XR) / 2, y = max_y * 0.9, labels = TYPES, cex = 2.25)
+        # Legend
+        if (is.null(rownames(signatures)))
+            sig_names <- paste("Signature", 1:nrow(signatures))
+        else
+            sig_names <- rownames(signatures)
+        legend("topright", inset = c(0, 0.1),
+               legend = paste0(rev(sig_names), " (", round(exposures[i,], 3), ")"), 
+               fill = rev(SIGCOLS), border = "black",
+               cex = 1.5, bty = "n")
+    }
+    par(mfrow = c(1, 1))
 }
 
 #' Obtains summary values for a set of model parameters (signatures or exposures) from a stanfit object.
@@ -305,8 +416,9 @@ plot_spectrum <- function(spectra, counts = FALSE) {
 #' # Retrieve array of exposures using 90% HPD intervals
 #' exposures <- retrieve_pars(samples, "exposures", prob = 0.9)
 #' 
-#' # Plot mean exposures
-#' barplot(exposures$mean)  ## or barplot(exposures[[1]])
+#' # Plot signatures and mean exposures
+#' plot_spectrum(signatures)
+#' barplot(exposures$mean)   ## or barplot(exposures[[1]])
 #' @useDynLib sigfit, .registration = TRUE
 #' @importFrom "rstan" extract
 #' @importFrom "coda" HPDinterval
@@ -471,12 +583,11 @@ fit_signatures <- function(counts, signatures, prior = NULL,
 #' @importFrom "rstan" sampling
 #' @importFrom "rstan" optimizing
 #' @importFrom "rstan" vb
-#' @importFrom "loo" loo extract_log_lik
+#' @importFrom "rstan" extract
 #' @export
 extract_signatures <- function(counts, nsignatures, method = "emu", 
                                opportunities = NULL, exposures_prior = 0.5, 
                                stanfunc = "sampling", ...) {
-    
     if (method == "emu") {
         if (is.null(opportunities)) {
             opportunities <- matrix(1, nrow = nrow(counts), ncol = ncol(counts))
@@ -535,13 +646,14 @@ extract_signatures <- function(counts, nsignatures, method = "emu",
             }
         }
         
-        # Identify best number of signatures using LOOIC
-        out$looic <- rep(NA, max(nsignatures))
+        # Identify best number of signatures using BIC
+        out$bic <- rep(NA, max(nsignatures))
         for (n in nsignatures) {
-            out$looic[n] <- loo(loo::extract_log_lik(out[[n]]))$looic
+            out$bic[n] <- round(mean(extract(out[[n]], pars = "bic")[["bic"]]), 3)
         }
-        out$best_N <- which.min(out$looic)
-        cat("Best number of signatures (lowest LOOIC) is", out$best_N)
+        out$best_N <- which.min(out$bic)
+        cat("Best number of signatures is ", out$best_N, 
+            " (BIC=", out$bic[out$best_N], ")\n", sep = "")
     }
     # Single nsignatures value case
     else {
