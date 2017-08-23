@@ -6,6 +6,20 @@ remove_zeros_ <- function(mtx, min_allowed = 1e-9) {
     }))
 }
 
+#' Functions to measure similarity/distance between two vectors
+cosine_sim <- function(x, y) { x %*% y / sqrt(x%*%x * y%*%y) }
+l2_norm <- function(x, y) { sqrt(sum((x - y)^2)) }
+l1_norm <- function(x, y) { sum(abs(x - y)) }
+kl_div <- function(x, y) {
+    x[x==0] <- 1e-7
+    y[y==0] <- 1e-7
+    x <- x / sum(x)
+    y <- y / sum(y)
+    fwd = sum(x * (log2(x) - log2(y)))
+    rev = sum(y * (log2(y) - log2(x)))
+    (fwd + rev) / 2
+}
+
 #' Reverse complement a nucleotide sequence string
 #' Input is string, output is character vector
 rev_comp <- function(nucleotides) {
@@ -60,8 +74,8 @@ build_catalogue <- function(variants) {
     })
 }
 
-#' Fetches COSMIC mutational signatures
-#' @param reorder Reorders the matrix by substitution type and trinucleotide
+#' Fetches COSMIC mutational signatures.
+#' @param reorder Reorders the matrix by substitution type and trinucleotide.
 #' @export
 fetch_cosmic_data <- function(reorder = TRUE, remove_zeros = TRUE) {
     cosmic_sigs <- read.table("http://cancer.sanger.ac.uk/cancergenome/assets/signatures_probabilities.txt", 
@@ -216,12 +230,13 @@ plot_exposures <- function(samples, prob = 0.9, thresh = 1e-3,
 #     plt$bottom
 # }
 
+#' Plot mutational spectra
 #' Plots one or more spectra, which can be either mutational catalogues or mutational
 #' signatures. If multiple spectra are provided, generates one plot per spectrum.
 #' @param spectra Either a vector with 96 elements, a matrix with 96 columns and one row per signature/catalogue,
-#' or a list of signature matrices, obtained via retrieve_pars(). In the latter case, HPD intervals will
+#' or a list of signature matrices, obtained via \code{retrieve_pars()}. In the latter case, HPD intervals will
 #' also be plotted. Rownames are interpreted as the sample/signature names.
-#' @param counts Do the values in 'spectra' represent mutation counts instead of mutation probabilities?
+#' @param counts Do the values in \code{spectra} represent mutation counts instead of mutation probabilities?
 #' @param name Name to include in the plot title; useful when plotting a single spectrum.
 #' @examples
 #' # Extract signatures using the EMu (Poisson) model
@@ -259,7 +274,7 @@ plot_spectrum <- function(spectra, counts = FALSE, name = NULL) {
     TYPES <- c("C>A", "C>G", "C>T", "T>A", "T>C", "T>G")
     XL <- c(0.2, 19.4, 38.6, 57.8, 77, 96.2)
     XR <- c(19.2, 38.4, 57.6, 76.8, 96, 115.2)
-    FACTOR <- ifelse(counts, 1.4, 1.1)
+    FACTOR <- ifelse(counts, 1.3, 1.1)
     max_y <- ifelse(is.null(upr), max(spec) * FACTOR, max(upr) * FACTOR)
     if (!counts) {
         probs <- seq(0, 1, 0.05)
@@ -277,7 +292,7 @@ plot_spectrum <- function(spectra, counts = FALSE, name = NULL) {
             axis(side = 2, las = 2, cex.axis = 1.25)
         else
             axis(side = 2, at = seq(0, max_y, 0.05), las = 2, cex.axis = 1.25)
-        label <- ifelse(counts, "Mutation count", "Mutation probability")
+        label <- ifelse(counts, "Mutations", "Mutation probability")
         n_text <- ifelse(counts, paste0(" (N = ", sum(spec[i,]), " mutations)"), "")
         mtext(label, side = 2, cex = 1.7, line = 4.5)
         num <- ifelse(nrow(spec) > 1, paste0(" #", i), "")
@@ -298,18 +313,27 @@ plot_spectrum <- function(spectra, counts = FALSE, name = NULL) {
     }
 }
 
-#' Plots a reconstruction of the original mutational catalogues using signature 
-#' extraction or fitting results. If provided with multiple catalogues, generates one
-#' plot per catalogue.
-#' @param catalogues Matrix of original mutation counts, with 96 columns and
+#' Plot mutational spectrum reconstructions
+#' 
+#' \code{plot_reconstruction} plots the reconstructions of the original mutational catalogues using the 
+#' signatures and/or exposures obtained through extraction or fitting. If provided with multiple catalogues, it generates one
+#' plot per catalogue. Data can be provided either as a single stanfit object resulting from extraction/fitting, 
+#' or as separate objects for mutation counts, signatures and exposures. The latter option does not allow
+#' plotting of error bars in the reconstructed catalogue.
+#' @param counts Matrix of observed mutation counts, with 96 columns and
 #' one row per sample.
-#' @param signatures Matrix of mutational signatures, with 96 columns and one row per
-#' signature.
-#' @param exposures Matrix of signature exposures, with one row per sample and one column 
-#' per signature.
-#' @param opportunities If signatures and exposures were extracted/fitted using method="emu",
-#' these must be the opportunities used for extraction/fitting. Admits values "human-genome"
-#' and "human-exome".
+#' @param mcmc_samples Object of class stanfit, produced by either \code{\link{fit_signatures}}
+#' or \code{\link{extract_signatures}}. Needed if \code{counts}, \code{signatures} or \code{exposures}
+#' are not provided.
+#' @param signatures Either a matrix of mutational signatures, with 96 columns and one row per
+#' signature, or a list of signatures as produced by \code{\link{retrieve_pars}}. Only needed if 
+#' \code{mcmc_samples} is not provided.
+#' @param exposures Either a matrix of signature exposures, with one row per sample and one column 
+#' per signature, or a list of exposures as produced by \code{\link{retrieve_pars}}. Only needed if \code{mcmc_samples} is not provided.
+#' @param opportunities If signatures or exposures were obtained using \code{method="emu"},
+#' the opportunities used for extraction/fitting need to be provided here. Admits values \code{"human-genome"}
+#' and \code{"human-exome"}. Only needed if \code{mcmc_samples} is not provided.
+#' @param pdf_path If provided, the plots will be output to a PDF file with this path.
 #' @examples
 #' # Extract signatures using the EMu (Poisson) model
 #' samples <- extract_signatures(mycounts, nsignatures = 3, method = "emu", 
@@ -320,25 +344,18 @@ plot_spectrum <- function(spectra, counts = FALSE, name = NULL) {
 #' exposures <- retrieve_pars(samples, "exposures")
 #' 
 #' # Plot reconstructed catalogues
-#' pdf("Reconstruction.pdf", width=24, height=22)
-#' par(mar=c(9, 8, 6, 2.75))
+#' pdf("Reconstruction.pdf", width = 24, height = 18)
+#' par(mar = c(8, 8, 7, 2.75))
 #' plot_reconstruction(mycounts, signatures, exposures, opportunities = "human-genome")
 #' dev.off()
-#' @importFrom "lsa" cosine
 #' @useDynLib sigfit, .registration = TRUE
 #' @export
-plot_reconstruction <- function(counts, signatures, exposures, opportunities = NULL) {
+plot_reconstruction <- function(counts, mcmc_samples = NULL, signatures = NULL, exposures = NULL, 
+                                opportunities = NULL, pdf_path = NULL) {
     NCAT <- 96  # number of categories
-    if (is.list(signatures))
-        signatures <- signatures[[1]]
-    if (is.list(exposures))
-        exposures <- exposures[[1]]
     if (is.vector(counts))
         counts <- matrix(counts, nrow = 1)
-    if (is.vector(signatures))
-        signatures <- matrix(signatures, nrow = 1)
-    if (is.vector(exposures))
-        exposures <- matrix(exposures, nrow = 1)
+    stopifnot(ncol(counts) == NCAT)
     if (!is.null(opportunities)) {
         if (opportunities == "human-genome") {
             opportunities <- matrix(rep(human_trinuc_freqs("genome"), nrow(counts)),
@@ -350,16 +367,204 @@ plot_reconstruction <- function(counts, signatures, exposures, opportunities = N
         }
         stopifnot(all(dim(opportunities) == dim(counts)))
     }
-    stopifnot(ncol(counts) == NCAT & ncol(signatures) == NCAT)
-    stopifnot(nrow(exposures) == nrow(counts))
-    stopifnot(ncol(exposures) == nrow(signatures))
     
+    # Prepare data
+    # Case A: matrices given instead of MCMC samples
+    if (is.null(mcmc_samples)) {
+        stopifnot(!(is.null(signatures) | is.null(exposures)))
+        if (is.list(signatures))
+            signatures <- signatures[[1]]
+        if (is.list(exposures))
+            exposures <- exposures[[1]]
+        if (is.vector(signatures))
+            signatures <- matrix(signatures, nrow = 1)
+        if (is.vector(exposures))
+            exposures <- matrix(exposures, nrow = 1)
+        stopifnot(ncol(signatures) == NCAT)
+        stopifnot(nrow(exposures) == nrow(counts))
+        stopifnot(ncol(exposures) == nrow(signatures))
+    }
+    # Case B: MCMC samples given instead of matrices
+    else {
+        pars <- extract(mcmc_samples)
+        # For fitting cases, signatures must be provided
+        if ("signatures" %in% names(pars)) {
+            signatures <- pars$signatures
+        }
+        else {
+            if (is.null(signatures))
+                stop("Because mcmc_samples contains signature fitting results, a signatures matrix must be provided via the 'signatures' argument")
+            if (is.vector(signatures))
+                signatures <- matrix(signatures, nrow = 1)
+        }
+        exposures <- pars$exposures
+        stopifnot(ncol(signatures) == NCAT)
+        stopifnot(nrow(exposures) == nrow(counts))
+        stopifnot(ncol(exposures) == nrow(signatures))
+        
+        
+#         
+#         for (sample in 1:nrow(counts)) {
+#             if ("multiplier" %in% names(e)) { ## For EMu results
+#                 reps <- dim(e$exposures)[1]
+#                 
+#                 
+#                 prob.size <- dim(e$exposures)[3]
+#                 mat <- matrix(rep(as.matrix(opportunities[1, ]), prob.size),
+#                               nrow = prob.size,
+#                               byrow = TRUE)
+#                 arr <- aperm(
+#                     sapply(1:reps, function(i) {
+#                         e$exposures[i, sample, ] * 
+#                             e$signatures[i, , ] * 
+#                             e$multiplier[i, sample] * 
+#                             mat
+#                     }, simplify = 'array'),
+#                     c(3, 1, 2)
+#                 )
+#             }
+#             
+#             else { ## For NMF results
+#                 reps <- dim(e$exposures)[1]
+#                 prob.size <- dim(e$exposures)[3]
+#                 
+#                 arr <- aperm(
+#                     sapply(1:reps, function(i) {
+#                         e$exposures[i, sample, ] * 
+#                             e$signatures[i, , ] * 
+#                             sum(counts[sample, ])
+#                     }, simplify = 'array'),
+#                     c(3, 1, 2)
+#                 )
+#             }
+#             
+#             if (is.null(total)) {
+#                 total <- arr
+#             }
+#             else {
+#                 total <- total + arr
+#             }
+#             
+#             sums <- apply(arr, c(1, 3), sum)
+#             hpd <- HPDinterval(as.mcmc(sums))
+#             mean <- apply(arr, c(2, 3), mean)
+#             
+#             df <- melt(mean, varnames = c("signature", "category"), value.name = "mutations")
+#             df$context <- n[df$category]
+#             df$signature <- factor(df$signature)
+#             df$lower <- as.vector(matrix(rep(hpd[,1], prob.size), nrow = prob.size, byrow = T))
+#             df$upper <- as.vector(matrix(rep(hpd[,2], prob.size), nrow = prob.size, byrow = T))
+#             
+#             df2 <- data.frame(mutations = unlist(counts[sample, ]), context = n)
+#             max.y <- max(df$upper, df2$mutations)
+#             cos.sim <- cosine_sim(colSums(mean), df2$mutations)
+#             
+#             p <- ggplot(df, aes(x = context, y=mutations)) +
+#                 geom_col(aes(fill = signature)) +
+#                 scale_fill_brewer(palette = "Set1") +
+#                 geom_errorbar(aes(ymin = lower, ymax = upper), width=0) +
+#                 theme_bw() + 
+#                 theme(panel.grid.minor = element_blank(), 
+#                       panel.grid.major = element_blank(),
+#                       axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 0.5, size = 8)) +
+#                 ggtitle(paste0("Sample ", sample, ": Reconstruction - cosine sim = ", cos.sim)) +
+#                 ylim(0, max.y)
+#             
+#             #extract the legend from the first graph
+#             temp <- ggplotGrob(p)
+#             leg_index <- which(sapply(temp$grobs, function(x) x$name) == "guide-box")
+#             legend <- temp$grobs[[leg_index]] 
+#             
+#             #remove the legend of the first graph
+#             p <- p + theme(legend.position="none")
+#             
+#             p2 <- ggplot(df2, aes(x = context, y = mutations)) + geom_col() +
+#                 theme_bw() + 
+#                 theme(panel.grid.minor = element_blank(), 
+#                       panel.grid.major = element_blank(),
+#                       axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 0.5, size = 8)) +
+#                 ggtitle(paste0("Sample", sample, ": Observed")) + ylim(0, max.y)
+#             
+#             #define position of each grobs/plots and width and height ratio
+#             grid_layout <- rbind(c(1,3),
+#                                  c(2,NA))
+#             grid_width <- c(5,1)
+#             grid_heigth <- c(1,1)
+#             
+#             
+#             plots[[sample]] <- arrangeGrob(
+#                 grobs=list(p, p2, legend),
+#                 layout_matrix = grid_layout,
+#                 widths = grid_width,
+#                 heights = grid_heigth)
+#             # grid.arrange(grobs = list(p2, p), ncol = 1, main = paste0("Sample ", sample))
+#         }
+#         
+#         sums <- apply(total, c(1, 3), sum)
+#         hpd <- HPDinterval(as.mcmc(sums))
+#         mean <- apply(total, c(2, 3), mean)
+#         
+#         df <- melt(mean, varnames = c("signature", "category"), value.name = "mutations")
+#         df$signature <- factor(df$signature)
+#         df$context <- n[df$category]
+#         df$lower <- as.vector(matrix(rep(hpd[,1], prob.size), nrow = prob.size, byrow = T))
+#         df$upper <- as.vector(matrix(rep(hpd[,2], prob.size), nrow = prob.size, byrow = T))
+#         
+#         df2 <- data.frame(mutations = unlist(colSums(counts)), context = n)
+#         max.y <- max(df$upper, df2$mutations)
+#         cos.sim <- cosine_sim(colSums(mean), df2$mutations)
+#         
+#         p <- ggplot(df, aes(x=context, y=mutations)) +
+#             geom_col(aes(fill = signature)) +
+#             scale_fill_brewer(palette = "Set1") +
+#             geom_errorbar(aes(ymin = lower, ymax = upper), width=0) +
+#             theme_bw() + theme(panel.grid.minor = element_blank(), panel.grid.major = element_blank(),
+#                                axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 0.5, size = 8)) +
+#             ylim(0, max.y) +
+#             ggtitle(paste0("All samples: reconstruction - cosine sim = ", cos.sim))
+#         
+#         #extract the legend from the first graph
+#         temp <- ggplotGrob(p)
+#         leg_index <- which(sapply(temp$grobs, function(x) x$name) == "guide-box")
+#         legend <- temp$grobs[[leg_index]] 
+#         
+#         #remove the legend of the first graph
+#         p <- p + theme(legend.position="none")
+#         
+#         p2 <- ggplot(df2, aes(x = context, y = mutations)) + geom_col() +
+#             theme_bw() + 
+#             theme(panel.grid.minor = element_blank(), 
+#                   panel.grid.major = element_blank(),
+#                   axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 0.5, size = 8)) +
+#             ggtitle("All samples: observed") + ylim(0, max.y)
+#         
+#         #define position of each grobs/plots and width and height ratio
+#         grid_layout <- rbind(c(1,3),
+#                              c(2,NA))
+#         grid_width <- c(5,1)
+#         grid_heigth <- c(1,1)
+#         
+#         plots[[length(plots) + 1]] <- arrangeGrob(grobs = list(p, p2, legend),
+#                                                   layout_matrix = grid_layout,
+#                                                   widths = grid_width,
+#                                                   heights = grid_heigth)
+#         plots
+#         #######
+    }
+    
+    # Plotting
     SIGCOLS <- c("#E41A1C", "#377EB8", "#4DAF4A", "#984EA3", "#FF7F00", 
                  "#FFFF33", "#A65628", "#F781BF", "#999999")[1:nrow(signatures)]
     COLORS <- c("deepskyblue", "black", "firebrick2", "gray76", "darkolivegreen3", "rosybrown2")
     TYPES <- c("C>A", "C>G", "C>T", "T>A", "T>C", "T>G")
     XL <- c(0.2, 19.4, 38.6, 57.8, 77, 96.2)
     XR <- c(19.2, 38.4, 57.6, 76.8, 96, 115.2)
+    
+    if (!is.null(pdf_path)) {
+        stopifnot(is.character(pdf_path))
+        pdf(pdf_path, width = 24, height = 18)
+        par(mar = c(8, 8, 7, 2.75))
+    }
     par(mfrow = c(2, 1))
     
     for (i in 1:nrow(counts)) {
@@ -370,17 +575,22 @@ plot_reconstruction <- function(counts, signatures, exposures, opportunities = N
         reconstruction <- exposures[i,] * signatures
         if (!is.null(opportunities))
             reconstruction <- reconstruction * opportunities[i,]
-        probs <- seq(0, 1, 0.05)
-        max_y <- probs[which.max(probs > max(colSums(reconstruction)) * 1.1)]
+        reconstruction <- reconstruction / sum(reconstruction)
+        reconstruction <- reconstruction * sum(counts[i,])
+        #probs <- seq(0, 1, 0.05)
+        #max_y <- probs[which.max(probs > max(colSums(reconstruction)) * 1.1)]
+        max_y <- max(counts[i,]) * 1.3
         barplot(reconstruction, 
-                col = SIGCOLS,
+                col = SIGCOLS, border = SIGCOLS,
                 yaxt = "n", ylim = c(0, max_y), xlim = c(-1, 116),
                 cex = 1.3, cex.axis = 1.5, cex.lab = 1, las = 2, 
                 xaxs = "i", family = "mono")
-        axis(side = 2, at = seq(0, max_y, 0.05), las = 2, cex.axis = 1.25)
-        mtext("Mutation probability", side = 2, cex = 1.5, line = 4.5)
+        #axis(side = 2, at = seq(0, max_y, 0.05), las = 2, cex.axis = 1.25)
+        #mtext("Mutation probability", side = 2, cex = 1.5, line = 4.5)
+        axis(side = 2, las = 2, cex.axis = 1.25)
+        mtext("Mutations", side = 2, cex = 1.5, line = 4.5)
         title(paste0("Reconstructed mutational spectrum\nCosine similarity = ", 
-                     round(cosine(counts[i,], colSums(reconstruction)), 3)),
+                     round(cosine_sim(counts[i,], colSums(reconstruction)), 3)),
               line = 1, cex.main = 2)
         # Mutation type labels
         rect(xleft = XL, xright = XR, ybottom = max_y * 0.95, ytop = max_y, 
@@ -391,17 +601,84 @@ plot_reconstruction <- function(counts, signatures, exposures, opportunities = N
             sig_names <- paste("Signature", 1:nrow(signatures))
         else
             sig_names <- rownames(signatures)
-        legend("topright", inset = c(0, 0.1),
+        legend("topright", inset = c(0, 0.13),
                legend = paste0(rev(sig_names), " (", round(exposures[i,], 3), ")"), 
-               fill = rev(SIGCOLS), border = "black",
+               fill = rev(SIGCOLS), border = rev(SIGCOLS),
                cex = 1.5, bty = "n")
     }
+    
     par(mfrow = c(1, 1))
+    if (!is.null(pdf_path)) {
+        dev.off()
+    }
 }
 
+#' Plot goodness of fit
+#' 
+#' \code{plot_gof} plots the goodness of fit of a set of samples, each of which
+#' has typically been sampled using an extraction model (EMu or NMF) with a 
+#' different number of signatures.
+#' @param sample_list List of objects of class stanfit. Elements of the list
+#' which are not of class stanfit are ignored.
+#' @param counts Matrix of mutation counts, with 96 columns and one row per catalogue.
+#' @param stat Function for measuring goodness of fit. Admits values "cosine" 
+#' (cosine similarity), "L1" (L1 norm), "L2" (L2 norm) or "KL" (symmetric KL divergence).
+#' @importFrom "rstan" extract
+#' @export
+plot_gof <- function(sample_list, counts, stat = "cosine") {
+    gof_function <- switch(stat,
+                           "cosine" = cosine_sim,
+                           "L1" = l1_norm,
+                           "L2" = l2_norm,
+                           "KL" = kl_div)
+    if (is.null(gof_function)) {
+        stop("Enter a valid option for `stat` -> \"cosine\", \"L1\", \"L2\", \"KL\"")
+    }
+    
+    nS <- c()
+    gof <- c()
+    for (samples in sample_list) {
+        if (class(samples) != "stanfit") next
+        
+        e <- extract(samples)
+        if ("lambda" %in% names(e)) {
+            reconstructed <- apply(e$lambda, c(2, 3), mean)
+            method <- "EMu"
+        }
+        else {
+            reconstructed <- apply(e$probs, c(2, 3), mean) * rowSums(counts)
+            method = "NMF"
+        }
+        stopifnot(length(as.vector(reconstructed)) == length(as.vector(counts)))
+        
+        nS <- append(nS, dim(e$signatures)[2])
+        gof <- append(gof, gof_function(as.vector(reconstructed),
+                                        as.vector(counts)))
+    }
+    
+    # Find the point of highest rate of change of gradient (i.e. highest positive 
+    # 2nd derivative for 'L'-shaped curves, negative for 'r'-shaped curves)
+    # Approximate 2nd derivative = x[n+1] + x[n-1] - 2x[n]
+    deriv <- gof[3:(length(gof))] + gof[1:(length(gof)-2)] - 2 * gof[2:(length(gof)-1)]
+    best <- ifelse(stat == "cosine", 
+                   which.min(deriv) + 1,  # highest negative curvature
+                   which.max(deriv) + 1)  # highest positive curvature
+    
+    plot(nS, gof, type = "o", lty = 3, pch = 16, col = "dodgerblue4",
+         main = paste0("Goodness of fit (", stat, ")\nmodel: ", method),
+         xlab = "Number of signatures", 
+         ylab = paste0("Goodness of fit (", stat, ")"))
+    points(nS[best], gof[best], pch = 16, col = "orangered", cex = 1.1)
+    
+    cat("Estimated best number of signatures:", nS[best], "\n")
+    nS[best]
+}
+
+#' Retrieve model parameters
+#' 
 #' Obtains summary values for a set of model parameters (signatures or exposures) from a stanfit object.
-#' @param object An object of class stanfit.
-#' @param feature Name of the parameter set to extract; either "signatures" or "exposures".
+#' @param mcmc_samples An object of class stanfit, resulting from MCMC sampling through either \code{fit_signatures} or \code{extract_signatures}.
+#' @param feature Name of the parameter set to extract; either \code{"signatures"} or \code{"exposures"}.
 #' @param prob A numeric scalar in the interval (0,1) giving the target probability content of the HPD intervals.
 #' @param signature_names Vector containing the names of the signatures used for fitting. Used only when 
 #' retrieving exposures from fitted signatures.
@@ -424,8 +701,8 @@ plot_reconstruction <- function(counts, signatures, exposures, opportunities = N
 #' @importFrom "coda" HPDinterval
 #' @importFrom "coda" as.mcmc
 #' @export
-retrieve_pars <- function(object, feature, prob = 0.95, signature_names = NULL) {
-    feat <- extract(object, pars = feature)[[feature]]
+retrieve_pars <- function(mcmc_samples, feature, prob = 0.95, signature_names = NULL) {
+    feat <- extract(mcmc_samples, pars = feature)[[feature]]
     # Multi-sample case
     if (length(dim(feat)) > 2) {
         # Assign dimension names
@@ -464,7 +741,7 @@ retrieve_pars <- function(object, feature, prob = 0.95, signature_names = NULL) 
             feat.summ[[3]][i,] <- hpd[,2]
         }
     } 
-    # Single-sample case (only possible in fitting)
+    # Single-sample case (only possible when fitting)
     else {
         names1 <- NULL
         if (is.null(signature_names)) {
@@ -489,14 +766,16 @@ retrieve_pars <- function(object, feature, prob = 0.95, signature_names = NULL) 
     feat.summ
 }
 
-#' Runs MCMC to fit signatures and estimate exposures
+#' Run MCMC to fit signatures and estimate exposures
 #' @param counts Matrix of mutation counts per category (columns) per genome sample (rows).
 #' @param signatures Matrix of mutational signatures (rows) to be fitted.
-#' @param prior Vector of the same length as signatures, to be used as the Dirichlet prior in the sampling chain. Default prior is uniform (uninformative).
-#' @param method Either "nmf" (default) or "emu".
-#' @param opportunities Optional matrix of mutational opportunities for "emu" method; must have same dimension as counts. 
-#' If equals to "human-genome" or "human-exome", the reference human genome/exome opportunities will be used for every sample.
-#' @param ... Arguments to pass to rstan::sampling.
+#' @param prior Vector with one element per signature, to be used as the Dirichlet prior in the sampling chain. 
+#' Default prior is uniform (uninformative).
+#' @param method Model to sample from; either \code{"nmf"} or \code{"emu"}.
+#' @param opportunities Optional matrix of mutational opportunities for \code{"emu"} method; must have same 
+#' dimension as \code{counts}. If equals to \code{"human-genome"} or \code{"human-exome"}, the reference h
+#' uman genome/exome opportunities will be used for every sample.
+#' @param ... Arguments to pass to \code{rstan::sampling}.
 #' @examples
 #'  # Custom prior favours signature 1 over 2, 3 and 4
 #' samples <- fit_signatures(mycounts, mysignatures, prior = c(5, 1, 1, 1))
@@ -555,7 +834,7 @@ fit_signatures <- function(counts, signatures, prior = NULL,
             C = ncol(counts),
             S = nrow(signatures),
             G = nrow(counts),
-            signatures = t(as.matrix(signatures)),
+            signatures = as.matrix(signatures),
             counts = as.matrix(counts),
             alpha = prior
         )
@@ -564,21 +843,21 @@ fit_signatures <- function(counts, signatures, prior = NULL,
     sampling(model, data = dat, ...)
 }
 
-#' Extracts signatures from a set of mutation counts
-#' using models based on NMF or EMu
+#' Extract signatures from a set of mutation counts
 #' 
 #' @param counts Matrix of mutation counts for each sample (rows) in each category
 #' (columns).
 #' @param nsignatures Number (or range of numbers) of signatures to extract.
-#' @param method Either "emu" (default) or "nmf" (though currently "nmf" is experimental).
-#' @param opportunities Optional matrix of mutational opportunities for "emu" method; must have same dimension as counts. 
-#' If equals to "human-genome" or "human-exome", the reference human genome/exome opportunities will be used for every sample.
+#' @param method Either \code{"emu"} (default) or \code{"nmf"}.
+#' @param opportunities Optional matrix of mutational opportunities for \code{"emu"} method; 
+#' must have same dimension as \code{counts}. If equals to \code{"human-genome"} or 
+#' \code{"human-exome"}, the reference human genome/exome opportunities will be used for every sample.
 #' @param exposures_prior Single numeric value to use for all the exposure priors; by default, 0.5 (i.e. Jeffreys prior).
-#' @param stanfunc "sampling"|"optimizing"|"vb" Choice of rstan inference strategy. 
-#' "sampling" is the full Bayesian MCMC approach, and is the default. "optimizing"
+#' @param stanfunc \code{"sampling"}|\code{"optimizing"}|\code{"vb"} Choice of rstan inference strategy. 
+#' \code{"sampling"} is the full Bayesian MCMC approach, and is the default. \code{"optimizing"}
 #' returns the Maximum a Posteriori (MAP) point estimates via numerical optimization.
-#' "vb" uses Variational Bayes to approximate the full posterior.
-#' @param ... Any other parameters to pass through to rstan.
+#' \code{"vb"} uses Variational Bayes to approximate the full posterior.
+#' @param ... Any other parameters to pass to rstan.
 #' @useDynLib sigfit, .registration = TRUE
 #' @importFrom "rstan" sampling
 #' @importFrom "rstan" optimizing
@@ -646,14 +925,10 @@ extract_signatures <- function(counts, nsignatures, method = "emu",
             }
         }
         
-        # Identify best number of signatures using BIC
-        out$bic <- rep(NA, max(nsignatures))
-        for (n in nsignatures) {
-            out$bic[n] <- round(mean(extract(out[[n]], pars = "bic")[["bic"]]), 3)
-        }
-        out$best_N <- which.min(out$bic)
-        cat("Best number of signatures is ", out$best_N, 
-            " (BIC=", out$bic[out$best_N], ")\n", sep = "")
+        names(out) <- paste0("nsignatures=", 1:length(out))
+        
+        # Plot goodness of fit and best number of signatures
+        out$best <- plot_gof(out, counts)
     }
     # Single nsignatures value case
     else {
@@ -681,10 +956,11 @@ extract_signatures <- function(counts, nsignatures, method = "emu",
 #' (columns).
 #' @param signatures Matrix of fixed mutational signatures (columns) to be fitted.
 #' @param num_extra_sigs Number of additional signatures to be extracted.
-#' @param stanfunc "sampling"|"optimizing"|"vb" Choice of rstan inference strategy. 
-#' "sampling" is the full Bayesian MCMC approach, and is the default. "optimizing"
-#' returns the Maximum a Posteriori (MAP) point estimates via numerical optimization.
-#' "vb" uses Variational Bayes to approximate the full posterior.
+#' @param stanfunc \code{"sampling"}|\code{"optimizing"}|\code{"vb"} Choice of rstan 
+#' inference strategy. \code{"sampling"} is the full Bayesian MCMC approach, and is the 
+#' default. \code{"optimizing"} returns the Maximum a Posteriori (MAP) point estimates 
+#' via numerical optimization. \code{"vb"} uses Variational Bayes to approximate the 
+#' full posterior.
 #' @param ... Any other parameters to pass through to rstan.
 #' @useDynLib sigfit, .registration = TRUE
 #' @importFrom "rstan" sampling
