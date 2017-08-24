@@ -717,6 +717,7 @@ retrieve_pars <- function(mcmc_samples, feature, prob = 0.95, signature_names = 
 #' @export
 fit_signatures <- function(counts, signatures, prior = NULL,
                            method = "nmf", opportunities = NULL, ...) {
+    counts <- as.matrix(counts)
     if (is.null(prior)) {
         prior = rep(1, nrow(signatures))
     }
@@ -797,6 +798,7 @@ fit_signatures <- function(counts, signatures, prior = NULL,
 extract_signatures <- function(counts, nsignatures, method = "emu", 
                                opportunities = NULL, exposures_prior = 0.5, 
                                stanfunc = "sampling", ...) {
+    counts <- as.matrix(counts)
     if (method == "emu") {
         if (is.null(opportunities)) {
             opportunities <- matrix(1, nrow = nrow(counts), ncol = ncol(counts))
