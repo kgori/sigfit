@@ -458,6 +458,9 @@ plot_reconstruction <- function(counts, mcmc_samples = NULL, signatures = NULL, 
                 as.mcmc(apply(arr, c(1, 3), sum))
             ))
         }
+        
+        # Retrieve mean exposures
+        exposures <- retrieve_pars(e, "exposures")[[1]]
     }
     
     # Plotting
@@ -529,7 +532,7 @@ plot_reconstruction <- function(counts, mcmc_samples = NULL, signatures = NULL, 
             sig_names <- rownames(signatures)
         }
         legend("topright", inset = c(0, 0.13),
-               legend = paste0(rev(sig_names), " (", round(e$exposures[i,], 3), ")"), 
+               legend = paste0(rev(sig_names), " (", round(exposures[i, ], 3), ")"), 
                fill = rev(sigcols),
                cex = 1.5, bty = "n")
     }
