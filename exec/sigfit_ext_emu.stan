@@ -1,3 +1,6 @@
+functions {
+    #include "common_functions.stan"
+}
 data {
     int<lower=1> C;  // number of mutation categories [uses index c]
     int<lower=1> S;  // number of mutational signatures [uses index s]
@@ -7,16 +10,8 @@ data {
 }
 transformed data {
     // uniform priors for Dirichlets
-    vector[C] alpha;
-    vector[S] kappa;
-    
-    for (c in 1:C) {
-        alpha[c] = 1;
-    }
-    
-    for (s in 1:S) {
-        kappa[s] = 1;
-    }
+    vector[C] alpha = rep_vector(1, C);
+    vector[S] kappa = rep_vector(1, S);
 }
 parameters {
     simplex[C] signatures[S]; // Matrix of signatures, with simplex constraint
@@ -24,40 +19,24 @@ parameters {
     vector<lower=0>[G] multiplier;
 }
 transformed parameters {
-    // Precomputation
-    matrix[G, C] lambda; // Poisson parameters
-    {                 
-        matrix[S, C] signatures_mat;    // signatures recast as matrix
-        matrix[G, S] exposures_mat;    // exposures recast as matrix
-        
-        for (s in 1:S) {
-            for (c in 1:C) {
-                signatures_mat[s, c] = signatures[s, c];
-            }
-        }
-        
-        for (g in 1:G) {
-            for (s in 1:S) {
-                exposures_mat[g, s] = exposures[g, s] * multiplier[g];
-            }
-        }
-        lambda = exposures_mat * signatures_mat .* opps;
+    // Poisson parameters
+    matrix[G, C] lambda = array_to_matrix(exposures) * array_to_matrix(signatures) .* opps;
+    for (g in 1:G) {
+        lambda[g] = lambda[g] * multiplier[g];
     }
 }
 model {
-    // Priors for exposures
-    for (g in 1:G) {
-        exposures[g] ~ dirichlet(kappa);
-        multiplier[g] ~ cauchy(0, 1);
-    }
-    
     // Priors for signatures
     for (s in 1:S) {
         signatures[s] ~ dirichlet(alpha);
     }
-    
-    // Likelihood
+
     for (g in 1:G) {
+        // Priors for exposures
+        exposures[g] ~ dirichlet(kappa);
+        multiplier[g] ~ cauchy(0, 1);
+        
+        // Likelihood
         counts[g] ~ poisson(lambda[g]);
     }
 }
