@@ -44,8 +44,9 @@ mut_types <- function() {
 #' @export
 build_catalogue <- function(variants) {
     # Check that REF base coincides with middle base in trinucleotide
-    if (any(variants[,1] != sapply(strsplit(variants[,3], split=""), function(x) x[2])))
-        stop("REF base (first column) must always be equal to middle base of the trinucleotide context (third column).")
+    if (any(variants[,1] != sapply(strsplit(variants[,3], split=""), function(x) x[2]))) {
+        stop("REF base (column 1) is not equal to middle base of the trinucleotide context (column 3).")
+    }
     
     # Obtain mutation types, collapsed such that they refer to pyrimidine bases
     vars_collapsed <- apply(variants, 1, function(var) {
@@ -77,7 +78,9 @@ fetch_cosmic_data <- function(reorder = TRUE, remove_zeros = TRUE) {
     }
     rownames(cosmic_sigs) <- cosmic_sigs[["Somatic Mutation Type"]]
     cosmic_sigs <- t(cosmic_sigs[, paste("Signature", 1:30)])
-    if (remove_zeros) cosmic_sigs <- remove_zeros_(cosmic_sigs)
+    if (remove_zeros) {
+        cosmic_sigs <- remove_zeros_(cosmic_sigs)
+    }
     cosmic_sigs
 }
 
@@ -156,7 +159,7 @@ human_trinuc_freqs <- function(type = "genome") {
           1391660, 1674368, 1559846, 2850934)
     }
     else {
-        stop("type must be either \"genome\" or \"exome\"")
+        stop("`type` must be either \"genome\" or \"exome\"")
     }
 }
 
@@ -166,49 +169,49 @@ stan_models <- function() {
     stanmodels
 }
 
-gen_bar_plot <- function(samples, featurename, title, prob, thresh, 
-                         primary_col = "dodgerblue3", secondary_col = "grey90",
-                         ...) {
-    feature <- rstan::extract(samples, pars = featurename)[[featurename]]
-    if ( length(dim(feature)) > 2 && dim(feature)[2] > 1) {
-        stop("Plotting for multiple samples not implemented")
-    }
-    feature <- feature[,1,]
-    mean_feature <- colMeans(feature)
-    names(mean_feature) <- 1:length(mean_feature)
-    error <- HPDinterval(as.mcmc(feature), prob = prob)
-    bars <- barplot(mean_feature, ylim = c(0, max(error[, 2]*1.05)), main = title,
-                    col = ifelse(error[, 1] > thresh, primary_col, secondary_col), ...)
-    top_arr <- arrows(bars, error[, 1], bars, mean_feature, angle=90, code=1, length=0.05)
-    bottom_arr <- arrows(bars, error[, 2], bars, mean_feature, angle=90, code=1, length=0.05)
-    list(bars, top = top_arr, bottom = bottom_arr)
-}
-
-#' Plots estimated exposure of each signature
-#' @param samples The MCMC samples
-#' @param prob The width of the HPD interval
-#' @param thresh Signatures with a lower HPDI below this value are coloured grey
-#' @param title The main title of this plot
-#' @param primary_col The colour to plot strongly supported exposures (default=dodgerblue3)
-#' @param secondary_col The colour to plot weakly supported exposures (default=grey90)
-#' @param ... Arguments to pass through to graphics::barplot
-#' @importFrom "coda" HPDinterval
-#' @importFrom "coda" as.mcmc
-#' @importFrom "rstan" summary
-#' @importFrom "rstan" extract
-#' @export
-plot_exposures <- function(samples, prob = 0.9, thresh = 1e-3,
-                           title = "Signature exposures",
-                           primary_col = "dodgerblue3", secondary_col = "grey90",
-                           ...) {
-    plt <- gen_bar_plot(samples, "exposures", title, prob, thresh, 
-                        primary_col, secondary_col, ...)
-    plt$bars
-    plt$top
-    plt$bottom
-    legend("topright", legend = sprintf("%.0f%% HPD > %.3f", prob*100, thresh), fill = primary_col)
-}
-
+# gen_bar_plot <- function(samples, featurename, title, prob, thresh, 
+#                          primary_col = "dodgerblue3", secondary_col = "grey90",
+#                          ...) {
+#     feature <- rstan::extract(samples, pars = featurename)[[featurename]]
+#     if ( length(dim(feature)) > 2 && dim(feature)[2] > 1) {
+#         stop("Plotting for multiple samples not implemented")
+#     }
+#     feature <- feature[,1,]
+#     mean_feature <- colMeans(feature)
+#     names(mean_feature) <- 1:length(mean_feature)
+#     error <- HPDinterval(as.mcmc(feature), prob = prob)
+#     bars <- barplot(mean_feature, ylim = c(0, max(error[, 2]*1.05)), main = title,
+#                     col = ifelse(error[, 1] > thresh, primary_col, secondary_col), ...)
+#     top_arr <- arrows(bars, error[, 1], bars, mean_feature, angle=90, code=1, length=0.05)
+#     bottom_arr <- arrows(bars, error[, 2], bars, mean_feature, angle=90, code=1, length=0.05)
+#     list(bars, top = top_arr, bottom = bottom_arr)
+# }
+# 
+# #' Plots estimated exposure of each signature
+# #' @param samples The MCMC samples
+# #' @param prob The width of the HPD interval
+# #' @param thresh Signatures with a lower HPDI below this value are coloured grey
+# #' @param title The main title of this plot
+# #' @param primary_col The colour to plot strongly supported exposures (default=dodgerblue3)
+# #' @param secondary_col The colour to plot weakly supported exposures (default=grey90)
+# #' @param ... Arguments to pass through to graphics::barplot
+# #' @importFrom "coda" HPDinterval
+# #' @importFrom "coda" as.mcmc
+# #' @importFrom "rstan" summary
+# #' @importFrom "rstan" extract
+# #' @export
+# plot_exposures <- function(samples, prob = 0.9, thresh = 1e-3,
+#                            title = "Signature exposures",
+#                            primary_col = "dodgerblue3", secondary_col = "grey90",
+#                            ...) {
+#     plt <- gen_bar_plot(samples, "exposures", title, prob, thresh, 
+#                         primary_col, secondary_col, ...)
+#     plt$bars
+#     plt$top
+#     plt$bottom
+#     legend("topright", legend = sprintf("%.0f%% HPD > %.3f", prob*100, thresh), fill = primary_col)
+# }
+# 
 # Plots the fitted spectrum
 # @param samples The MCMC samples
 # @param prob The width of the HPD interval
@@ -243,7 +246,7 @@ plot_exposures <- function(samples, prob = 0.9, thresh = 1e-3,
 #' dev.off()
 #' @useDynLib sigfit, .registration = TRUE
 #' @export
-plot_spectrum <- function(spectra, counts = FALSE, name = NULL) {
+plot_spectrum <- function(spectra, counts = FALSE, name = NULL, max_y = NULL, pdf_path = NULL) {
     NCAT <- 96  # number of categories
     # Fetch HPD interval values, if present
     if (is.list(spectra)) {
@@ -256,9 +259,13 @@ plot_spectrum <- function(spectra, counts = FALSE, name = NULL) {
         lwr <- NULL
         upr <- NULL
     }
-    # Ensure spectrum is a matrix (96 columns)
-    if (is.vector(spec)) 
+    # Force spectrum to matrix (96 columns)
+    if (is.vector(spec)) {
         spec <- matrix(spec, nrow = 1)
+    }
+    if (!is.matrix(spec)) {
+        spec <- as.matrix(spec)
+    }
     stopifnot(ncol(spec) == NCAT)
     
     # Plot each spectrum
@@ -266,12 +273,20 @@ plot_spectrum <- function(spectra, counts = FALSE, name = NULL) {
     TYPES <- c("C>A", "C>G", "C>T", "T>A", "T>C", "T>G")
     XL <- c(0.2, 19.4, 38.6, 57.8, 77, 96.2)
     XR <- c(19.2, 38.4, 57.6, 76.8, 96, 115.2)
-    FACTOR <- ifelse(counts, 1.3, 1.1)
-    max_y <- ifelse(is.null(upr), max(spec) * FACTOR, max(upr) * FACTOR)
+    if (is.null(max_y)) {
+        FACTOR <- ifelse(counts, 1.3, 1.1)
+        max_y <- ifelse(is.null(upr), max(spec) * FACTOR, max(upr) * FACTOR)
+    }
     if (!counts) {
         probs <- seq(0, 1, 0.05)
         max_y <- probs[which.max(probs > max_y)]
     }
+    
+    if (!is.null(pdf_path)) {
+        pdf(pdf_path, width=24, height=11)
+        par(mar=c(9, 8, 6, 2.75))
+    }
+    
     for (i in 1:nrow(spec)) {
         # Plot spectrum bars
         bars <- barplot(spec[i,], 
@@ -317,6 +332,10 @@ plot_spectrum <- function(spectra, counts = FALSE, name = NULL) {
              col = COLORS, border = "white")
         text(x = (XL + XR) / 2, y = max_y * 0.9, labels = TYPES, cex = 2.25)
     }
+    
+    if (!is.null(pdf_path)) {
+        dev.off()
+    }
 }
 
 #' Plot mutational spectrum reconstructions
@@ -340,6 +359,8 @@ plot_spectrum <- function(spectra, counts = FALSE, name = NULL) {
 #' the opportunities used for extraction/fitting need to be provided here. Admits values \code{"human-genome"}
 #' and \code{"human-exome"}. Only needed if \code{mcmc_samples} is not provided.
 #' @param pdf_path If provided, the plots will be output to a PDF file with this path.
+#' @param sig_color_palette Character vector of colour names or hexadecimal codes to use for each signature.
+#' Must have at least as many elements as the number of signatures.
 #' @examples
 #' # Extract signatures using the EMu (Poisson) model
 #' samples <- extract_signatures(mycounts, nsignatures = 3, method = "emu", 
@@ -359,14 +380,20 @@ plot_spectrum <- function(spectra, counts = FALSE, name = NULL) {
 #' @useDynLib sigfit, .registration = TRUE
 #' @export
 plot_reconstruction <- function(counts, mcmc_samples = NULL, signatures = NULL, exposures = NULL, 
-                                opportunities = NULL, pdf_path = NULL) {
+                                opportunities = NULL, pdf_path = NULL, sig_color_palette = NULL) {
     
     NCAT <- 96             # number of categories (enforcing trinucleotides)
     NSAMP <- nrow(counts)  # number of samples
     
-    if (is.vector(counts))
+    # Force counts to matrix
+    if (is.vector(counts)) {
         counts <- matrix(counts, nrow = 1)
+    }
+    if (!is.matrix(counts)) {
+        counts <- as.matrix(counts)
+    }
     stopifnot(ncol(counts) == NCAT)
+    
     if (is.null(opportunities)) {
         opportunities <- matrix(1, nrow = NSAMP, ncol = NCAT)
     }
@@ -383,14 +410,25 @@ plot_reconstruction <- function(counts, mcmc_samples = NULL, signatures = NULL, 
     # Case A: matrices given instead of MCMC samples
     if (is.null(mcmc_samples)) {
         stopifnot(!(is.null(signatures) | is.null(exposures)))
-        if (is.list(signatures))
+        # Force signatures and exposures to matrices
+        if (is.list(signatures)) {
             signatures <- signatures[[1]]
-        if (is.list(exposures))
+        }
+        if (is.list(exposures)) {
             exposures <- exposures[[1]]
-        if (is.vector(signatures))
+        }
+        if (is.vector(signatures)) {
             signatures <- matrix(signatures, nrow = 1)
-        if (is.vector(exposures))
+        }
+        if (is.vector(exposures)) {
             exposures <- matrix(exposures, nrow = 1)
+        }
+        if (!is.matrix(signatures)) {
+            signatures <- as.matrix(signatures)
+        }
+        if (!is.matrix(exposures)) {
+            exposures <- as.matrix(exposures)
+        }
         stopifnot(ncol(signatures) == NCAT)
         stopifnot(nrow(exposures) == NSAMP)
         stopifnot(ncol(exposures) == nrow(signatures))
@@ -415,10 +453,15 @@ plot_reconstruction <- function(counts, mcmc_samples = NULL, signatures = NULL, 
 
         # For fitting cases, signatures must be provided
         if (!("signatures" %in% names(e))) {
-            if (is.null(signatures))
+            if (is.null(signatures)) {
                 stop("`mcmc_samples` contains signature fitting results: a signatures matrix must be provided via `signatures`")
-            if (is.vector(signatures))
+            }
+            if (is.vector(signatures)) {
                 signatures <- matrix(signatures, nrow = 1)
+            }
+            if (!is.matrix(signatures)) {
+                signatures <- as.matrix(signatures)
+            }
             # Reshape signatures as simulated MCMC samples
             e$signatures <- aperm(
                 array(signatures, 
@@ -474,12 +517,18 @@ plot_reconstruction <- function(counts, mcmc_samples = NULL, signatures = NULL, 
     }
     
     # Plotting
-    SIGCOLS <- c("#E41A1C", "#377EB8", "#4DAF4A", "#984EA3", "#FF7F00", 
-                 "#FFFF33", "#A65628", "#F781BF", "#999999")[1:NSIG]
     COLORS <- c("deepskyblue", "black", "firebrick2", "gray76", "darkolivegreen3", "rosybrown2")
     TYPES <- c("C>A", "C>G", "C>T", "T>A", "T>C", "T>G")
     XL <- c(0.2, 19.4, 38.6, 57.8, 77, 96.2)
     XR <- c(19.2, 38.4, 57.6, 76.8, 96, 115.2)
+    
+    if (is.null(sig_color_palette)) {
+        sigcols <- c("#1B9E77", "#D95F02", "#7570B3", "#E7298A", "#66A61E", "#E6AB02", "#A6761D", "#666666", "#E41A1C",
+                     "#377EB8", "#4DAF4A", "#984EA3", "#FF7F00", "#FFFF33", "#A65628", "#F781BF", "#999999")[1:NSIG]
+    }
+    else {
+        sigcols <- sig_color_palette[1:NSIG]
+    }
     
     if (!is.null(pdf_path)) {
         stopifnot(is.character(pdf_path))
@@ -506,7 +555,7 @@ plot_reconstruction <- function(counts, mcmc_samples = NULL, signatures = NULL, 
         }
         # Bars
         bars <- barplot(reconstructions[i, , ], 
-                        col = SIGCOLS, lwd = 0.5, #border = SIGCOLS,
+                        col = sigcols, lwd = 0.3,
                         yaxt = "n", ylim = c(0, max_y), xlim = c(-1, 116),
                         cex = 1.3, cex.axis = 1.5, cex.lab = 1, las = 2, 
                         xaxs = "i", family = "mono")
@@ -529,13 +578,15 @@ plot_reconstruction <- function(counts, mcmc_samples = NULL, signatures = NULL, 
              col = COLORS, border = "white")
         text(x = (XL + XR) / 2, y = max_y * 0.9, labels = TYPES, cex = 2.25)
         # Legend
-        if (is.null(rownames(signatures)))
-            sig_names <- paste("Signature", 1:NSIG)
-        else
+        if (is.null(rownames(signatures))) {
+            sig_names <- paste("Signature", LETTERS[1:NSIG])
+        }
+        else {
             sig_names <- rownames(signatures)
+        }
         legend("topright", inset = c(0, 0.13),
                legend = paste0(rev(sig_names), " (", round(exposures[i,], 3), ")"), 
-               fill = rev(SIGCOLS), #border = rev(SIGCOLS),
+               fill = rev(sigcols),
                cex = 1.5, bty = "n")
     }
     
@@ -642,8 +693,9 @@ retrieve_pars <- function(mcmc_samples, feature, prob = 0.95, signature_names = 
                 names1 <- paste("Signature", LETTERS[1:dim(feat)[2]])
             }
             else {
-                if (dim(feat)[2] != length(signature_names)) 
-                    stop("signature_names must have length equal to number of signatures")
+                if (dim(feat)[2] != length(signature_names)) {
+                    stop("`signature_names` must have length equal to the number of signatures")
+                }
                 names1 <- signature_names
             }
         }
@@ -653,22 +705,23 @@ retrieve_pars <- function(mcmc_samples, feature, prob = 0.95, signature_names = 
                 names2 <- paste("Signature", LETTERS[1:dim(feat)[3]])
             }
             else {
-                if (dim(feat)[3] != length(signature_names)) 
-                    stop("signature_names must have length equal to number of signatures")
+                if (dim(feat)[3] != length(signature_names))  {
+                    stop("`signature_names` must have length equal to the number of signatures")
+                }
                 names2 <- signature_names
             }
         }
         # for signatures: Signatures x Categories matrix
         # for exposures: Samples x Signatures matrix
-        feat.summ <- list(matrix(NA, nrow = dim(feat)[2], ncol = dim(feat)[3], dimnames = list(names1, names2)),
+        feat_summ <- list(matrix(NA, nrow = dim(feat)[2], ncol = dim(feat)[3], dimnames = list(names1, names2)),
                           matrix(NA, nrow = dim(feat)[2], ncol = dim(feat)[3], dimnames = list(names1, names2)),
                           matrix(NA, nrow = dim(feat)[2], ncol = dim(feat)[3], dimnames = list(names1, names2)))
-        names(feat.summ) <- c("mean", paste0(c("lower_", "upper_"), prob * 100))
-        for (i in 1:nrow(feat.summ[[1]])) {
+        names(feat_summ) <- c("mean", paste0(c("lower_", "upper_"), prob * 100))
+        for (i in 1:nrow(feat_summ[[1]])) {
             hpd <- HPDinterval(as.mcmc(feat[,i,]), prob = prob)
-            feat.summ[[1]][i,] <- colMeans(feat[,i,])
-            feat.summ[[2]][i,] <- hpd[,1]
-            feat.summ[[3]][i,] <- hpd[,2]
+            feat_summ[[1]][i,] <- colMeans(feat[,i,])
+            feat_summ[[2]][i,] <- hpd[,1]
+            feat_summ[[3]][i,] <- hpd[,2]
         }
     } 
     # Single-sample case (only possible when fitting)
@@ -678,22 +731,23 @@ retrieve_pars <- function(mcmc_samples, feature, prob = 0.95, signature_names = 
             names2 <- paste("Signature", LETTERS[1:dim(feat)[3]])
         }
         else {
-            if (dim(feat)[3] != length(signature_names)) 
-                stop("signature_names must have length equal to number of signatures")
+            if (dim(feat)[3] != length(signature_names)) {
+                stop("`signature_names` must have length equal to the number of signatures")
+            }
             names2 <- signature_names
         }
-        feat.summ <- list(matrix(NA, nrow = 1, ncol = dim(feat)[2], dimnames = list(names1, names2)),
+        feat_summ <- list(matrix(NA, nrow = 1, ncol = dim(feat)[2], dimnames = list(names1, names2)),
                           matrix(NA, nrow = 1, ncol = dim(feat)[2], dimnames = list(names1, names2)),
                           matrix(NA, nrow = 1, ncol = dim(feat)[2], dimnames = list(names1, names2)))
-        names(feat.summ) <- c("mean", paste0(c("lower_", "upper_"), prob * 100))
-        for (i in 1:nrow(feat.summ[[1]])) {
+        names(feat_summ) <- c("mean", paste0(c("lower_", "upper_"), prob * 100))
+        for (i in 1:nrow(feat_summ[[1]])) {
             hpd <- HPDinterval(as.mcmc(feat), prob = prob)
-            feat.summ[[1]][1,] <- colMeans(feat)
-            feat.summ[[2]][1,] <- hpd[,1]
-            feat.summ[[3]][1,] <- hpd[,2]
+            feat_summ[[1]][1,] <- colMeans(feat)
+            feat_summ[[2]][1,] <- hpd[,1]
+            feat_summ[[3]][1,] <- hpd[,2]
         }
     }
-    feat.summ
+    feat_summ
 }
 
 #' Run MCMC to fit signatures and estimate exposures
@@ -717,13 +771,17 @@ retrieve_pars <- function(mcmc_samples, feature, prob = 0.95, signature_names = 
 #' @export
 fit_signatures <- function(counts, signatures, prior = NULL,
                            method = "nmf", opportunities = NULL, ...) {
-    counts <- as.matrix(counts)
     if (is.null(prior)) {
         prior = rep(1, nrow(signatures))
     }
     
-    # If counts is a vector, convert it to a single row matrix
-    if (is.vector(counts)) counts <- matrix(counts, nrow = 1)
+    # Force counts to matrix
+    if (is.vector(counts)) {
+        counts <- matrix(counts, nrow = 1)
+    }
+    if (!is.matrix(counts)) {
+        counts <- as.matrix(counts)
+    }
     
     # Check dimensions are correct. Should be:
     # counts[NSAMPLES, NCAT], signatures[NSIG, NCAT]
@@ -902,8 +960,13 @@ extract_signatures <- function(counts, nsignatures, method = "emu",
 #' @export
 fit_extract_signatures <- function(counts, signatures, num_extra_sigs, 
                                    stanfunc = "sampling", ...) {
-    # If counts is a vector, convert it to a single row matrix
-    if (is.vector(counts)) counts <- matrix(counts, nrow = 1)
+    # Force counts to matrix
+    if (is.vector(counts)) {
+        counts <- matrix(counts, nrow = 1)
+    }
+    if (!is.matrix(counts)) {
+        counts <- as.matrix(counts)
+    }
     
     # Check dimensions are correct. Should be:
     # counts[NSAMPLES, NCAT], signatures[NSIG, NCAT]

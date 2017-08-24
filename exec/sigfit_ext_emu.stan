@@ -5,7 +5,7 @@ data {
     int<lower=1> C;  // number of mutation categories [uses index c]
     int<lower=1> S;  // number of mutational signatures [uses index s]
     int<lower=1> G;  // number of genomes [uses index g]
-    int counts[G, C];  // Matrix of mutation counts per sample (rows) per category
+    int<lower=0> counts[G, C];  // Matrix of mutation counts per sample (rows) per category
     matrix[G, C] opps; // Matrix of opportunities per sample (rows) per category
 }
 transformed data {
