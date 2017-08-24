@@ -208,6 +208,7 @@ plot_spectrum <- function(spectra, counts = FALSE, name = NULL, max_y = NULL, pd
     else {
         spec <- spectra
         lwr <- NULL
+        upr <- NULL
     }
     # Force spectrum to matrix (96 columns)
     if (is.vector(spec)) {
