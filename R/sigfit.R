@@ -460,7 +460,7 @@ plot_reconstruction <- function(counts, mcmc_samples = NULL, signatures = NULL, 
         }
         
         # Retrieve mean exposures
-        exposures <- retrieve_pars(e, "exposures")[[1]]
+        exposures <- retrieve_pars(mcmc_samples, "exposures")[[1]]
     }
     
     # Plotting
