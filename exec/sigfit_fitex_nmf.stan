@@ -22,22 +22,10 @@ parameters {
     simplex[T] exposures[G];   // includes exposures for extra_sigs
 }
 transformed parameters {
-    matrix[N, C] extra_sigs_mat;
-    matrix[G, T] exposures_mat;
     matrix[T, C] signatures;
     matrix<lower=0>[G, C] probs;
-    for (g in 1:G) {
-        for (t in 1:T) {
-            exposures_mat[g, t] = exposures[g, t];
-        }
-    }
-    for (n in 1:N) {
-        for (c in 1:C) {
-            extra_sigs_mat[n, c] = extra_sigs[n, c];
-        }
-    }
-    signatures = append_row(fixed_sigs, extra_sigs_mat);
-    probs = exposures_mat * signatures;
+    signatures = append_row(fixed_sigs, array_to_matrix(extra_sigs));
+    probs = array_to_matrix(exposures) * signatures;
 }
 model {
     for (n in 1:N) {
