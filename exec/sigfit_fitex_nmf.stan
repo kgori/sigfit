@@ -1,3 +1,6 @@
+functions {
+    #include "common_functions.stan"
+}
 data {
     int<lower=1> C;   // number of categories
     int<lower=1> S;   // number of fixed signatures
