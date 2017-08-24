@@ -1,16 +1,18 @@
-#' Deal with zero values in a signature
-remove_zeros_ <- function(mtx, min_allowed = 1e-9) {
-    t(apply(mtx, 1, function(row) {
-        row[row < min_allowed] <- min_allowed
-        row / sum(row)
-    }))
-}
-
 #' Cosine similarity between two vectors
 cosine_sim <- function(x, y) { x %*% y / sqrt(x%*%x * y%*%y) }
 
 #' L2 norm between two vectors
 l2_norm <- function(x, y) { sqrt(sum((x - y)^2)) }
+
+#' Deal with zero values in a signature
+remove_zeros_ <- function(mtx, min_allowed = 1e-9) {
+    as.matrix(
+        t(apply(mtx, 1, function(row) {
+            row[row < min_allowed] <- min_allowed
+            row / sum(row)
+        }))
+    )
+}
 
 #' Reverse complement a nucleotide sequence string
 #' Input is string, output is character vector
@@ -23,6 +25,13 @@ rev_comp <- function(nucleotides) {
     })))
 }
 
+#' Returns default colour palette for signatures
+default_sig_palette <- function(n) {
+    c("#1B9E77", "#D95F02", "#7570B3", "#E7298A", "#66A61E", "#E6AB02", 
+      "#A6761D", "#666666", "#E41A1C", "#377EB8", "#4DAF4A", "#984EA3", 
+      "#FF7F00", "#FFFF33", "#A65628", "#F781BF", "#999999")[1:n]
+}
+
 #' Returns character vector of 96 (pyrimidine) trinucleotide mutation types
 mut_types <- function() {
     bases <- c("A", "C", "G", "T")
@@ -33,55 +42,6 @@ mut_types <- function() {
            rep(rep(bases, each = 4), 6),
            c(rep(bases[-2], each = 16), rep(bases[-4], each = 16)),
            rep(bases, 6 * 16 / 4))
-}
-
-#' Builds a mutational catalogue from a table containing the base change and
-#' trinucleotide context of each single-nucleotide variant.
-#' @param variants Table with one row per single-nucleotide variant, and three columns:
-#' REF base (character in {A,C,G,T}); ALT base (character in {A,C,G,T}); and trinucleotide
-#' context at the variant location (sequence between the positions immediately before and 
-#' after the variant, in string format; e.g. "TCA").
-#' @export
-build_catalogue <- function(variants) {
-    # Check that REF base coincides with middle base in trinucleotide
-    if (any(variants[,1] != sapply(strsplit(variants[,3], split=""), function(x) x[2]))) {
-        stop("REF base (column 1) is not equal to middle base of the trinucleotide context (column 3).")
-    }
-    
-    # Obtain mutation types, collapsed such that they refer to pyrimidine bases
-    vars_collapsed <- apply(variants, 1, function(var) {
-        if (var[1] %in% c("C", "T")) {
-            trinuc <- strsplit(var[3], "")[[1]]
-            alt <- var[2]
-        }
-        else {
-            trinuc <- rev_comp(var[3])
-            alt <- rev_comp(var[2])
-        }
-        paste0(paste(trinuc, collapse=""), ">", trinuc[1], alt, trinuc[3])
-    })
-
-    # Count number of occurrences of each mutation type
-    sapply(mut_types(), function(type) {
-        sum(grepl(type, vars_collapsed, fixed = TRUE))
-    })
-}
-
-#' Fetches COSMIC mutational signatures.
-#' @param reorder Reorders the matrix by substitution type and trinucleotide.
-#' @export
-fetch_cosmic_data <- function(reorder = TRUE, remove_zeros = TRUE) {
-    cosmic_sigs <- read.table("http://cancer.sanger.ac.uk/cancergenome/assets/signatures_probabilities.txt", 
-                              header = TRUE, sep = "\t", check.names = FALSE)
-    if (reorder) {
-        cosmic_sigs <- cosmic_sigs[order(cosmic_sigs[["Substitution Type"]], cosmic_sigs[["Trinucleotide"]]),]
-    }
-    rownames(cosmic_sigs) <- cosmic_sigs[["Somatic Mutation Type"]]
-    cosmic_sigs <- t(cosmic_sigs[, paste("Signature", 1:30)])
-    if (remove_zeros) {
-        cosmic_sigs <- remove_zeros_(cosmic_sigs)
-    }
-    cosmic_sigs
 }
 
 #' Returns human genome or exome trinucleotide frequencies. This is useful to
@@ -101,7 +61,6 @@ fetch_cosmic_data <- function(reorder = TRUE, remove_zeros = TRUE) {
 #'      tmp <- sig[,1] * freqs
 #'      tmp / sum(tmp)
 #' })
-#' @useDynLib sigfit, .registration = TRUE
 #' @export
 human_trinuc_freqs <- function(type = "genome") {
     if (type == "genome") {
@@ -163,6 +122,55 @@ human_trinuc_freqs <- function(type = "genome") {
     }
 }
 
+#' Builds a mutational catalogue from a table containing the base change and
+#' trinucleotide context of each single-nucleotide variant.
+#' @param variants Table with one row per single-nucleotide variant, and three columns:
+#' REF base (character in {A,C,G,T}); ALT base (character in {A,C,G,T}); and trinucleotide
+#' context at the variant location (sequence between the positions immediately before and 
+#' after the variant, in string format; e.g. "TCA").
+#' @export
+build_catalogue <- function(variants) {
+    # Check that REF base coincides with middle base in trinucleotide
+    if (any(variants[,1] != sapply(strsplit(variants[,3], split=""), function(x) x[2]))) {
+        stop("REF base (column 1) is not equal to middle base of the trinucleotide context (column 3).")
+    }
+    
+    # Obtain mutation types, collapsed such that they refer to pyrimidine bases
+    vars_collapsed <- apply(variants, 1, function(var) {
+        if (var[1] %in% c("C", "T")) {
+            trinuc <- strsplit(var[3], "")[[1]]
+            alt <- var[2]
+        }
+        else {
+            trinuc <- rev_comp(var[3])
+            alt <- rev_comp(var[2])
+        }
+        paste0(paste(trinuc, collapse=""), ">", trinuc[1], alt, trinuc[3])
+    })
+
+    # Count number of occurrences of each mutation type
+    sapply(mut_types(), function(type) {
+        sum(grepl(type, vars_collapsed, fixed = TRUE))
+    })
+}
+
+#' Fetches COSMIC mutational signatures.
+#' @param reorder Reorders the matrix by substitution type and trinucleotide.
+#' @export
+fetch_cosmic_data <- function(reorder = TRUE, remove_zeros = TRUE) {
+    cosmic_sigs <- read.table("http://cancer.sanger.ac.uk/cancergenome/assets/signatures_probabilities.txt", 
+                              header = TRUE, sep = "\t", check.names = FALSE)
+    if (reorder) {
+        cosmic_sigs <- cosmic_sigs[order(cosmic_sigs[["Substitution Type"]], cosmic_sigs[["Trinucleotide"]]),]
+    }
+    rownames(cosmic_sigs) <- cosmic_sigs[["Somatic Mutation Type"]]
+    cosmic_sigs <- t(cosmic_sigs[, paste("Signature", 1:30)])
+    if (remove_zeros) {
+        cosmic_sigs <- remove_zeros_(cosmic_sigs)
+    }
+    cosmic_sigs
+}
+
 #' Access stan models
 #' @export
 stan_models <- function() {
@@ -188,20 +196,18 @@ stan_models <- function() {
 #' par(mar=c(9, 8, 6, 2.75))
 #' plot_spectrum(signatures)
 #' dev.off()
-#' @useDynLib sigfit, .registration = TRUE
 #' @export
 plot_spectrum <- function(spectra, counts = FALSE, name = NULL, max_y = NULL, pdf_path = NULL) {
     NCAT <- 96  # number of categories
     # Fetch HPD interval values, if present
-    if (is.list(spectra)) {
-        spec <- spectra[[1]]
-        lwr <- spectra[[2]]
-        upr <- spectra[[3]]
+    if (is.list(spectra) & "mean" %in% names(spectra)) {
+        spec <- spectra$mean
+        lwr <- spectra$lower
+        upr <- spectra$upper
     }
     else {
         spec <- spectra
         lwr <- NULL
-        upr <- NULL
     }
     # Force spectrum to matrix (96 columns)
     if (is.vector(spec)) {
@@ -282,6 +288,40 @@ plot_spectrum <- function(spectra, counts = FALSE, name = NULL, max_y = NULL, pd
     }
 }
 
+#' Plot signature exposures
+#' \code{plot_exposures} produces barplots that show the distribution of
+#' signatures exposures across catalogues.
+#' @export
+plot_exposures <- function(exposures, relative = TRUE, pdf_path = NULL, sig_color_palette = NULL) {
+    if (is.list(exposures) & "mean" %in% names(exposures)) {
+        exps <- exposures$mean
+        lwr <- exposures$lower
+        upr <- exposures$upper
+    }
+    else {
+        exps <- as.matrix(exposures)
+        lwr <- NULL
+    }
+    
+    if (!is.null(pdf_path)) {
+        pdf(pdf_path, 20, 12)
+        par(mar=c(25, 4, 4, 2))
+    }
+    
+    if (is.null(sig_color_palette)) {
+        sigcols <- default_sig_palette(NSIG)
+    }
+    else {
+        sigcols <- sig_color_palette[1:NSIG]
+    }
+    bars = barplot(t(exposures.refitted[,,"mean"])[3:1,], col=sigcols, las=2, space=0, main="Signature exposures")
+    legend("topright", fill=rev(sig.cols), legend=rev(colnames(exposures)), xpd=T, bty="n", inset=c(-0.01,0))
+    
+    if (!is.null(pdf_path)) {
+        dev.off()
+    }
+}
+
 #' Plot mutational spectrum reconstructions
 #' 
 #' \code{plot_reconstruction} plots the reconstructions of the original mutational catalogues using the 
@@ -321,7 +361,6 @@ plot_spectrum <- function(spectra, counts = FALSE, name = NULL, max_y = NULL, pd
 #' dev.off()
 #' @importFrom "rstan" extract
 #' @importFrom "coda" as.mcmc HPDinterval
-#' @useDynLib sigfit, .registration = TRUE
 #' @export
 plot_reconstruction <- function(counts, mcmc_samples = NULL, signatures = NULL, exposures = NULL, 
                                 opportunities = NULL, pdf_path = NULL, sig_color_palette = NULL) {
@@ -355,11 +394,11 @@ plot_reconstruction <- function(counts, mcmc_samples = NULL, signatures = NULL, 
     if (is.null(mcmc_samples)) {
         stopifnot(!(is.null(signatures) | is.null(exposures)))
         # Force signatures and exposures to matrices
-        if (is.list(signatures)) {
-            signatures <- signatures[[1]]
+        if (is.list(signatures) & "mean" %in% names(signatures)) {
+            signatures <- signatures$mean
         }
-        if (is.list(exposures)) {
-            exposures <- exposures[[1]]
+        if (is.list(exposures) & "mean" %in% names(exposures)) {
+            exposures <- exposures$mean
         }
         if (is.vector(signatures)) {
             signatures <- matrix(signatures, nrow = 1)
@@ -400,12 +439,16 @@ plot_reconstruction <- function(counts, mcmc_samples = NULL, signatures = NULL, 
             if (is.null(signatures)) {
                 stop("`mcmc_samples` contains signature fitting results: a signatures matrix must be provided via `signatures`")
             }
+            if (is.list(signatures) & "mean" %in% names(signatures)) {
+                signatures <- signatures$mean
+            }
             if (is.vector(signatures)) {
                 signatures <- matrix(signatures, nrow = 1)
             }
             if (!is.matrix(signatures)) {
                 signatures <- as.matrix(signatures)
             }
+            
             # Reshape signatures as simulated MCMC samples
             e$signatures <- aperm(
                 array(signatures, 
@@ -460,7 +503,7 @@ plot_reconstruction <- function(counts, mcmc_samples = NULL, signatures = NULL, 
         }
         
         # Retrieve mean exposures
-        exposures <- retrieve_pars(e, "exposures")[[1]]
+        exposures <- retrieve_pars(e, "exposures")$mean
     }
     
     # Plotting
@@ -470,8 +513,7 @@ plot_reconstruction <- function(counts, mcmc_samples = NULL, signatures = NULL, 
     XR <- c(19.2, 38.4, 57.6, 76.8, 96, 115.2)
     
     if (is.null(sig_color_palette)) {
-        sigcols <- c("#1B9E77", "#D95F02", "#7570B3", "#E7298A", "#66A61E", "#E6AB02", "#A6761D", "#666666", "#E41A1C",
-                     "#377EB8", "#4DAF4A", "#984EA3", "#FF7F00", "#FFFF33", "#A65628", "#F781BF", "#999999")[1:NSIG]
+        sigcols <- default_sig_palette(NSIG)
     }
     else {
         sigcols <- sig_color_palette[1:NSIG]
@@ -624,7 +666,6 @@ plot_gof <- function(sample_list, counts, stat = "cosine") {
 #' # Plot signatures and mean exposures
 #' plot_spectrum(signatures)
 #' barplot(exposures$mean)   ## or barplot(exposures[[1]])
-#' @useDynLib sigfit, .registration = TRUE
 #' @importFrom "rstan" extract
 #' @importFrom "coda" HPDinterval
 #' @importFrom "coda" as.mcmc
@@ -731,13 +772,13 @@ fit_signatures <- function(counts, signatures, prior = NULL,
         counts <- as.matrix(counts)
     }
     
+    # Add pseudocounts to signatures
+    signatures <- remove_zeros_(signatures)
+    
     # Check dimensions are correct. Should be:
     # counts[NSAMPLES, NCAT], signatures[NSIG, NCAT]
     stopifnot(ncol(counts) == ncol(signatures))
     stopifnot(length(prior) == nrow(signatures))
-    
-    # Add pseudocounts to signatures
-    signatures <- remove_zeros_(signatures)
     
     if (method == "emu") {
         if (is.null(opportunities)) {
@@ -751,6 +792,9 @@ fit_signatures <- function(counts, signatures, prior = NULL,
             opportunities <- matrix(rep(human_trinuc_freqs("exome"), nrow(counts)),
                                     nrow = nrow(counts), ncol = ncol(counts), byrow = T)
         }
+        if (!is.matrix(opportunities)) {
+            opportunities <- as.matrix(opportunities)
+        }
         stopifnot(all(dim(opportunities) == dim(counts)))
         
         # NEED TO IMPLEMENT alpha
@@ -758,10 +802,10 @@ fit_signatures <- function(counts, signatures, prior = NULL,
             C = ncol(counts),
             S = nrow(signatures),
             G = nrow(counts),
-            signatures = as.matrix(signatures),
-            counts = as.matrix(counts),
-            opps = as.matrix(opportunities),
-            alpha = as.numeric(prior)
+            signatures = signatures,
+            counts = counts,
+            opps = opportunities,
+            alpha = prior
         )
         model <- stanmodels$sigfit_fit_emu
     }
@@ -771,9 +815,9 @@ fit_signatures <- function(counts, signatures, prior = NULL,
             C = ncol(counts),
             S = nrow(signatures),
             G = nrow(counts),
-            signatures = as.matrix(signatures),
-            counts = as.matrix(counts),
-            alpha = as.numeric(prior)
+            signatures = signatures,
+            counts = counts,
+            alpha = prior
         )
         model <- stanmodels$sigfit_fit_nmf
     }
@@ -851,7 +895,7 @@ extract_signatures <- function(counts, nsignatures, method = "emu",
         dat <- list(
             C = ncol(counts),
             G = nrow(counts),
-            S = nsignatures[1],
+            S = as.integer(nsignatures[1]),
             counts = counts,
             exposures_prior_val = as.numeric(exposures_prior)
         )
@@ -933,20 +977,20 @@ fit_extract_signatures <- function(counts, signatures, num_extra_sigs,
         counts <- as.matrix(counts)
     }
     
+    # Add pseudocounts to signatures
+    signatures <- remove_zeros_(signatures)
+    
     # Check dimensions are correct. Should be:
     # counts[NSAMPLES, NCAT], signatures[NSIG, NCAT]
     stopifnot(ncol(counts) == ncol(signatures))
-    
-    # Add pseudocounts to signatures
-    signatures <- remove_zeros_(signatures)
     
     dat <- list(
         C = ncol(counts),
         S = nrow(signatures),
         G = nrow(counts),
-        N = num_extra_sigs,
-        fixed_sigs = as.matrix(signatures),
-        counts = as.matrix(counts)
+        N = as.integer(num_extra_sigs),
+        fixed_sigs = signatures,
+        counts = counts
     )
     ## Only NMF implemented so far
     model <- stanmodels$sigfit_fitex_nmf
