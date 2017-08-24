@@ -532,17 +532,17 @@ plot_reconstruction <- function(counts, mcmc_samples = NULL, signatures = NULL, 
     dimnames(reconstructions)[[3]] <- mut_types()
     
     for (i in 1:NSAMP) {
-        # Plot original catalogue
-        plot_spectrum(counts[i,], counts = TRUE, name = rownames(counts)[i])
-        
-        # Plot catalogue reconstruction
         if (is.null(mcmc_samples)) {
-            max_y <- max(colSums(reconstructions[i, , ])) * 1.3
+            max_y <- max(c(counts[i,], colSums(reconstructions[i, , ]))) * 1.1
         }
         else {
-            max_y <- max(hpds[i, , ]) * 1.2
+            max_y <- max(c(counts[i,], hpds[i, , ])) * 1.1
         }
-        # Bars
+        
+        # Plot original catalogue
+        plot_spectrum(counts[i,], counts = TRUE, name = rownames(counts)[i], max_y = max_y)
+        
+        # Plot catalogue reconstruction
         bars <- barplot(reconstructions[i, , ], 
                         col = sigcols, lwd = 0.3,
                         yaxt = "n", ylim = c(0, max_y), xlim = c(-1, 116),
