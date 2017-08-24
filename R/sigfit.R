@@ -529,7 +529,7 @@ plot_reconstruction <- function(counts, mcmc_samples = NULL, signatures = NULL, 
             sig_names <- rownames(signatures)
         }
         legend("topright", inset = c(0, 0.13),
-               legend = paste0(rev(sig_names), " (", round(exposures[i,], 3), ")"), 
+               legend = paste0(rev(sig_names), " (", round(e$exposures[i,], 3), ")"), 
                fill = rev(sigcols),
                cex = 1.5, bty = "n")
     }
@@ -718,6 +718,7 @@ fit_signatures <- function(counts, signatures, prior = NULL,
     if (is.null(prior)) {
         prior = rep(1, nrow(signatures))
     }
+    stopifnot(length(prior) == nrow(signatures))
     
     # Force counts to matrix
     if (is.vector(counts)) {
@@ -757,7 +758,7 @@ fit_signatures <- function(counts, signatures, prior = NULL,
             signatures = as.matrix(signatures),
             counts = as.matrix(counts),
             opps = as.matrix(opportunities),
-            alpha = rep(1, nrow(signatures))  # TODO: properly build/pass alpha vector
+            alpha = as.numeric(prior)
         )
         model <- stanmodels$sigfit_fit_emu
     }
@@ -769,7 +770,7 @@ fit_signatures <- function(counts, signatures, prior = NULL,
             G = nrow(counts),
             signatures = as.matrix(signatures),
             counts = as.matrix(counts),
-            alpha = prior
+            alpha = as.numeric(prior)
         )
         model <- stanmodels$sigfit_fit_nmf
     }
@@ -800,8 +801,17 @@ fit_signatures <- function(counts, signatures, prior = NULL,
 extract_signatures <- function(counts, nsignatures, method = "emu", 
                                opportunities = NULL, exposures_prior = 0.5, 
                                stanfunc = "sampling", ...) {
-    counts <- as.matrix(counts)
+    # Force counts to matrix
+    if (is.vector(counts)) {
+        counts <- matrix(counts, nrow = 1)
+    }
+    if (!is.matrix(counts)) {
+        counts <- as.matrix(counts)
+    }
+    
+    # EMu model
     if (method == "emu") {
+        # Build opportunities matrix
         if (is.null(opportunities)) {
             opportunities <- matrix(1, nrow = nrow(counts), ncol = ncol(counts))
         }
@@ -813,6 +823,9 @@ extract_signatures <- function(counts, nsignatures, method = "emu",
             opportunities <- matrix(rep(human_trinuc_freqs("exome"), nrow(counts)),
                                     nrow = nrow(counts), ncol = ncol(counts), byrow = TRUE)
         }
+        if (!is.matrix(opportunities)) {
+            opportunities <- as.matrix(opportunities)
+        }
         stopifnot(all(dim(opportunities) == dim(counts)))
         
         model <- stanmodels$sigfit_ext_emu
@@ -820,13 +833,15 @@ extract_signatures <- function(counts, nsignatures, method = "emu",
             C = ncol(counts),
             G = nrow(counts),
             S = nsignatures[1],
-            counts = as.matrix(counts),
-            opps = as.matrix(opportunities)
+            counts = counts,
+            opps = opportunities
         )
     }
+    
+    # NMF model
     else if (method == "nmf") {
         if (!is.null(opportunities)) {
-            warning("Using \"nmf\" model: opportunities will be ignored.")
+            warning("Using \"nmf\" model: `opportunities` will be ignored.")
         }
         
         model <- stanmodels$sigfit_ext_nmf
@@ -834,9 +849,12 @@ extract_signatures <- function(counts, nsignatures, method = "emu",
             C = ncol(counts),
             G = nrow(counts),
             S = nsignatures[1],
-            counts = as.matrix(counts),
-            exposures_prior_val = exposures_prior
+            counts = counts,
+            exposures_prior_val = as.numeric(exposures_prior)
         )
+    }
+    else {
+        stop("`method` must be either \"emu\" or \"nmf\".")
     }
     
     # Extract signatures for each nsignatures value
