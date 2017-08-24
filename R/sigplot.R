@@ -51,7 +51,7 @@ exposure_dataframe <- function(exp) {
 #' plots <- plot_signatures(samples)
 #' m <- marrangeGrob(plots, nrow = 1, ncol = 3) # use gridExtra to plot all on same page
 #' @importFrom "rstan" extract
-#' @importFrom "ggplot2" ggplot geom_col geom_errorbar scale_fill_manual theme theme_bw element_text ggtitle ylim
+#' @importFrom "ggplot2" ggplot aes geom_col geom_errorbar scale_fill_manual theme theme_bw element_text ggtitle ylim
 #' @export
 ggplot_signatures <- function(samples) {
     .Deprecated("plot_signatures", msg = "ggplot based plotting functions are being retired")
@@ -96,7 +96,7 @@ ggplot_signatures <- function(samples) {
 #' plots <- plot_exposures(samples)
 #' m <- marrangeGrob(plots, nrow = 1, ncol = 3) # use gridExtra to plot all on same page
 #' @importFrom "rstan" extract
-#' @importFrom "ggplot2" ggplot geom_col geom_errorbar scale_fill_manual guides theme_bw ggtitle ylim
+#' @importFrom "ggplot2" ggplot aes geom_col geom_errorbar scale_fill_manual guides theme_bw ggtitle ylim
 #' @export
 ggplot_exposures <- function(samples, colours = NULL) {
     exposures <- extract(samples)$exposures
@@ -132,7 +132,7 @@ ggplot_exposures <- function(samples, colours = NULL) {
 #' plots <- plot_exposures(samples)
 #' m <- marrangeGrob(plots, nrow = 1, ncol = 3) # use gridExtra to plot all on same page
 #' @importFrom "rstan" extract
-#' @importFrom "ggplot2" ggplot geom_col geom_errorbar scale_fill_manual guides theme_bw ggtitle ylim
+#' @importFrom "ggplot2" ggplot aes geom_col geom_errorbar scale_fill_manual guides theme_bw ggtitle ylim
 #' @return List of plot objects
 #' @export
 plot_exposures <- ggplot_exposures
@@ -145,7 +145,7 @@ plot_exposures <- ggplot_exposures
 #' plots <- plot_exposures(samples)
 #' m <- marrangeGrob(plots, nrow = 1, ncol = 3) # use gridExtra to plot all on same page
 #' @importFrom "rstan" extract
-#' @importFrom "ggplot2" ggplot geom_col geom_errorbar scale_fill_manual guides theme_bw theme ggtitle ylim element_blank
+#' @importFrom "ggplot2" ggplot aes geom_col geom_errorbar scale_fill_manual guides theme_bw theme ggtitle ylim element_blank
 #' @importFrom "reshape2" melt
 #' @importFrom "gridExtra" grid.arrange
 #' @importFrom "coda" as.mcmc HPDinterval
@@ -307,7 +307,7 @@ ggplot_reconstruction <- function(samples, counts, opportunities = NULL) {
 
 #' Plot the BIC values as violin plots
 #' @param sample_list - list of stanfit samples produced by extract_signatures for a range of numbers of signatures
-#' @importFrom "ggplot2" ggplot geom_violin theme_bw ggtitle labs
+#' @importFrom "ggplot2" ggplot aes geom_violin theme_bw ggtitle labs
 #' @importFrom "rstan" extract
 #' @export
 ggplot_bic <- function(sample_list) {

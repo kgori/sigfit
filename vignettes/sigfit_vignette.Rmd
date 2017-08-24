@@ -22,7 +22,7 @@ suppressPackageStartupMessages(library(sigfit))
 ## Installation
 
 ```sigfit``` is an R package. As it is in early development it is not on CRAN, but can be installed from github using ```devtools```.
-```{r eval=FALSE}
+```{r devtools_instructions, eval=FALSE}
 devtools::install_github("kgori/sigfit", build_vignettes = TRUE)
 ```
 
@@ -40,8 +40,8 @@ Let's use these signatures to simulate some mutation data. This code will genera
 ```{r sim}
 set.seed(1)
 probs <- c(0.4, 0.3, 0.2, 0.1) %*% as.matrix(sigs[c(1, 5, 7, 11), ])
-mutations <- as.vector(rmultinom(1, 20000, probs))
-names(mutations) <- colnames(sigs)
+mutations <- matrix(rmultinom(1, 20000, probs), nrow = 1)
+colnames(mutations) <- colnames(sigs)
 ```
 
 Here is what our simulated counts look like:
@@ -51,35 +51,38 @@ barplot(mutations, cex.names = 0.4, las = 2)
 
 #### Fitting signatures
 Now we can estimate the exposure of the data to each signature (pretending we don't already know that it was generated from 1, 5, 7, 11). ```sigfit``` uses [Stan](http://mc-stan.org/) to run a Bayesian model that produces Markov Chain Monte Carlo samples. ```rstan::sampling``` arguments, such as ```iter```, ```warmup```, etc., can be passed through.
-```{r include=FALSE}
+```{r include=FALSE, silent_sampling}
 set.seed(1)
-mcmc_samples <- sigfit::fit_signatures(counts = mutations, signatures = sigs,
-                                       iter = 1500, warmup = 500, seed = 1)
+mcmc_samples <- sigfit::fit_signatures(counts = mutations, signatures = sigs[c(1, 5, 7, 11), ],
+                                       iter = 1000, chains = 1, warmup = 500, seed = 1)
 ```
 
-```{r eval=FALSE}
+```{r eval=FALSE, sampling}
 set.seed(1)
-mcmc_samples <- sigfit::fit_signatures(counts = mutations, signatures = sigs,
-                                       iter = 1500, warmup = 500, seed = 1)
+mcmc_samples <- sigfit::fit_signatures(counts = mutations, signatures = sigs[c(1, 5, 7, 11), ],
+                                       iter = 1000, chains = 1, warmup = 500, seed = 1)
 ```
 
 #### Visualisation
 We can look at the fitted spectrum using ```plot_spectrum```. This function can pass through arguments to ```barplot```
-```{r fig.width=7.5, fig.height=5, echo=FALSE}
-anon <- suppressWarnings(sigfit::plot_spectrum(mcmc_samples, names.arg = rownames(mutations),
-                                                 cex.names = 0.4, las = 2))
+```{r fig.width=24, fig.height=16, out.width = '100%', echo=FALSE, silent_reconstruct}
+anon <- suppressWarnings(
+    sigfit::plot_reconstruction(mutations,
+                                mcmc_samples = mcmc_samples,
+                                signatures = sigs[c(1, 5, 7, 11), ])
+    )
 ```
 
-```{r eval=FALSE}
-sigfit::plot_spectrum(mcmc_samples, names.arg = rownames(mutations),
-                        cex.names = 0.4, las = 2)
+```{r eval=FALSE, reconstruct}
+sigfit::plot_reconstruction(mutations, mcmc_samples = mcmc_samples,
+                            signatures = sigs[c(1, 5, 7, 11), ])
 ```
 
 ```plot_exposures``` produces a barplot of the inferred exposure of the sample to each signature. 
 
-```{r fig.width=7.5, fig.height=5, exposures}
-sigfit::plot_exposures(mcmc_samples, prob = 0.9, thresh = 0.01,
-                         cex.names = 0.7, las = 2)
+```{r fig.width=7.5, fig.height=5, out.width = '75%', fig.align = "center", exposures}
+plots <- sigfit::plot_exposures(mcmc_samples)
+plots[[1]]
 ```
 
 The bars in this plot are coloured blue if the estimated exposure value is 'sufficiently non-zero' - it is difficult for the model to make hard assignments of which signatures are present or absent due to the non-negative constraint on the estimate, which means that the range of values in the sample will not include zero. In practice, 'sufficiently non-zero' means that the lower end of the Bayesian HPD credible interval (`prob`) is above a threshold value (`thresh`).
@@ -101,36 +104,45 @@ colnames(mmutations) <- colnames(sigs)
 for (i in 1:nrow(mmutations)) barplot(mmutations[i, ], cex.names = 0.4, las = 2)
 ```
 
-```{r include=FALSE}
+```{r include=FALSE, silent_multisampling}
 set.seed(1)
-mmcmc_samples <- sigfit::fit_signatures(counts = mmutations, signatures = sigs,
-                                       iter = 1500, warmup = 500, seed = 1)
+mmcmc_samples <- suppressWarnings(sigfit::fit_signatures(counts = mmutations, 
+                                                         signatures = sigs[c(1, 5, 7, 11), ],
+                                                         iter = 1000, chains = 1, 
+                                                         warmup = 500, seed = 1))
 ```
 
-```{r eval=FALSE}
+```{r eval=FALSE, multisampling}
 set.seed(1)
-mmcmc_samples <- sigfit::fit_signatures(counts = mmutations, signatures = sigs,
-                                       iter = 1500, warmup = 500, seed = 1)
+mmcmc_samples <- sigfit::fit_signatures(counts = mmutations, signatures = sigs[c(1, 5, 7, 11), ],
+                                       iter = 1000, chains = 1, warmup = 500, seed = 1)
 ```
 
 #### Visualisation
-Here is the best fit spectrum over all samples.
-```{r fig.width=7.5, fig.height=5, echo=FALSE, eval=FALSE}
-# NOT RUNNING FOR NOW
-anon <- suppressWarnings(sigfit::plot_spectrum(mmcmc_samples, names.arg = rownames(mmutations),
-                                                 cex.names = 0.4, las = 2))
+Here are the best fit spectra for each sample.
+```{r fig.width=24, fig.height=16, out.width="100%", echo=FALSE, silent_multireconstruct}
+anon <- suppressWarnings(
+    sigfit::plot_reconstruction(mmutations, 
+                                mcmc_samples = mmcmc_samples, 
+                                signatures = sigs[c(1, 5, 7, 11), ])
+)
 ```
 
-```{r eval=FALSE}
-sigfit::plot_spectrum(mmcmc_samples, names.arg = rownames(mmutations),
-                        cex.names = 0.4, las = 2)
+```{r eval=FALSE, multireconstruct}
+sigfit::plot_reconstruction(mmutations, 
+                            mcmc_samples = mmcmc_samples, 
+                            signatures = sigs[c(1, 5, 7, 11), ])
 ```
 
 And the exposures
-```{r fig.width=7.5, fig.height=5, multiexposures, eval=FALSE}
-# NOT RUNNING FOR NOW
-sigfit::plot_exposures(mmcmc_samples, prob = 0.9, thresh = 0.01,
-                         cex.names = 0.7, las = 2)
+```{r fig.width=12, fig.height=8, out.width = "100%", echo=FALSE, silent_multiexposures}
+plots <- sigfit::plot_exposures(mmcmc_samples)
+invisible(m <- gridExtra::marrangeGrob(plots, nrow = 2, ncol = 5))
+m
+```
+
+```{r eval=FALSE, multiexposures}
+sigfit::plot_exposures(mmcmc_samples)
 ```
 
 ___

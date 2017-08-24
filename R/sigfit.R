@@ -458,6 +458,9 @@ plot_reconstruction <- function(counts, mcmc_samples = NULL, signatures = NULL, 
         }
         NSIG <- dim(e$signatures)[2]
         
+        # Obtain mean exposures (for legend)
+        exposures <- t(apply(e$exposures, 2, colMeans))
+        
         # Create reconstructed catalogues
         reconstructions <- array(NA, dim = c(NSAMP, NSIG, NCAT))
         hpds <- array(NA, dim = c(NSAMP, 2, NCAT))
@@ -501,9 +504,6 @@ plot_reconstruction <- function(counts, mcmc_samples = NULL, signatures = NULL, 
                 as.mcmc(apply(arr, c(1, 3), sum))
             ))
         }
-        
-        # Retrieve mean exposures
-        exposures <- retrieve_pars(e, "exposures")$mean
     }
     
     # Plotting
