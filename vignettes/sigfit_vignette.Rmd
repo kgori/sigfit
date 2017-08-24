@@ -83,7 +83,7 @@ sigfit::plot_reconstruction(mutations, mcmc_samples = mcmc_samples,
 
 ```plot_exposures``` produces a barplot of the inferred exposure of the sample to each signature. 
 
-```{r fig.width=7.5, fig.height=5, out.width = '75%', fig.align = "center", exposures}
+```{r eval=FALSE, fig.width=7.5, fig.height=5, out.width = '75%', fig.align = "center", exposures}
 plots <- sigfit::plot_exposures(mcmc_samples)
 plots[[1]]
 ```
@@ -145,7 +145,7 @@ sigfit::plot_reconstruction(mmutations,
 ```
 
 And the exposures
-```{r fig.width=12, fig.height=8, out.width = "100%", echo=FALSE, silent_multiexposures}
+```{r eval=FALSE, fig.width=12, fig.height=8, out.width = "100%", echo=FALSE, silent_multiexposures}
 plots <- sigfit::plot_exposures(mmcmc_samples)
 invisible(m <- gridExtra::marrangeGrob(plots, nrow = 2, ncol = 2))
 m
