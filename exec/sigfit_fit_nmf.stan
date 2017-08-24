@@ -13,24 +13,22 @@ parameters {
     simplex[S] exposures[G];
 }
 transformed parameters {
-    matrix[G, S] exposures_mat;
-    matrix<lower=0, upper=1>[G, C] probs;
-    for (g in 1:G) {
-        for (s in 1:S) {
-            exposures_mat[g, s] = exposures[g, s];
-        }
-    }
-    probs = exposures_mat * signatures;
+    // array_to_matrix is defined in common_functions.stan and is not in base Stan
+    matrix<lower=0, upper=1>[G, C] probs = array_to_matrix(exposures) * signatures;
 }
 model {
     for (g in 1:G) {
         exposures[g] ~ dirichlet(alpha);
-        counts[g] ~ multinomial(to_vector(probs[g]));
+        counts[g] ~ multinomial(probs[g]');
     }
 }
 generated quantities {
     vector[G] log_lik;
+    real bic;
+    
     for (g in 1:G) {
-        log_lik[g] = multinomial_lpmf(counts[g] | to_vector(probs[g]));
+        log_lik[g] = multinomial_lpmf(counts[g] | probs[g]');
     }
+    
+    bic = 2 * sum(log_lik) - log(G) * (G*(S-1));
 }
