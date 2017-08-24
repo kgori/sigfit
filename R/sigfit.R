@@ -293,21 +293,28 @@ plot_spectrum <- function(spectra, counts = FALSE, name = NULL, max_y = NULL, pd
 #' \code{plot_exposures} produces barplots that show the distribution of
 #' signatures exposures across catalogues.
 #' @export
-plot_exposures <- function(exposures, relative = TRUE, pdf_path = NULL, sig_color_palette = NULL) {
+plot_exposures <- function(exposures, counts, pdf_path = NULL, sig_color_palette = NULL) {
     if (is.list(exposures) & "mean" %in% names(exposures)) {
-        exps <- exposures$mean
-        lwr <- exposures$lower
-        upr <- exposures$upper
+        exposures <- exposures$mean
+    }
+    stopifnot(nrow(counts) == nrow(exposures))
+    NSIG <- ncol(exposures)
+    
+    if (is.null(rownames(counts))) {
+        rownames(exposures) <- paste("Sample", 1:nrow(exposures))
     }
     else {
-        exps <- as.matrix(exposures)
-        lwr <- NULL
+        rownames(exposures) <- rownames(counts)
+    }
+    if (is.null(colnames(exposures))) {
+        colnames(exposures) <- paste("Signature", LETTERS[1:NSIG])
     }
     
     if (!is.null(pdf_path)) {
-        pdf(pdf_path, 20, 12)
-        par(mar=c(25, 4, 4, 2))
+        pdf(pdf_path, 18, 12)
+        par(mar = c(9, 6, 4, 0), oma = c(1, 0, 1, 0))
     }
+    par(mfrow = c(2, 1), lwd = 0.5)
     
     if (is.null(sig_color_palette)) {
         sigcols <- default_sig_palette(NSIG)
@@ -315,9 +322,31 @@ plot_exposures <- function(exposures, relative = TRUE, pdf_path = NULL, sig_colo
     else {
         sigcols <- sig_color_palette[1:NSIG]
     }
-    bars = barplot(t(exposures.refitted[,,"mean"])[3:1,], col=sigcols, las=2, space=0, main="Signature exposures")
-    legend("topright", fill=rev(sig.cols), legend=rev(colnames(exposures)), xpd=T, bty="n", inset=c(-0.01,0))
     
+    # Obtain absolute exposures as mutation counts
+    muts <- rowSums(counts)
+    exposures_abs <- exposures * muts
+    
+    # Plot absolute exposures
+    bars <- barplot(t(exposures_abs), col = sigcols, las = 2, space = 0, 
+                    cex.names = 0.8, cex.main = 1.4, axes = FALSE,
+                    main = "Signature exposures (absolute)")
+    axis(side = 2, cex.axis = 1.1, las = 2, line = -1.5)
+    mtext(text = "Mutations", side = 2, cex = 1.2, line = 3)
+    
+    # Legend
+    legend("topright", bty = "n", ncol = 2,
+           xpd = TRUE, inset = c(0.035, 0), 
+           fill = sigcols, legend = colnames(exposures))
+    
+    # Plot relative exposures
+    bars <- barplot(t(exposures), col = sigcols, las = 2, space = 0,
+                    cex.names = 0.8, cex.main = 1.4, axes = FALSE,
+                    main = "Signature exposures (relative)")
+    axis(side = 2, cex.axis = 1.1, las = 2, line = -1.5)
+    mtext(text = "Mutation fraction", side = 2, cex = 1.2, line = 3)
+    
+    par(mfrow = c(1, 1), lwd = 1)
     if (!is.null(pdf_path)) {
         dev.off()
     }
