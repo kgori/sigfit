@@ -574,7 +574,7 @@ plot_reconstruction <- function(counts, mcmc_samples = NULL, signatures = NULL, 
             sig_names <- rownames(signatures)
         }
         legend("topright", inset = c(0, 0.13),
-               legend = paste0(rev(sig_names), " (", round(exposures[i, ], 3), ")"), 
+               legend = rev(paste0(sig_names, " (", round(exposures[i, ], 3), ")")), 
                fill = rev(sigcols),
                cex = 1.5, bty = "n")
     }
