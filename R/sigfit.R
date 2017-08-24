@@ -6,19 +6,11 @@ remove_zeros_ <- function(mtx, min_allowed = 1e-9) {
     }))
 }
 
-#' Functions to measure similarity/distance between two vectors
+#' Cosine similarity between two vectors
 cosine_sim <- function(x, y) { x %*% y / sqrt(x%*%x * y%*%y) }
+
+#' L2 norm between two vectors
 l2_norm <- function(x, y) { sqrt(sum((x - y)^2)) }
-l1_norm <- function(x, y) { sum(abs(x - y)) }
-kl_div <- function(x, y) {
-    x[x==0] <- 1e-7
-    y[y==0] <- 1e-7
-    x <- x / sum(x)
-    y <- y / sum(y)
-    fwd = sum(x * (log2(x) - log2(y)))
-    rev = sum(y * (log2(y) - log2(x)))
-    (fwd + rev) / 2
-}
 
 #' Reverse complement a nucleotide sequence string
 #' Input is string, output is character vector
@@ -288,15 +280,29 @@ plot_spectrum <- function(spectra, counts = FALSE, name = NULL) {
                         yaxt = "n", ylim = c(0, max_y), xlim = c(-1, 116),
                         cex = 1.3, cex.axis = 1.5, cex.lab = 1.7, 
                         las = 2, xaxs = "i", family = "mono")
-        if (counts)
+        if (counts) {
             axis(side = 2, las = 2, cex.axis = 1.25)
-        else
+            label <- "Mutations"
+            n_text <- paste0(" (N = ", sum(spec[i,]), " mutations)")
+        }
+        else {
             axis(side = 2, at = seq(0, max_y, 0.05), las = 2, cex.axis = 1.25)
-        label <- ifelse(counts, "Mutations", "Mutation probability")
-        n_text <- ifelse(counts, paste0(" (N = ", sum(spec[i,]), " mutations)"), "")
+            label <- "Mutation probability"
+            n_text <- ""
+        }
+        if (is.null(name)) {
+            nme <- rownames(spec)[i]
+        }
+        else {
+            nme <- name
+        }
+        if (nrow(spec) > 1) {
+            num <- paste0(" #", i)
+        }
+        else {
+            num <- ""
+        }
         mtext(label, side = 2, cex = 1.7, line = 4.5)
-        num <- ifelse(nrow(spec) > 1, paste0(" #", i), "")
-        nme <- ifelse(is.null(name), rownames(spec)[i], name)
         title(paste0("Mutational spectrum", num, "\n", nme, n_text), 
               line = 1.5, cex.main = 2)
         # Plot HPD intervals
@@ -348,27 +354,32 @@ plot_spectrum <- function(spectra, counts = FALSE, name = NULL) {
 #' par(mar = c(8, 8, 7, 2.75))
 #' plot_reconstruction(mycounts, signatures, exposures, opportunities = "human-genome")
 #' dev.off()
+#' @importFrom "rstan" extract
+#' @importFrom "coda" as.mcmc HPDinterval
 #' @useDynLib sigfit, .registration = TRUE
 #' @export
 plot_reconstruction <- function(counts, mcmc_samples = NULL, signatures = NULL, exposures = NULL, 
                                 opportunities = NULL, pdf_path = NULL) {
-    NCAT <- 96  # number of categories
+    
+    NCAT <- 96             # number of categories (enforcing trinucleotides)
+    NSAMP <- nrow(counts)  # number of samples
+    
     if (is.vector(counts))
         counts <- matrix(counts, nrow = 1)
     stopifnot(ncol(counts) == NCAT)
-    if (!is.null(opportunities)) {
-        if (opportunities == "human-genome") {
-            opportunities <- matrix(rep(human_trinuc_freqs("genome"), nrow(counts)),
-                                    nrow = nrow(counts), ncol = ncol(counts), byrow = TRUE)
-        }
-        else if (opportunities == "human-exome") {
-            opportunities <- matrix(rep(human_trinuc_freqs("exome"), nrow(counts)),
-                                    nrow = nrow(counts), ncol = ncol(counts), byrow = TRUE)
-        }
-        stopifnot(all(dim(opportunities) == dim(counts)))
+    if (is.null(opportunities)) {
+        opportunities <- matrix(1, nrow = NSAMP, ncol = NCAT)
     }
+    else if (opportunities == "human-genome") {
+        opportunities <- matrix(rep(human_trinuc_freqs("genome"), NSAMP),
+                                nrow = NSAMP, ncol = ncol(counts), byrow = TRUE)
+    }
+    else if (opportunities == "human-exome") {
+        opportunities <- matrix(rep(human_trinuc_freqs("exome"), NSAMP),
+                                nrow = NSAMP, ncol = ncol(counts), byrow = TRUE)
+    }
+    stopifnot(all(dim(opportunities) == dim(counts)))
     
-    # Prepare data
     # Case A: matrices given instead of MCMC samples
     if (is.null(mcmc_samples)) {
         stopifnot(!(is.null(signatures) | is.null(exposures)))
@@ -381,180 +392,90 @@ plot_reconstruction <- function(counts, mcmc_samples = NULL, signatures = NULL, 
         if (is.vector(exposures))
             exposures <- matrix(exposures, nrow = 1)
         stopifnot(ncol(signatures) == NCAT)
-        stopifnot(nrow(exposures) == nrow(counts))
+        stopifnot(nrow(exposures) == NSAMP)
         stopifnot(ncol(exposures) == nrow(signatures))
+        NSIG <- nrow(signatures)
+        
+        # Create reconstructed catalogues
+        reconstructions <- array(NA, dim = c(NSAMP, NSIG, NCAT))
+        for (i in 1:NSAMP) {
+            rec <- exposures[i,] * signatures
+            rec <- rec * opportunities[i,]
+            rec <- rec / sum(rec)
+            reconstructions[i,,] <- rec * sum(counts[i,])
+        }
     }
+    
     # Case B: MCMC samples given instead of matrices
     else {
-        pars <- extract(mcmc_samples)
+        #total <- NULL        
+        e <- extract(mcmc_samples)
+        NREP <- dim(e$exposures)[1]
+        stopifnot(NSAMP == dim(e$exposures)[2])
+
         # For fitting cases, signatures must be provided
-        if ("signatures" %in% names(pars)) {
-            signatures <- pars$signatures
-        }
-        else {
+        if (!("signatures" %in% names(e))) {
             if (is.null(signatures))
-                stop("Because mcmc_samples contains signature fitting results, a signatures matrix must be provided via the 'signatures' argument")
+                stop("`mcmc_samples` contains signature fitting results: a signatures matrix must be provided via `signatures`")
             if (is.vector(signatures))
                 signatures <- matrix(signatures, nrow = 1)
+            # Reshape signatures as simulated MCMC samples
+            e$signatures <- aperm(
+                array(signatures, 
+                      dim = c(nrow(signatures), NCAT, NREP)),
+                c(3, 1, 2)
+            )
         }
-        exposures <- pars$exposures
-        stopifnot(ncol(signatures) == NCAT)
-        stopifnot(nrow(exposures) == nrow(counts))
-        stopifnot(ncol(exposures) == nrow(signatures))
+        NSIG <- dim(e$signatures)[2]
         
-        
-#         
-#         for (sample in 1:nrow(counts)) {
-#             if ("multiplier" %in% names(e)) { ## For EMu results
-#                 reps <- dim(e$exposures)[1]
-#                 
-#                 
-#                 prob.size <- dim(e$exposures)[3]
-#                 mat <- matrix(rep(as.matrix(opportunities[1, ]), prob.size),
-#                               nrow = prob.size,
-#                               byrow = TRUE)
-#                 arr <- aperm(
-#                     sapply(1:reps, function(i) {
-#                         e$exposures[i, sample, ] * 
-#                             e$signatures[i, , ] * 
-#                             e$multiplier[i, sample] * 
-#                             mat
-#                     }, simplify = 'array'),
-#                     c(3, 1, 2)
-#                 )
-#             }
-#             
-#             else { ## For NMF results
-#                 reps <- dim(e$exposures)[1]
-#                 prob.size <- dim(e$exposures)[3]
-#                 
-#                 arr <- aperm(
-#                     sapply(1:reps, function(i) {
-#                         e$exposures[i, sample, ] * 
-#                             e$signatures[i, , ] * 
-#                             sum(counts[sample, ])
-#                     }, simplify = 'array'),
-#                     c(3, 1, 2)
-#                 )
-#             }
-#             
-#             if (is.null(total)) {
-#                 total <- arr
-#             }
-#             else {
-#                 total <- total + arr
-#             }
-#             
-#             sums <- apply(arr, c(1, 3), sum)
-#             hpd <- HPDinterval(as.mcmc(sums))
-#             mean <- apply(arr, c(2, 3), mean)
-#             
-#             df <- melt(mean, varnames = c("signature", "category"), value.name = "mutations")
-#             df$context <- n[df$category]
-#             df$signature <- factor(df$signature)
-#             df$lower <- as.vector(matrix(rep(hpd[,1], prob.size), nrow = prob.size, byrow = T))
-#             df$upper <- as.vector(matrix(rep(hpd[,2], prob.size), nrow = prob.size, byrow = T))
-#             
-#             df2 <- data.frame(mutations = unlist(counts[sample, ]), context = n)
-#             max.y <- max(df$upper, df2$mutations)
-#             cos.sim <- cosine_sim(colSums(mean), df2$mutations)
-#             
-#             p <- ggplot(df, aes(x = context, y=mutations)) +
-#                 geom_col(aes(fill = signature)) +
-#                 scale_fill_brewer(palette = "Set1") +
-#                 geom_errorbar(aes(ymin = lower, ymax = upper), width=0) +
-#                 theme_bw() + 
-#                 theme(panel.grid.minor = element_blank(), 
-#                       panel.grid.major = element_blank(),
-#                       axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 0.5, size = 8)) +
-#                 ggtitle(paste0("Sample ", sample, ": Reconstruction - cosine sim = ", cos.sim)) +
-#                 ylim(0, max.y)
-#             
-#             #extract the legend from the first graph
-#             temp <- ggplotGrob(p)
-#             leg_index <- which(sapply(temp$grobs, function(x) x$name) == "guide-box")
-#             legend <- temp$grobs[[leg_index]] 
-#             
-#             #remove the legend of the first graph
-#             p <- p + theme(legend.position="none")
-#             
-#             p2 <- ggplot(df2, aes(x = context, y = mutations)) + geom_col() +
-#                 theme_bw() + 
-#                 theme(panel.grid.minor = element_blank(), 
-#                       panel.grid.major = element_blank(),
-#                       axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 0.5, size = 8)) +
-#                 ggtitle(paste0("Sample", sample, ": Observed")) + ylim(0, max.y)
-#             
-#             #define position of each grobs/plots and width and height ratio
-#             grid_layout <- rbind(c(1,3),
-#                                  c(2,NA))
-#             grid_width <- c(5,1)
-#             grid_heigth <- c(1,1)
-#             
-#             
-#             plots[[sample]] <- arrangeGrob(
-#                 grobs=list(p, p2, legend),
-#                 layout_matrix = grid_layout,
-#                 widths = grid_width,
-#                 heights = grid_heigth)
-#             # grid.arrange(grobs = list(p2, p), ncol = 1, main = paste0("Sample ", sample))
-#         }
-#         
-#         sums <- apply(total, c(1, 3), sum)
-#         hpd <- HPDinterval(as.mcmc(sums))
-#         mean <- apply(total, c(2, 3), mean)
-#         
-#         df <- melt(mean, varnames = c("signature", "category"), value.name = "mutations")
-#         df$signature <- factor(df$signature)
-#         df$context <- n[df$category]
-#         df$lower <- as.vector(matrix(rep(hpd[,1], prob.size), nrow = prob.size, byrow = T))
-#         df$upper <- as.vector(matrix(rep(hpd[,2], prob.size), nrow = prob.size, byrow = T))
-#         
-#         df2 <- data.frame(mutations = unlist(colSums(counts)), context = n)
-#         max.y <- max(df$upper, df2$mutations)
-#         cos.sim <- cosine_sim(colSums(mean), df2$mutations)
-#         
-#         p <- ggplot(df, aes(x=context, y=mutations)) +
-#             geom_col(aes(fill = signature)) +
-#             scale_fill_brewer(palette = "Set1") +
-#             geom_errorbar(aes(ymin = lower, ymax = upper), width=0) +
-#             theme_bw() + theme(panel.grid.minor = element_blank(), panel.grid.major = element_blank(),
-#                                axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 0.5, size = 8)) +
-#             ylim(0, max.y) +
-#             ggtitle(paste0("All samples: reconstruction - cosine sim = ", cos.sim))
-#         
-#         #extract the legend from the first graph
-#         temp <- ggplotGrob(p)
-#         leg_index <- which(sapply(temp$grobs, function(x) x$name) == "guide-box")
-#         legend <- temp$grobs[[leg_index]] 
-#         
-#         #remove the legend of the first graph
-#         p <- p + theme(legend.position="none")
-#         
-#         p2 <- ggplot(df2, aes(x = context, y = mutations)) + geom_col() +
-#             theme_bw() + 
-#             theme(panel.grid.minor = element_blank(), 
-#                   panel.grid.major = element_blank(),
-#                   axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 0.5, size = 8)) +
-#             ggtitle("All samples: observed") + ylim(0, max.y)
-#         
-#         #define position of each grobs/plots and width and height ratio
-#         grid_layout <- rbind(c(1,3),
-#                              c(2,NA))
-#         grid_width <- c(5,1)
-#         grid_heigth <- c(1,1)
-#         
-#         plots[[length(plots) + 1]] <- arrangeGrob(grobs = list(p, p2, legend),
-#                                                   layout_matrix = grid_layout,
-#                                                   widths = grid_width,
-#                                                   heights = grid_heigth)
-#         plots
-#         #######
+        # Create reconstructed catalogues
+        reconstructions <- array(NA, dim = c(NSAMP, NSIG, NCAT))
+        hpds <- array(NA, dim = c(NSAMP, 2, NCAT))
+        for (sample in 1:NSAMP) {
+            
+            # For EMu results
+            if ("multiplier" %in% names(e)) {
+                opp <- matrix(rep(as.matrix(opportunities[1, ]), NSIG),
+                              nrow = NSIG,
+                              byrow = TRUE)
+                
+                arr <- aperm(
+                    sapply(1:NREP, function(i) {
+                        e$exposures[i, sample, ] * 
+                            e$signatures[i, , ] * 
+                            e$multiplier[i, sample] * 
+                            opp
+                    }, simplify = "array"),
+                    c(3, 1, 2)
+                )
+            }
+            
+            # For NMF results
+            else { 
+                arr <- aperm(
+                    sapply(1:NREP, function(i) {
+                        e$exposures[i, sample, ] * 
+                            e$signatures[i, , ] * 
+                            sum(counts[sample, ])
+                    }, simplify = "array"),
+                    c(3, 1, 2)
+                )
+            }
+            # if (is.null(total))
+            #     total <- arr
+            # else
+            #     total <- total + arr
+
+            reconstructions[sample, , ] <- apply(arr, c(2, 3), mean)
+            hpds[sample, , ] <- t(HPDinterval(
+                as.mcmc(apply(arr, c(1, 3), sum))
+            ))
+        }
     }
     
     # Plotting
     SIGCOLS <- c("#E41A1C", "#377EB8", "#4DAF4A", "#984EA3", "#FF7F00", 
-                 "#FFFF33", "#A65628", "#F781BF", "#999999")[1:nrow(signatures)]
+                 "#FFFF33", "#A65628", "#F781BF", "#999999")[1:NSIG]
     COLORS <- c("deepskyblue", "black", "firebrick2", "gray76", "darkolivegreen3", "rosybrown2")
     TYPES <- c("C>A", "C>G", "C>T", "T>A", "T>C", "T>G")
     XL <- c(0.2, 19.4, 38.6, 57.8, 77, 96.2)
@@ -567,43 +488,54 @@ plot_reconstruction <- function(counts, mcmc_samples = NULL, signatures = NULL, 
     }
     par(mfrow = c(2, 1))
     
-    for (i in 1:nrow(counts)) {
+    if (is.null(rownames(counts))) {
+        rownames(counts) <- paste("Sample", 1:nrow(counts))
+    }
+    dimnames(reconstructions)[[3]] <- mut_types()
+    
+    for (i in 1:NSAMP) {
         # Plot original catalogue
         plot_spectrum(counts[i,], counts = TRUE, name = rownames(counts)[i])
         
         # Plot catalogue reconstruction
-        reconstruction <- exposures[i,] * signatures
-        if (!is.null(opportunities))
-            reconstruction <- reconstruction * opportunities[i,]
-        reconstruction <- reconstruction / sum(reconstruction)
-        reconstruction <- reconstruction * sum(counts[i,])
-        #probs <- seq(0, 1, 0.05)
-        #max_y <- probs[which.max(probs > max(colSums(reconstruction)) * 1.1)]
-        max_y <- max(counts[i,]) * 1.3
-        barplot(reconstruction, 
-                col = SIGCOLS, border = SIGCOLS,
-                yaxt = "n", ylim = c(0, max_y), xlim = c(-1, 116),
-                cex = 1.3, cex.axis = 1.5, cex.lab = 1, las = 2, 
-                xaxs = "i", family = "mono")
-        #axis(side = 2, at = seq(0, max_y, 0.05), las = 2, cex.axis = 1.25)
-        #mtext("Mutation probability", side = 2, cex = 1.5, line = 4.5)
+        if (is.null(mcmc_samples)) {
+            max_y <- max(colSums(reconstructions[i, , ])) * 1.3
+        }
+        else {
+            max_y <- max(hpds[i, , ]) * 1.2
+        }
+        # Bars
+        bars <- barplot(reconstructions[i, , ], 
+                        col = SIGCOLS, lwd = 0.5, #border = SIGCOLS,
+                        yaxt = "n", ylim = c(0, max_y), xlim = c(-1, 116),
+                        cex = 1.3, cex.axis = 1.5, cex.lab = 1, las = 2, 
+                        xaxs = "i", family = "mono")
         axis(side = 2, las = 2, cex.axis = 1.25)
         mtext("Mutations", side = 2, cex = 1.5, line = 4.5)
         title(paste0("Reconstructed mutational spectrum\nCosine similarity = ", 
-                     round(cosine_sim(counts[i,], colSums(reconstruction)), 3)),
+                     round(cosine_sim(counts[i,], colSums(reconstructions[i, , ])), 3)),
               line = 1, cex.main = 2)
+        # HPD intervals
+        if (!is.null(mcmc_samples)) {
+            arrows(bars, colSums(reconstructions[i, , ]), 
+                   bars, hpds[i, 1, ], 
+                   angle = 90, length = 0.05, lwd = 1.5, col = "gray40")
+            arrows(bars, colSums(reconstructions[i, , ]), 
+                   bars, hpds[i, 2, ], 
+                   angle = 90, length = 0.05, lwd = 1.5, col = "gray40")
+        }
         # Mutation type labels
         rect(xleft = XL, xright = XR, ybottom = max_y * 0.95, ytop = max_y, 
              col = COLORS, border = "white")
         text(x = (XL + XR) / 2, y = max_y * 0.9, labels = TYPES, cex = 2.25)
         # Legend
         if (is.null(rownames(signatures)))
-            sig_names <- paste("Signature", 1:nrow(signatures))
+            sig_names <- paste("Signature", 1:NSIG)
         else
             sig_names <- rownames(signatures)
         legend("topright", inset = c(0, 0.13),
                legend = paste0(rev(sig_names), " (", round(exposures[i,], 3), ")"), 
-               fill = rev(SIGCOLS), border = rev(SIGCOLS),
+               fill = rev(SIGCOLS), #border = rev(SIGCOLS),
                cex = 1.5, bty = "n")
     }
     
@@ -622,17 +554,15 @@ plot_reconstruction <- function(counts, mcmc_samples = NULL, signatures = NULL, 
 #' which are not of class stanfit are ignored.
 #' @param counts Matrix of mutation counts, with 96 columns and one row per catalogue.
 #' @param stat Function for measuring goodness of fit. Admits values "cosine" 
-#' (cosine similarity), "L1" (L1 norm), "L2" (L2 norm) or "KL" (symmetric KL divergence).
+#' (cosine similarity; default) or "L2" (L2 norm, a.k.a. Euclidean distance).
 #' @importFrom "rstan" extract
 #' @export
 plot_gof <- function(sample_list, counts, stat = "cosine") {
     gof_function <- switch(stat,
                            "cosine" = cosine_sim,
-                           "L1" = l1_norm,
-                           "L2" = l2_norm,
-                           "KL" = kl_div)
+                           "L2" = l2_norm)
     if (is.null(gof_function)) {
-        stop("Enter a valid option for `stat` -> \"cosine\", \"L1\", \"L2\", \"KL\"")
+        stop("Enter a valid option for `stat` -> \"cosine\", \"L2\"")
     }
     
     nS <- c()
@@ -930,6 +860,7 @@ extract_signatures <- function(counts, nsignatures, method = "emu",
         # Plot goodness of fit and best number of signatures
         out$best <- plot_gof(out, counts)
     }
+    
     # Single nsignatures value case
     else {
         cat("Extracting", nsignatures, "signatures\n")
