@@ -10,6 +10,7 @@ vignette: >
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 suppressPackageStartupMessages(library(sigfit))
+par(mar = c(6, 4, 6, 4))
 ```
 ## Introduction
 
@@ -45,8 +46,9 @@ colnames(mutations) <- colnames(sigs)
 ```
 
 Here is what our simulated counts look like:
-```{r fig.width=7.5, fig.height=5, plotsim}
-barplot(mutations, cex.names = 0.4, las = 2)
+```{r fig.width=18, fig.height=12, out.width="100%", plotsim}
+par(mar = c(6,4,6,4))
+sigfit::plot_spectrum(mutations, counts = TRUE)
 ```
 
 #### Fitting signatures
@@ -66,6 +68,7 @@ mcmc_samples <- sigfit::fit_signatures(counts = mutations, signatures = sigs[c(1
 #### Visualisation
 We can look at the fitted spectrum using ```plot_spectrum```. This function can pass through arguments to ```barplot```
 ```{r fig.width=24, fig.height=16, out.width = '100%', echo=FALSE, silent_reconstruct}
+par(mar=c(6,4,6,4))
 anon <- suppressWarnings(
     sigfit::plot_reconstruction(mutations,
                                 mcmc_samples = mcmc_samples,
@@ -90,54 +93,61 @@ The bars in this plot are coloured blue if the estimated exposure value is 'suff
 In this example, ```sigfit``` has identified the 4 signatures used to construct the sample.
 
 #### Multiple samples
-Here is a similar example where we have multiple samples - 10 samples with 2000 mutations
+Here is a similar example where we have multiple samples
 
 ```{r multisim}
 set.seed(1)
-probs <- c(0.4, 0.3, 0.2, 0.1) %*% as.matrix(sigs[c(1, 5, 7, 11), ])
-mmutations <- t(rmultinom(10, 2000, probs))
+probs <- rbind(c(0.4, 0.3, 0.2, 0.1) %*% as.matrix(sigs[c(1, 5, 7, 11), ]),
+               c(0.75, 0.15, 0.05, 0.05) %*% as.matrix(sigs[c(1, 5, 7, 11), ]),
+               c(0.1, 0.1, 0.45, 0.35) %*% as.matrix(sigs[c(1, 5, 2, 13), ]))
+mmutations <- rbind(matrix(rmultinom(1, 9500, probs[1, ]), nrow=1),
+                    matrix(rmultinom(1, 500, probs[1, ]), nrow=1),
+                    matrix(rmultinom(1, 5000, probs[2, ]), nrow=1),
+                    matrix(rmultinom(1, 5000, probs[3, ]), nrow=1))
 colnames(mmutations) <- colnames(sigs)
 ```
 
-```{r plotmultisim}
-#par(mfrow = c(5, 2))
-for (i in 1:nrow(mmutations)) barplot(mmutations[i, ], cex.names = 0.4, las = 2)
+```{r fig.width=24, fig.height=16, out.width = '100%', fig.align = "center", plotmultisim}
+par(mfrow = c(2, 2), mar = c(6, 4, 6, 4))
+for (i in 1:nrow(mmutations)) sigfit::plot_spectrum(spectra = mmutations[i, ], counts = TRUE)
 ```
 
 ```{r include=FALSE, silent_multisampling}
 set.seed(1)
 mmcmc_samples <- suppressWarnings(sigfit::fit_signatures(counts = mmutations, 
-                                                         signatures = sigs[c(1, 5, 7, 11), ],
+                                                         signatures = sigs[c(1, 2, 5, 7, 11, 13), ],
                                                          iter = 1000, chains = 1, 
                                                          warmup = 500, seed = 1))
 ```
 
 ```{r eval=FALSE, multisampling}
 set.seed(1)
-mmcmc_samples <- sigfit::fit_signatures(counts = mmutations, signatures = sigs[c(1, 5, 7, 11), ],
-                                       iter = 1000, chains = 1, warmup = 500, seed = 1)
+mmcmc_samples <- sigfit::fit_signatures(counts = mmutations, 
+                                        signatures = sigs[c(1, 2, 5, 7, 11, 13), ],
+                                        iter = 1000, chains = 1, warmup = 500, seed = 1)
 ```
 
 #### Visualisation
 Here are the best fit spectra for each sample.
 ```{r fig.width=24, fig.height=16, out.width="100%", echo=FALSE, silent_multireconstruct}
+par(mar = c(6, 4, 6, 4))
 anon <- suppressWarnings(
     sigfit::plot_reconstruction(mmutations, 
                                 mcmc_samples = mmcmc_samples, 
-                                signatures = sigs[c(1, 5, 7, 11), ])
+                                signatures = sigs[c(1, 2, 5, 7, 11, 13), ])
 )
 ```
 
 ```{r eval=FALSE, multireconstruct}
 sigfit::plot_reconstruction(mmutations, 
                             mcmc_samples = mmcmc_samples, 
-                            signatures = sigs[c(1, 5, 7, 11), ])
+                            signatures = sigs[c(1, 2, 5, 7, 11, 13), ])
 ```
 
 And the exposures
 ```{r fig.width=12, fig.height=8, out.width = "100%", echo=FALSE, silent_multiexposures}
 plots <- sigfit::plot_exposures(mmcmc_samples)
-invisible(m <- gridExtra::marrangeGrob(plots, nrow = 2, ncol = 5))
+invisible(m <- gridExtra::marrangeGrob(plots, nrow = 2, ncol = 2))
 m
 ```
 
