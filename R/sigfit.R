@@ -308,9 +308,9 @@ plot_spectrum <- function(spectra, counts = FALSE, name = NULL) {
         # Plot HPD intervals
         if (!is.null(lwr)) {
             arrows(bars, spec[i,], bars, lwr[i,], angle = 90, 
-                   length = 0.05, lwd = 1.5, col = "dimgrey")
+                   length = 0.05, lwd = 1.5, col = "gray35")
             arrows(bars, spec[i,], bars, upr[i,], angle = 90, 
-                   length = 0.05, lwd = 1.5, col = "dimgrey")
+                   length = 0.05, lwd = 1.5, col = "gray35")
         }
         # Plot mutation type labels
         rect(xleft = XL, xright = XR, ybottom = max_y * 0.95, ytop = max_y, 
@@ -519,10 +519,10 @@ plot_reconstruction <- function(counts, mcmc_samples = NULL, signatures = NULL, 
         if (!is.null(mcmc_samples)) {
             arrows(bars, colSums(reconstructions[i, , ]), 
                    bars, hpds[i, 1, ], 
-                   angle = 90, length = 0.05, lwd = 1.5, col = "gray40")
+                   angle = 90, length = 0.05, lwd = 1.5, col = "gray35")
             arrows(bars, colSums(reconstructions[i, , ]), 
                    bars, hpds[i, 2, ], 
-                   angle = 90, length = 0.05, lwd = 1.5, col = "gray40")
+                   angle = 90, length = 0.05, lwd = 1.5, col = "gray35")
         }
         # Mutation type labels
         rect(xleft = XL, xright = XR, ybottom = max_y * 0.95, ytop = max_y, 
