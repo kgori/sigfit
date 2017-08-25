@@ -2,13 +2,13 @@
 % Please edit documentation in R/sigfit.R
 \name{fetch_cosmic_data}
 \alias{fetch_cosmic_data}
-\title{Fetches COSMIC's estimated mutational signatures}
+\title{Fetches COSMIC mutational signatures.}
 \usage{
 fetch_cosmic_data(reorder = TRUE, remove_zeros = TRUE)
 }
 \arguments{
-\item{reorder}{Reorders the matrix by substitution type and trinucleotide}
+\item{reorder}{Reorders the matrix by substitution type and trinucleotide.}
 }
 \description{
-Fetches COSMIC's estimated mutational signatures
+Fetches COSMIC mutational signatures.
 }

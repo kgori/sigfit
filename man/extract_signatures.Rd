@@ -2,8 +2,7 @@
 % Please edit documentation in R/sigfit.R
 \name{extract_signatures}
 \alias{extract_signatures}
-\title{Extracts signatures from a set of mutation counts
-using models based on NMF or EMu}
+\title{Extract signatures from a set of mutation counts}
 \usage{
 extract_signatures(counts, nsignatures, method = "emu",
   opportunities = NULL, exposures_prior = 0.5, stanfunc = "sampling", ...)
@@ -14,21 +13,21 @@ extract_signatures(counts, nsignatures, method = "emu",
 
 \item{nsignatures}{Number (or range of numbers) of signatures to extract.}
 
-\item{method}{Either "emu" (default) or "nmf" (though currently "nmf" is experimental).}
+\item{method}{Either \code{"emu"} (default) or \code{"nmf"}.}
 
-\item{opportunities}{Optional matrix of mutational opportunities for "emu" method; must have same dimension as counts. 
-If equals to "human-genome" or "human-exome", the reference human genome/exome opportunities will be used for every sample.}
+\item{opportunities}{Optional matrix of mutational opportunities for \code{"emu"} method; 
+must have same dimension as \code{counts}. If equals to \code{"human-genome"} or 
+\code{"human-exome"}, the reference human genome/exome opportunities will be used for every sample.}
 
 \item{exposures_prior}{Single numeric value to use for all the exposure priors; by default, 0.5 (i.e. Jeffreys prior).}
 
-\item{stanfunc}{"sampling"|"optimizing"|"vb" Choice of rstan inference strategy. 
-"sampling" is the full Bayesian MCMC approach, and is the default. "optimizing"
+\item{stanfunc}{\code{"sampling"}|\code{"optimizing"}|\code{"vb"} Choice of rstan inference strategy. 
+\code{"sampling"} is the full Bayesian MCMC approach, and is the default. \code{"optimizing"}
 returns the Maximum a Posteriori (MAP) point estimates via numerical optimization.
-"vb" uses Variational Bayes to approximate the full posterior.}
+\code{"vb"} uses Variational Bayes to approximate the full posterior.}
 
-\item{...}{Any other parameters to pass through to rstan.}
+\item{...}{Any other parameters to pass to rstan.}
 }
 \description{
-Extracts signatures from a set of mutation counts
-using models based on NMF or EMu
+Extract signatures from a set of mutation counts
 }

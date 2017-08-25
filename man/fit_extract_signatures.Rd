@@ -16,10 +16,11 @@ fit_extract_signatures(counts, signatures, num_extra_sigs,
 
 \item{num_extra_sigs}{Number of additional signatures to be extracted.}
 
-\item{stanfunc}{"sampling"|"optimizing"|"vb" Choice of rstan inference strategy. 
-"sampling" is the full Bayesian MCMC approach, and is the default. "optimizing"
-returns the Maximum a Posteriori (MAP) point estimates via numerical optimization.
-"vb" uses Variational Bayes to approximate the full posterior.}
+\item{stanfunc}{\code{"sampling"}|\code{"optimizing"}|\code{"vb"} Choice of rstan 
+inference strategy. \code{"sampling"} is the full Bayesian MCMC approach, and is the 
+default. \code{"optimizing"} returns the Maximum a Posteriori (MAP) point estimates 
+via numerical optimization. \code{"vb"} uses Variational Bayes to approximate the 
+full posterior.}
 
 \item{...}{Any other parameters to pass through to rstan.}
 }

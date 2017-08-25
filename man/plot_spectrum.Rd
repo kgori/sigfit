@@ -2,17 +2,36 @@
 % Please edit documentation in R/sigfit.R
 \name{plot_spectrum}
 \alias{plot_spectrum}
-\title{Plots the fitted spectrum}
+\title{Plot mutational spectra
+Plots one or more spectra, which can be either mutational catalogues or mutational
+signatures. If multiple spectra are provided, generates one plot per spectrum.}
 \usage{
-plot_spectrum(samples, prob = 0.9, title = "Fitted spectrum", ...)
+plot_spectrum(spectra, counts = FALSE, name = NULL, max_y = NULL,
+  pdf_path = NULL)
 }
 \arguments{
-\item{samples}{The MCMC samples}
+\item{spectra}{Either a vector with 96 elements, a matrix with 96 columns and one row per signature/catalogue,
+or a list of signature matrices, obtained via \code{retrieve_pars()}. In the latter case, HPD intervals will
+also be plotted. Rownames are interpreted as the sample/signature names.}
 
-\item{prob}{The width of the HPD interval}
+\item{counts}{Do the values in \code{spectra} represent mutation counts instead of mutation probabilities?}
 
-\item{title}{The main title of this plot}
+\item{name}{Name to include in the plot title; useful when plotting a single spectrum.}
 }
 \description{
-Plots the fitted spectrum
+Plot mutational spectra
+Plots one or more spectra, which can be either mutational catalogues or mutational
+signatures. If multiple spectra are provided, generates one plot per spectrum.
+}
+\examples{
+# Extract signatures using the EMu (Poisson) model
+samples <- extract_signatures(mycounts, nsignatures = 3, method = "emu", 
+opportunities = "human-genome")
+
+# Retrieve and plot signatures
+signatures <- retrieve_pars(samples, "signatures")
+pdf("Signatures.pdf", width=24, height=11)
+par(mar=c(9, 8, 6, 2.75))
+plot_spectrum(signatures)
+dev.off()
 }

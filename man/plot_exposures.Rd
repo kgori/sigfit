@@ -2,27 +2,15 @@
 % Please edit documentation in R/sigfit.R
 \name{plot_exposures}
 \alias{plot_exposures}
-\title{Plots estimated exposure of each signature}
+\title{Plot signature exposures
+\code{plot_exposures} produces barplots that show the distribution of
+signatures exposures across catalogues.}
 \usage{
-plot_exposures(samples, prob = 0.9, thresh = 0.001,
-  title = "Signature exposures", primary_col = "dodgerblue3",
-  secondary_col = "grey90", ...)
-}
-\arguments{
-\item{samples}{The MCMC samples}
-
-\item{prob}{The width of the HPD interval}
-
-\item{thresh}{Signatures with a lower HPDI below this value are coloured grey}
-
-\item{title}{The main title of this plot}
-
-\item{primary_col}{The colour to plot strongly supported exposures (default=dodgerblue3)}
-
-\item{secondary_col}{The colour to plot weakly supported exposures (default=grey90)}
-
-\item{...}{Arguments to pass through to graphics::barplot}
+plot_exposures(counts, exposures = NULL, mcmc_samples = NULL,
+  pdf_path = NULL, sig_color_palette = NULL)
 }
 \description{
-Plots estimated exposure of each signature
+Plot signature exposures
+\code{plot_exposures} produces barplots that show the distribution of
+signatures exposures across catalogues.
 }

@@ -2,14 +2,14 @@
 % Please edit documentation in R/sigfit.R
 \name{retrieve_pars}
 \alias{retrieve_pars}
-\title{Obtains summary values for a set of model parameters (signatures or exposures) from a stanfit object.}
+\title{Retrieve model parameters}
 \usage{
-retrieve_pars(object, feature, prob = 0.95, signature_names = NULL)
+retrieve_pars(mcmc_samples, feature, prob = 0.95, signature_names = NULL)
 }
 \arguments{
-\item{object}{An object of class stanfit.}
+\item{mcmc_samples}{An object of class stanfit, resulting from MCMC sampling through either \code{fit_signatures} or \code{extract_signatures}.}
 
-\item{feature}{Name of the parameter set to extract; either "signatures" or "exposures".}
+\item{feature}{Name of the parameter set to extract; either \code{"signatures"} or \code{"exposures"}.}
 
 \item{prob}{A numeric scalar in the interval (0,1) giving the target probability content of the HPD intervals.}
 
@@ -30,6 +30,7 @@ signatures <- retrieve_pars(samples, "signatures")
 # Retrieve array of exposures using 90\% HPD intervals
 exposures <- retrieve_pars(samples, "exposures", prob = 0.9)
 
-# Plot mean exposures
-barplot(exposures$mean)  ## or barplot(exposures[[1]])
+# Plot signatures and mean exposures
+plot_spectrum(signatures)
+barplot(exposures$mean)   ## or barplot(exposures[[1]])
 }

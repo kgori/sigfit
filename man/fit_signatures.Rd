@@ -2,7 +2,7 @@
 % Please edit documentation in R/sigfit.R
 \name{fit_signatures}
 \alias{fit_signatures}
-\title{Runs MCMC to fit signatures and estimate exposures}
+\title{Run MCMC to fit signatures and estimate exposures}
 \usage{
 fit_signatures(counts, signatures, prior = NULL, method = "nmf",
   opportunities = NULL, ...)
@@ -12,17 +12,19 @@ fit_signatures(counts, signatures, prior = NULL, method = "nmf",
 
 \item{signatures}{Matrix of mutational signatures (rows) to be fitted.}
 
-\item{prior}{Vector of the same length as signatures, to be used as the Dirichlet prior in the sampling chain. Default prior is uniform (uninformative).}
+\item{prior}{Vector with one element per signature, to be used as the Dirichlet prior in the sampling chain. 
+Default prior is uniform (uninformative).}
 
-\item{method}{Either "nmf" (default) or "emu".}
+\item{method}{Model to sample from; either \code{"nmf"} or \code{"emu"}.}
 
-\item{opportunities}{Optional matrix of mutational opportunities for "emu" method; must have same dimension as counts. 
-If equals to "human-genome" or "human-exome", the reference human genome/exome opportunities will be used for every sample.}
+\item{opportunities}{Optional matrix of mutational opportunities for \code{"emu"} method; must have same 
+dimension as \code{counts}. If equals to \code{"human-genome"} or \code{"human-exome"}, the reference h
+uman genome/exome opportunities will be used for every sample.}
 
-\item{...}{Arguments to pass to rstan::sampling.}
+\item{...}{Arguments to pass to \code{rstan::sampling}.}
 }
 \description{
-Runs MCMC to fit signatures and estimate exposures
+Run MCMC to fit signatures and estimate exposures
 }
 \examples{
  # Custom prior favours signature 1 over 2, 3 and 4
