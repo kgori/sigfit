@@ -43,7 +43,7 @@ colnames(mutations) <- colnames(sigs)
 ```
 
 Here is what our simulated counts look like:
-```{r fig.width=24, fig.height=11, out.width="100%", plotsim}
+```{r fig.width=17, fig.height=6, out.width="100%", plotsim}
 par(mar = c(6,4,6,4))
 sigfit::plot_spectrum(mutations, counts = TRUE)
 ```
@@ -59,15 +59,22 @@ mcmc_samples <- sigfit::fit_signatures(counts = mutations, signatures = sigs,
 ```
 
 ```{r eval=FALSE, sampling}
-mcmc_samples <- sigfit::fit_signatures(counts = mutations, signatures = sigs,
-                                       iter = 2000, warmup = 1000, chains = 1, seed = 1)
+mcmc_samples <- sigfit::fit_signatures(counts = mutations, 
+                                       signatures = sigs,
+                                       iter = 2000, 
+                                       warmup = 1000, 
+                                       chains = 1, 
+                                       seed = 1)
 ```
 
 #### Retrieving exposures matrices
 Once we have the result of the MCMC sampling in ```mcmc_samples```, we can retrieve the estimated exposures from it using the ```retrieve_pars``` function. This function returns a list with three matrices, one containing the mean exposures, and the others containing the values corresponding to the lower and upper limits of the highest posterior density (HPD) interval (the Bayesian alternative to a confidence interval) for each exposure in each sample. The ```prob``` argument can be used to indicate the desired probability for the HPD interval (by default, 95% HPD intervals are returned).
 Since we are fitting known signatures and not extracting new ones, we can provide the signature names via ```signature_names```, so that they are included in the exposures tables.
 ```{r retrieve_exposures}
-exposures <- retrieve_pars(mcmc_samples, feature = "exposures", prob = 0.95, signature_names = rownames(sigs))
+exposures <- retrieve_pars(mcmc_samples, 
+                           feature = "exposures", 
+                           prob = 0.95, 
+                           signature_names = rownames(sigs))
 names(exposures)
 exposures$mean
 ```
@@ -75,35 +82,44 @@ exposures$mean
 #### Visualisation
 ```plot_exposures``` produces a barplot of the inferred exposure of the sample to each signature. It needs to be provided either the object resulting from MCMC sampling (```mcmc_samples``` argument) or the exposures themselves (```exposures``` argument), either as a matrix or as the list returned by ```retrieve_pars```.
 
-```{r fig.width=12, fig.height=7, out.width = '100%', fig.align = "center", exposures}
-sigfit::plot_exposures(mutations, mcmc_samples = mcmc_samples, signature_names = rownames(sigs))
+```{r fig.width=12, fig.height=5, out.width = '100%', fig.align = "center", eval=FALSE, exposures}
+sigfit::plot_exposures(mutations, 
+                       mcmc_samples = mcmc_samples, 
+                       signature_names = rownames(sigs))
+```
+
+```{r fig.width=12, fig.height=5, out.width = '100%', fig.align = "center", echo=FALSE, silent_exposures}
+par(mar=c(7,4,3,0))
+sigfit::plot_exposures(mutations, 
+                       mcmc_samples = mcmc_samples, 
+                       signature_names = rownames(sigs))
 ```
 
 The bars in this plot are coloured blue if the estimated exposure value is 'sufficiently non-zero' - it is difficult for the model to make hard assignments of which signatures are present or absent due to the non-negative constraint on the estimate, which means that the range of values in the sample will not include zero. In practice, 'sufficiently non-zero' means that the lower end of the Bayesian HPD credible interval is above a threshold value (adjustable via the ```thresh``` argument). In this example, ```sigfit``` has identified the 4 signatures used to construct the sample.
 
 We can also look at the result of reconstructing the original spectrum using the estimated signature exposures, via the ```plot_reconstruction``` function. As the rest of the plotting functions in ```sigfit```, this function works best when plotting to a PDF file. The ```pdf_path``` argument allows you to provide the path to your output PDF, and the function will use the most appropriate size and graphical parameters for the plot. The ```sig_color_palette``` argument can be used to specify custom colours for the different signatures in the reconstructed spectrum.
 ```{r eval=FALSE, reconstruct}
-sigfit::plot_reconstruction(mutations, mcmc_samples = mcmc_samples, signatures = sigs)
+sigfit::plot_reconstruction(mutations, 
+                            mcmc_samples = mcmc_samples, 
+                            signatures = sigs)
 ```
 
-```{r fig.width=24, fig.height=18, out.width = '100%', echo=FALSE, silent_reconstruct}
-par(mar=c(6,4,6,4))
+```{r fig.width=25, fig.height=18, out.width = '100%', echo=FALSE, silent_reconstruct}
+par(mar=c(6,6,6,2))
 # anon <- suppressWarnings(
 #     sigfit::plot_reconstruction(mutations,
 #                                 mcmc_samples = mcmc_samples,
 #                                 signatures = sigs[c(1, 5, 7, 11), ])
 #     )
 anon <- suppressWarnings(
-    sigfit::plot_reconstruction(mutations,
-                                mcmc_samples = mcmc_samples,
-                                signatures = sigs)
+    sigfit::plot_reconstruction(mutations, mcmc_samples = mcmc_samples, signatures = sigs)
     )
 ```
 
 
 ### Example 2: Extracting mutational signatures from multiple breast cancer samples
 
-For this second example, we will use single-nucleotide variant data from a set of 21 breast cancer samples, published in [Nik-Zainal _et al._ (Cell, 2012)](http://dx.doi.org/10.1016/j.cell.2012.04.024). These data can be accessed using ```data("mutations_21bc")```.
+For this second example, we will use single-nucleotide variant data from a set of 21 breast cancer samples, published in [Nik-Zainal _et al._, _Cell_ 2012](http://dx.doi.org/10.1016/j.cell.2012.04.024). These data can be accessed using ```data("mutations_21bc")```.
 
 ```{r load_mutations}
 data("mutations_21bc")
@@ -115,7 +131,7 @@ This table shows the structure of the variant data that can be used as input for
 * Sample ID (character, e.g. "Sample 1").
 * Reference base (character: "A", "C", "G", or "T").
 * Alternate base (character: "A", "C", "G", or "T").
-* Trinucleotide context of the variant (reference sequence between the positions immediately before and after the variant, e.g. "TCA"). This can be obtained from the reference genome that was used to call the variants, using a package like ```BSgenome```; although sequence context information is commonly stored by the variant caller within the INFO field of the VCF file.
+* Trinucleotide context of the variant (reference sequence between the positions immediately before and after the variant, e.g. "TCA"). This can be obtained from the reference genome that was used to call the variants, using a package like ```BSgenome```; however, sequence context information is frequently stored by the variant caller within the INFO field of the VCF file.
 
  Importantly, since each variant can only have a single sample ID, variants which are found in more than one sample need to be included in the table multiple time, using different sample IDs. The order in which the samples are found in this table will be the order in which they will be displayed hereafter. In this case, the samples are already sorted alphabetically:
  
@@ -136,12 +152,22 @@ This set of 21 mutational catalogues can be loaded directly using ```data("count
 
 We can plot the spectrum of all the mutational catalogues using the ```plot_spectrum``` function, as in the previous example. If the supplied table contains more than one catalogue, this function will produce one plot per catalogue, which makes using a PDF output file (```pdf_path``` argument) more convenient.
 
-```{r fig.width=12, fig.height=30, out.width = '100%', fig.align = "center", plot_spectra}
+```{r fig.width=24, fig.height=30, out.width = '100%', fig.align = "center", eval=FALSE, plot_spectra}
 par(mfrow = c(7, 3))
+plot_spectrum(counts_21bc, 
+              counts = TRUE)
+```
+
+```{r fig.width=24, fig.height=25, out.width = '100%', fig.align = "center", echo=FALSE, silent_plot_spectra}
+par(mfrow = c(7, 3), mar = c(5,6,7,2))
 plot_spectrum(counts_21bc, counts = TRUE)
 ```
 
-- Fit signatures to data using "emu" instead of "nmf".
+---
+
+TO DO:
+
+- Fit signatures to 21 samples using "emu" (human-genome opportunities).
 - Plot extracted exposures.
 - Plot reconstructions (add comment showing how to output to PDF).
 - Extract a range of signatures (2:10) using "emu" with small sample size  (include a comment showing "nmf"). Show GOF.
@@ -149,10 +175,8 @@ plot_spectrum(counts_21bc, counts = TRUE)
 - Plot extracted signatures and exposures.
 - Plot reconstructions (add comment showing how to output to PDF).
 
-.
-.
-.
-
+---
+_Old vignette -- replace by stuff above_
 
 Here is a similar example where we have multiple samples
 
