@@ -38,9 +38,10 @@ rev_comp <- function(nucleotides) {
 
 #' Returns default colour palette for signatures
 default_sig_palette <- function(n) {
-    c("#1B9E77", "#D95F02", "#7570B3", "#E7298A", "#66A61E", "#E6AB02", 
-      "#A6761D", "#666666", "#E41A1C", "#377EB8", "#4DAF4A", "#984EA3", 
-      "#FF7F00", "#FFFF33", "#A65628", "#F781BF", "#999999")[1:n]
+    rep(c("#1B9E77", "#D95F02", "#7570B3", "#E7298A", "#66A61E", "#E6AB02", 
+          "#A6761D", "#666666", "#E41A1C", "#377EB8", "#4DAF4A", "#984EA3", 
+          "#FF7F00", "#FFFF33", "#A65628", "#F781BF", "#999999"), 
+        3)[1:n]
 }
 
 #' Returns character vector of 96 (pyrimidine) trinucleotide mutation types
@@ -243,14 +244,14 @@ plot_spectrum <- function(spectra, counts = FALSE, name = NULL, max_y = NULL, pd
     TYPES <- c("C>A", "C>G", "C>T", "T>A", "T>C", "T>G")
     XL <- c(0.2, 19.4, 38.6, 57.8, 77, 96.2)
     XR <- c(19.2, 38.4, 57.6, 76.8, 96, 115.2)
-    if (is.null(max_y)) {
-        FACTOR <- ifelse(counts, 1.3, 1.1)
-        max_y <- ifelse(is.null(upr), max(spec) * FACTOR, max(upr) * FACTOR)
-    }
-    if (!counts) {
-        probs <- seq(0, 1, 0.05)
-        max_y <- probs[which.max(probs > max_y)]
-    }
+    # if (is.null(max_y)) {
+    #     FACTOR <- ifelse(counts, 1.3, 1.1)
+    #     max_y <- ifelse(is.null(upr), max(spec) * FACTOR, max(upr) * FACTOR)
+    # }
+    # if (!counts) {
+    #     probs <- seq(0, 1, 0.05)
+    #     max_y <- probs[which.max(probs > max_y)]
+    # }
     
     if (!is.null(pdf_path)) {
         pdf(pdf_path, width=24, height=11)
@@ -258,6 +259,11 @@ plot_spectrum <- function(spectra, counts = FALSE, name = NULL, max_y = NULL, pd
     }
     
     for (i in 1:nrow(spec)) {
+        if (is.null(max_y)) {
+            FACTOR <- ifelse(counts, 1.3, 1.1)
+            max_y <- ifelse(is.null(upr), max(spec[i,]) * FACTOR, max(upr[i,]) * FACTOR)
+        }
+        
         # Plot spectrum bars
         bars <- barplot(spec[i,], 
                         names.arg = mut_types(),
@@ -268,7 +274,7 @@ plot_spectrum <- function(spectra, counts = FALSE, name = NULL, max_y = NULL, pd
         if (counts) {
             axis(side = 2, las = 2, cex.axis = 1.25)
             label <- "Mutations"
-            n_text <- paste0(" (N = ", sum(spec[i,]), " mutations)")
+            n_text <- paste0(" (", sum(spec[i,]), " mutations)")
         }
         else {
             axis(side = 2, at = seq(0, max_y, 0.05), las = 2, cex.axis = 1.25)
@@ -312,12 +318,16 @@ plot_spectrum <- function(spectra, counts = FALSE, name = NULL, max_y = NULL, pd
 #' \code{plot_exposures} produces barplots that show the distribution of
 #' signatures exposures across catalogues.
 #' @export
-plot_exposures <- function(counts, exposures = NULL, mcmc_samples = NULL, pdf_path = NULL, sig_color_palette = NULL) {
+plot_exposures <- function(counts, exposures = NULL, mcmc_samples = NULL, pdf_path = NULL, signature_names = NULL, thresh = 0.01, sig_color_palette = NULL) {
     if (is.null(exposures) & is.null(mcmc_samples)) {
         stop("Either `exposures` (matrix or list) or `mcmc_samples` (stanfit object) must be provided.")
     }
     if (!is.null(mcmc_samples)) {
-        exposures <- retrieve_pars(mcmc_samples, "exposures")
+        exposures <- retrieve_pars(mcmc_samples, "exposures", signature_names = signature_names)
+        lwr <- exposures$lower
+        upr <- exposures$upper
+    }
+    else if (is.list(exposures) & "mean" %in% names(exposures)) {
         lwr <- exposures$lower
         upr <- exposures$upper
     }
@@ -327,6 +337,7 @@ plot_exposures <- function(counts, exposures = NULL, mcmc_samples = NULL, pdf_pa
     }
     exposures <- to_matrix(exposures)
     stopifnot(nrow(counts) == nrow(exposures))
+    NSAMP <- nrow(counts)
     NSIG <- ncol(exposures)
     
     if (is.null(rownames(counts))) {
@@ -348,12 +359,12 @@ plot_exposures <- function(counts, exposures = NULL, mcmc_samples = NULL, pdf_pa
     
     if (!is.null(pdf_path)) {
         # PDF width increases number of samples
-        pdf(pdf_path, width = max(nrow(counts) * 0.13, 12), height = 12)
-        par(mar = c(5, 0, 4, 0), oma = c(1, 6, 1, 0))
+        pdf(pdf_path, width = max(NSAMP * 0.13, 12), height = ifelse(NSAMP > 1, 12, 7))
+        par(mar = c(6, 0, 4, 0), oma = c(1, 6, 1, 0))
     }
     
     par(lwd = 0.5)
-    if (nrow(counts) > 1) {
+    if (NSAMP > 1) {
         par(mfrow = c(3, 1))
     }
     
@@ -369,8 +380,12 @@ plot_exposures <- function(counts, exposures = NULL, mcmc_samples = NULL, pdf_pa
     }
     
     # Plot global exposures
-    bars <- barplot(exposures_global, col = "dodgerblue4", border = "white",
-                    cex.names = 1.1, cex.main = 1.4, ylim = c(0, max_y), axes = F,
+    colours <- rep("dodgerblue4", NSIG)
+    if (!is.null(lwr)) {
+        colours[lwr < thresh] <- "grey"
+    }
+    bars <- barplot(exposures_global, col = colours, border = "white", cex.names = 1.1, 
+                    cex.main = 1.4, ylim = c(0, max_y), axes = F, las = ifelse(NSIG > 8, 2, 1),
                     main = "Global signature exposures across sample set")
     axis(side = 2, cex.axis = 1.1, las = 2, line = -2)
     mtext(text = "Mutation fraction", side = 2, line = 2.5)
@@ -382,7 +397,7 @@ plot_exposures <- function(counts, exposures = NULL, mcmc_samples = NULL, pdf_pa
     }
     
     # If >1 sample: plot exposures per sample
-    if (nrow(counts) > 1) {
+    if (NSAMP > 1) {
         par(mar = c(9, 0, 4, 0))
         
         # Obtain absolute exposures as mutation counts
@@ -390,19 +405,18 @@ plot_exposures <- function(counts, exposures = NULL, mcmc_samples = NULL, pdf_pa
         exposures_abs <- exposures * muts
         
         # Plot absolute exposures
-        bars <- barplot(t(exposures_abs), col = sigcols, las = 2, space = 0, 
+        bars <- barplot(t(exposures_abs), col = sigcols, las = 2, border = "white", #space = 0, 
                         cex.names = 0.8, cex.main = 1.4, axes = FALSE,
                         main = "Signature exposures per sample (absolute)")
         axis(side = 2, cex.axis = 1.1, las = 2, line = -2)
         mtext(text = "Mutations", side = 2, line = 2.5)
         
         # Legend
-        legend("topright", bty = "n", ncol = 2,
-               xpd = TRUE, inset = c(0.035, 0), 
-               fill = sigcols, legend = colnames(exposures))
+        legend("topright", bty = "n", ncol = 2, xpd = TRUE, inset = c(0.035, 0),
+               fill = sigcols, border = "white", legend = colnames(exposures))
         
         # Plot relative exposures
-        bars <- barplot(t(exposures), col = sigcols, las = 2, space = 0,
+        bars <- barplot(t(exposures), col = sigcols, las = 2, border = "white", #space = 0, 
                         cex.names = 0.8, cex.main = 1.4, axes = FALSE,
                         main = "Signature exposures per sample (relative)")
         axis(side = 2, cex.axis = 1.1, las = 2, line = -2)
@@ -649,7 +663,7 @@ plot_reconstruction <- function(counts, mcmc_samples = NULL, signatures = NULL, 
         }
         legend("topright", inset = c(0, 0.13), ncol = 2,
                legend = paste0(sig_names, " (", round(exposures[i, ], 3), ")"), 
-               fill = sigcols, cex = 1.5, bty = "n")
+               fill = sigcols, border = "white", cex = 1.5, bty = "n")
     }
     
     par(mfrow = c(1, 1))
