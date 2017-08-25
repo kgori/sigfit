@@ -154,8 +154,6 @@ build_catalogues <- function(variants) {
     # Make catalogue matrix with one row per sample
     samples <- unique(variants[, 1])
     catalogues <- t(sapply(samples, function(sample) {
-        cat("Processing sample", sample, "\n")
-        
         # Select mutations from sample
         idx <- variants[, 1] == sample
         
@@ -261,14 +259,17 @@ plot_spectrum <- function(spectra, counts = FALSE, name = NULL, max_y = NULL, pd
     for (i in 1:nrow(spec)) {
         if (is.null(max_y)) {
             FACTOR <- ifelse(counts, 1.3, 1.1)
-            max_y <- ifelse(is.null(upr), max(spec[i,]) * FACTOR, max(upr[i,]) * FACTOR)
+            samp_max_y <- ifelse(is.null(upr), max(spec[i,]) * FACTOR, max(upr[i,]) * FACTOR)
+        }
+        else {
+            samp_max_y <- max_y
         }
         
         # Plot spectrum bars
         bars <- barplot(spec[i,], 
                         names.arg = mut_types(),
                         col = rep(COLORS, each = 16), border = "white",
-                        yaxt = "n", ylim = c(0, max_y), xlim = c(-1, 116),
+                        yaxt = "n", ylim = c(0, samp_max_y), xlim = c(-1, 116),
                         cex = 1.3, cex.axis = 1.5, cex.lab = 1.7, 
                         las = 2, xaxs = "i", family = "mono")
         if (counts) {
@@ -277,7 +278,7 @@ plot_spectrum <- function(spectra, counts = FALSE, name = NULL, max_y = NULL, pd
             n_text <- paste0(" (", sum(spec[i,]), " mutations)")
         }
         else {
-            axis(side = 2, at = seq(0, max_y, 0.05), las = 2, cex.axis = 1.25)
+            axis(side = 2, at = seq(0, samp_max_y, 0.05), las = 2, cex.axis = 1.25)
             label <- "Mutation probability"
             n_text <- ""
         }
@@ -304,9 +305,9 @@ plot_spectrum <- function(spectra, counts = FALSE, name = NULL, max_y = NULL, pd
                    length = 0.03, lwd = 1.5, col = "gray35")
         }
         # Plot mutation type labels
-        rect(xleft = XL, xright = XR, ybottom = max_y * 0.95, ytop = max_y, 
+        rect(xleft = XL, xright = XR, ybottom = samp_max_y * 0.95, ytop = samp_max_y, 
              col = COLORS, border = "white")
-        text(x = (XL + XR) / 2, y = max_y * 0.9, labels = TYPES, cex = 2.25)
+        text(x = (XL + XR) / 2, y = samp_max_y * 0.9, labels = TYPES, cex = 2.25)
     }
     
     if (!is.null(pdf_path)) {
