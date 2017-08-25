@@ -29,7 +29,7 @@ devtools::install_github("kgori/sigfit", build_vignettes = TRUE)
 
 ## Usage guide
 
-#### Generating data
+#### Proof of concept: fitting signatures to simulated data
 This example will use the mutational signatures from [COSMIC](http://cancer.sanger.ac.uk/cosmic/signatures) to generate simulated mutation counts, and then use ```sigfit``` to fit the signatures back to the simulated data.
 
 First of all we need some mutational signatures to fit to our data. This command will fetch mutational signatures from COSMIC.
@@ -46,7 +46,7 @@ colnames(mutations) <- colnames(sigs)
 ```
 
 Here is what our simulated counts look like:
-```{r fig.width=18, fig.height=12, out.width="100%", plotsim}
+```{r fig.width=24, fig.height=11, out.width="100%", plotsim}
 par(mar = c(6,4,6,4))
 sigfit::plot_spectrum(mutations, counts = TRUE)
 ```
@@ -56,18 +56,30 @@ Now we can estimate the exposure of the data to each signature (pretending we do
 ```{r include=FALSE, silent_sampling}
 set.seed(1)
 mcmc_samples <- sigfit::fit_signatures(counts = mutations, signatures = sigs[c(1, 5, 7, 11), ],
-                                       iter = 1000, chains = 1, warmup = 500, seed = 1)
+                                       iter = 1000, warmup = 500, chains = 1, seed = 1)
 ```
 
 ```{r eval=FALSE, sampling}
 set.seed(1)
 mcmc_samples <- sigfit::fit_signatures(counts = mutations, signatures = sigs[c(1, 5, 7, 11), ],
-                                       iter = 1000, chains = 1, warmup = 500, seed = 1)
+                                       iter = 1000, warmup = 500, chains = 1, seed = 1)
+```
+
+#### Retrieving exposures matrices
+To retrieve the exposures from the MCMC samples, we can use the ```retrieve_pars``` function. This will
+produce a list with three matrices, containing the mean value, and the values corresponding to the
+lower and upper limits of the highest posterior density (HPD) interval (the Bayesian equivalent to a 
+confidence interval), for each exposure in each sample. The ```prob``` argument can be used to indicate 
+the desired probability for the HPD interval (by default, 95% HPD intervals are returned).
+```{r retrieve_exposures}
+exposures <- retrieve_pars(mcmc_samples, feature = "exposures", prob = 0.95)
+names(exposures)
+exposures$mean
 ```
 
 #### Visualisation
 We can look at the fitted spectrum using ```plot_spectrum```. This function can pass through arguments to ```barplot```
-```{r fig.width=24, fig.height=16, out.width = '100%', echo=FALSE, silent_reconstruct}
+```{r fig.width=24, fig.height=18, out.width = '100%', echo=FALSE, silent_reconstruct}
 par(mar=c(6,4,6,4))
 anon <- suppressWarnings(
     sigfit::plot_reconstruction(mutations,
@@ -83,9 +95,8 @@ sigfit::plot_reconstruction(mutations, mcmc_samples = mcmc_samples,
 
 ```plot_exposures``` produces a barplot of the inferred exposure of the sample to each signature. 
 
-```{r eval=FALSE, fig.width=7.5, fig.height=5, out.width = '75%', fig.align = "center", exposures}
-plots <- sigfit::plot_exposures(mcmc_samples)
-plots[[1]]
+```{r fig.width=18, fig.height=12, out.width = '100%', fig.align = "center", exposures}
+sigfit::plot_exposures(mutations, mcmc_samples = mcmc_samples)
 ```
 
 The bars in this plot are coloured blue if the estimated exposure value is 'sufficiently non-zero' - it is difficult for the model to make hard assignments of which signatures are present or absent due to the non-negative constraint on the estimate, which means that the range of values in the sample will not include zero. In practice, 'sufficiently non-zero' means that the lower end of the Bayesian HPD credible interval (`prob`) is above a threshold value (`thresh`).
