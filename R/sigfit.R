@@ -1,3 +1,14 @@
+#' Initial coertion to matrix for signatures/exposures/counts
+to_matrix <- function(x) {
+    # If x is coming from retrieve_pars, get mean
+    if (is.list(x) & "mean" %in% names(x))  x <- x$mean
+    # If x is a vector, transform to 1-row matrix
+    if (is.vector(x))  x <- matrix(x, nrow = 1)
+    # Otherwise, try coercing to matrix
+    if (!is.matrix(x))  x <- as.matrix(x)
+    x
+}
+
 #' Cosine similarity between two vectors
 cosine_sim <- function(x, y) { x %*% y / sqrt(x%*%x * y%*%y) }
 
@@ -224,12 +235,7 @@ plot_spectrum <- function(spectra, counts = FALSE, name = NULL, max_y = NULL, pd
         upr <- NULL
     }
     # Force spectrum to matrix (96 columns)
-    if (is.vector(spec)) {
-        spec <- matrix(spec, nrow = 1)
-    }
-    if (!is.matrix(spec)) {
-        spec <- as.matrix(spec)
-    }
+    spec <- to_matrix(spec)
     stopifnot(ncol(spec) == NCAT)
     
     # Plot each spectrum
@@ -306,10 +312,20 @@ plot_spectrum <- function(spectra, counts = FALSE, name = NULL, max_y = NULL, pd
 #' \code{plot_exposures} produces barplots that show the distribution of
 #' signatures exposures across catalogues.
 #' @export
-plot_exposures <- function(exposures, counts, pdf_path = NULL, sig_color_palette = NULL) {
-    if (is.list(exposures) & "mean" %in% names(exposures)) {
-        exposures <- exposures$mean
+plot_exposures <- function(counts, exposures = NULL, mcmc_samples = NULL, pdf_path = NULL, sig_color_palette = NULL) {
+    if (is.null(exposures) & is.null(mcmc_samples)) {
+        stop("Either `exposures` (matrix or list) or `mcmc_samples` (stanfit object) must be provided.")
     }
+    if (!is.null(mcmc_samples)) {
+        exposures <- retrieve_pars(mcmc_samples, "exposures")
+        lwr <- exposures$lower
+        upr <- exposures$upper
+    }
+    else {
+        lwr <- NULL
+        upr <- NULL
+    }
+    exposures <- to_matrix(exposures)
     stopifnot(nrow(counts) == nrow(exposures))
     NSIG <- ncol(exposures)
     
@@ -323,12 +339,6 @@ plot_exposures <- function(exposures, counts, pdf_path = NULL, sig_color_palette
         colnames(exposures) <- paste("Signature", LETTERS[1:NSIG])
     }
     
-    if (!is.null(pdf_path)) {
-        pdf(pdf_path, width = 18, height = 12)
-        par(mar = c(9, 6, 4, 0), oma = c(1, 0, 1, 0))
-    }
-    par(mfrow = c(2, 1), lwd = 0.5)
-    
     if (is.null(sig_color_palette)) {
         sigcols <- default_sig_palette(NSIG)
     }
@@ -336,28 +346,68 @@ plot_exposures <- function(exposures, counts, pdf_path = NULL, sig_color_palette
         sigcols <- sig_color_palette[1:NSIG]
     }
     
-    # Obtain absolute exposures as mutation counts
-    muts <- rowSums(counts)
-    exposures_abs <- exposures * muts
+    if (!is.null(pdf_path)) {
+        # PDF width increases number of samples
+        pdf(pdf_path, width = max(nrow(counts) * 0.13, 12), height = 12)
+        par(mar = c(5, 0, 4, 0), oma = c(1, 6, 1, 0))
+    }
     
-    # Plot absolute exposures
-    bars <- barplot(t(exposures_abs), col = sigcols, las = 2, space = 0, 
-                    cex.names = 0.8, cex.main = 1.4, axes = FALSE,
-                    main = "Signature exposures (absolute)")
-    axis(side = 2, cex.axis = 1.1, las = 2, line = -1.5)
-    mtext(text = "Mutations", side = 2, cex = 1.2, line = 3)
+    par(lwd = 0.5)
+    if (nrow(counts) > 1) {
+        par(mfrow = c(3, 1))
+    }
     
-    # Legend
-    legend("topright", bty = "n", ncol = 2,
-           xpd = TRUE, inset = c(0.035, 0), 
-           fill = sigcols, legend = colnames(exposures))
+    # Obtain global (average) exposures
+    exposures_global <- colMeans(exposures)
+    if (!is.null(lwr)) {
+        lwr_global <- colMeans(lwr)
+        upr_global <- colMeans(upr)
+        max_y <- max(upr_global)
+    }
+    else {
+        max_y <- max(exposures_global)
+    }
     
-    # Plot relative exposures
-    bars <- barplot(t(exposures), col = sigcols, las = 2, space = 0,
-                    cex.names = 0.8, cex.main = 1.4, axes = FALSE,
-                    main = "Signature exposures (relative)")
-    axis(side = 2, cex.axis = 1.1, las = 2, line = -1.5)
-    mtext(text = "Mutation fraction", side = 2, cex = 1.2, line = 3)
+    # Plot global exposures
+    bars <- barplot(exposures_global, col = "dodgerblue4", border = "white",
+                    cex.names = 1.1, cex.main = 1.4, ylim = c(0, max_y), axes = F,
+                    main = "Global signature exposures across sample set")
+    axis(side = 2, cex.axis = 1.1, las = 2, line = -2)
+    mtext(text = "Mutation fraction", side = 2, line = 2.5)
+    if (!is.null(lwr)) {
+        arrows(bars, exposures_global, bars, lwr_global, 
+               angle = 90, length = 0.03, lwd = 1.5, col = "gray50")
+        arrows(bars, exposures_global, bars, upr_global, 
+               angle = 90, length = 0.03, lwd = 1.5, col = "gray50")
+    }
+    
+    # If >1 sample: plot exposures per sample
+    if (nrow(counts) > 1) {
+        par(mar = c(9, 0, 4, 0))
+        
+        # Obtain absolute exposures as mutation counts
+        muts <- rowSums(counts)
+        exposures_abs <- exposures * muts
+        
+        # Plot absolute exposures
+        bars <- barplot(t(exposures_abs), col = sigcols, las = 2, space = 0, 
+                        cex.names = 0.8, cex.main = 1.4, axes = FALSE,
+                        main = "Signature exposures per sample (absolute)")
+        axis(side = 2, cex.axis = 1.1, las = 2, line = -2)
+        mtext(text = "Mutations", side = 2, line = 2.5)
+        
+        # Legend
+        legend("topright", bty = "n", ncol = 2,
+               xpd = TRUE, inset = c(0.035, 0), 
+               fill = sigcols, legend = colnames(exposures))
+        
+        # Plot relative exposures
+        bars <- barplot(t(exposures), col = sigcols, las = 2, space = 0,
+                        cex.names = 0.8, cex.main = 1.4, axes = FALSE,
+                        main = "Signature exposures per sample (relative)")
+        axis(side = 2, cex.axis = 1.1, las = 2, line = -2)
+        mtext(text = "Mutation fraction", side = 2, line = 2.5)
+    }
     
     par(mfrow = c(1, 1), lwd = 1)
     if (!is.null(pdf_path)) {
@@ -412,12 +462,7 @@ plot_reconstruction <- function(counts, mcmc_samples = NULL, signatures = NULL, 
     NSAMP <- nrow(counts)  # number of samples
     
     # Force counts to matrix
-    if (is.vector(counts)) {
-        counts <- matrix(counts, nrow = 1)
-    }
-    if (!is.matrix(counts)) {
-        counts <- as.matrix(counts)
-    }
+    counts <- to_matrix(counts)
     stopifnot(ncol(counts) == NCAT)
     
     if (is.null(opportunities)) {
@@ -431,32 +476,22 @@ plot_reconstruction <- function(counts, mcmc_samples = NULL, signatures = NULL, 
         opportunities <- matrix(rep(human_trinuc_freqs("exome"), NSAMP),
                                 nrow = NSAMP, ncol = ncol(counts), byrow = TRUE)
     }
+    else if (!is.matrix(opportunities)) {
+        opportunities <- as.matrix(opportunities)
+    }
     stopifnot(all(dim(opportunities) == dim(counts)))
     
     cat("Building reconstructed catalogues...\n")
     
+    if (is.null(mcmc_samples) & (is.null(exposures) | is.null(signatures))) {
+        stop("Either `mcmc_samples` (stanfit object), or both `signatures` and `exposures` (matrices or lists), must be provided.")
+    }
+    
     # Case A: matrices given instead of MCMC samples
     if (is.null(mcmc_samples)) {
-        stopifnot(!(is.null(signatures) | is.null(exposures)))
         # Force signatures and exposures to matrices
-        if (is.list(signatures) & "mean" %in% names(signatures)) {
-            signatures <- signatures$mean
-        }
-        if (is.list(exposures) & "mean" %in% names(exposures)) {
-            exposures <- exposures$mean
-        }
-        if (is.vector(signatures)) {
-            signatures <- matrix(signatures, nrow = 1)
-        }
-        if (is.vector(exposures)) {
-            exposures <- matrix(exposures, nrow = 1)
-        }
-        if (!is.matrix(signatures)) {
-            signatures <- as.matrix(signatures)
-        }
-        if (!is.matrix(exposures)) {
-            exposures <- as.matrix(exposures)
-        }
+        signatures <- to_matrix(signatures)
+        exposures <- to_matrix(exposures)
         stopifnot(ncol(signatures) == NCAT)
         stopifnot(nrow(exposures) == NSAMP)
         stopifnot(ncol(exposures) == nrow(signatures))
@@ -484,15 +519,7 @@ plot_reconstruction <- function(counts, mcmc_samples = NULL, signatures = NULL, 
             if (is.null(signatures)) {
                 stop("`mcmc_samples` contains signature fitting results: a signatures matrix must be provided via `signatures`")
             }
-            if (is.list(signatures) & "mean" %in% names(signatures)) {
-                signatures <- signatures$mean
-            }
-            if (is.vector(signatures)) {
-                signatures <- matrix(signatures, nrow = 1)
-            }
-            if (!is.matrix(signatures)) {
-                signatures <- as.matrix(signatures)
-            }
+            signatures <- to_matrix(signatures)
             
             # Reshape signatures as simulated MCMC samples
             e$signatures <- aperm(
@@ -811,12 +838,7 @@ fit_signatures <- function(counts, signatures, prior = NULL,
     stopifnot(length(prior) == nrow(signatures))
     
     # Force counts to matrix
-    if (is.vector(counts)) {
-        counts <- matrix(counts, nrow = 1)
-    }
-    if (!is.matrix(counts)) {
-        counts <- as.matrix(counts)
-    }
+    counts <- to_matrix(counts)
     
     # Add pseudocounts to signatures
     signatures <- remove_zeros_(signatures)
@@ -895,12 +917,7 @@ extract_signatures <- function(counts, nsignatures, method = "emu",
                                opportunities = NULL, exposures_prior = 0.5, 
                                stanfunc = "sampling", ...) {
     # Force counts to matrix
-    if (is.vector(counts)) {
-        counts <- matrix(counts, nrow = 1)
-    }
-    if (!is.matrix(counts)) {
-        counts <- as.matrix(counts)
-    }
+    counts <- to_matrix(counts)
     
     # EMu model
     if (method == "emu") {
@@ -1016,12 +1033,7 @@ extract_signatures <- function(counts, nsignatures, method = "emu",
 fit_extract_signatures <- function(counts, signatures, num_extra_sigs, 
                                    stanfunc = "sampling", ...) {
     # Force counts to matrix
-    if (is.vector(counts)) {
-        counts <- matrix(counts, nrow = 1)
-    }
-    if (!is.matrix(counts)) {
-        counts <- as.matrix(counts)
-    }
+    counts <- to_matrix(counts)
     
     # Add pseudocounts to signatures
     signatures <- remove_zeros_(signatures)
