@@ -122,36 +122,49 @@ human_trinuc_freqs <- function(type = "genome") {
     }
 }
 
-#' Builds a mutational catalogue from a table containing the base change and
-#' trinucleotide context of each single-nucleotide variant.
-#' @param variants Table with one row per single-nucleotide variant, and three columns:
-#' REF base (character in {A,C,G,T}); ALT base (character in {A,C,G,T}); and trinucleotide
-#' context at the variant location (sequence between the positions immediately before and 
-#' after the variant, in string format; e.g. "TCA").
+#' Builds mutational catalogues from a table containing the base change and
+#' trinucleotide context of each single-nucleotide variant in every sample.
+#' @param variants Matrix with one row per single-nucleotide variant, and four columns:
+#' Sample ID (character, e.g. "Sample 1"); REF base (character: "A", "C", "G", or "T"); ALT 
+#' base (character: "A", "C", "G", or "T"); and trinucleotide context of the variant (reference 
+#' sequence between the positions immediately before and after the variant, e.g. "TCA").
 #' @export
-build_catalogue <- function(variants) {
-    # Check that REF base coincides with middle base in trinucleotide
-    if (any(variants[,1] != sapply(strsplit(variants[,3], split=""), function(x) x[2]))) {
-        stop("REF base (column 1) is not equal to middle base of the trinucleotide context (column 3).")
+build_catalogues <- function(variants) {
+    if (ncol(variants) != 4) {
+        stop("`variants` must be a matrix with 4 columns and one row per variant; see documentation.")
     }
     
-    # Obtain mutation types, collapsed such that they refer to pyrimidine bases
-    vars_collapsed <- apply(variants, 1, function(var) {
-        if (var[1] %in% c("C", "T")) {
-            trinuc <- strsplit(var[3], "")[[1]]
-            alt <- var[2]
-        }
-        else {
-            trinuc <- rev_comp(var[3])
-            alt <- rev_comp(var[2])
-        }
-        paste0(paste(trinuc, collapse=""), ">", trinuc[1], alt, trinuc[3])
-    })
-
-    # Count number of occurrences of each mutation type
-    sapply(mut_types(), function(type) {
-        sum(grepl(type, vars_collapsed, fixed = TRUE))
-    })
+    # Check that REF base coincides with middle base in trinucleotide
+    if (any(variants[, 2] != substr(variants[, 4], 2, 2))) {
+        stop("REF base (column 2) is not equal to middle base of the trinucleotide (column 4).")
+    }
+    
+    # Make catalogue matrix with one row per sample
+    samples <- unique(variants[, 1])
+    catalogues <- t(sapply(samples, function(sample) {
+        cat("Processing sample", sample, "\n")
+        
+        # Select mutations from sample
+        idx <- variants[, 1] == sample
+        
+        # Obtain mutation types, collapsed such that they refer to pyrimidine bases
+        vars_collapsed <- apply(variants[idx, ], 1, function(var) {
+            if (var[2] %in% c("C", "T")) {
+                trinuc <- strsplit(var[4], "")[[1]]
+                alt <- var[3]
+            }
+            else {
+                trinuc <- rev_comp(var[4])
+                alt <- rev_comp(var[3])
+            }
+            paste0(paste(trinuc, collapse=""), ">", trinuc[1], alt, trinuc[3])
+        })
+        
+        # Count number of occurrences of each mutation type
+        sapply(mut_types(), function(type) {
+            sum(grepl(type, vars_collapsed, fixed = TRUE))
+        })
+    }))
 }
 
 #' Fetches COSMIC mutational signatures.
@@ -274,9 +287,9 @@ plot_spectrum <- function(spectra, counts = FALSE, name = NULL, max_y = NULL, pd
         # Plot HPD intervals
         if (!is.null(lwr)) {
             arrows(bars, spec[i,], bars, lwr[i,], angle = 90, 
-                   length = 0.05, lwd = 1.5, col = "gray35")
+                   length = 0.03, lwd = 1.5, col = "gray35")
             arrows(bars, spec[i,], bars, upr[i,], angle = 90, 
-                   length = 0.05, lwd = 1.5, col = "gray35")
+                   length = 0.03, lwd = 1.5, col = "gray35")
         }
         # Plot mutation type labels
         rect(xleft = XL, xright = XR, ybottom = max_y * 0.95, ytop = max_y, 
@@ -311,7 +324,7 @@ plot_exposures <- function(exposures, counts, pdf_path = NULL, sig_color_palette
     }
     
     if (!is.null(pdf_path)) {
-        pdf(pdf_path, 18, 12)
+        pdf(pdf_path, width = 18, height = 12)
         par(mar = c(9, 6, 4, 0), oma = c(1, 0, 1, 0))
     }
     par(mfrow = c(2, 1), lwd = 0.5)
@@ -419,6 +432,8 @@ plot_reconstruction <- function(counts, mcmc_samples = NULL, signatures = NULL, 
                                 nrow = NSAMP, ncol = ncol(counts), byrow = TRUE)
     }
     stopifnot(all(dim(opportunities) == dim(counts)))
+    
+    cat("Building reconstructed catalogues...\n")
     
     # Case A: matrices given instead of MCMC samples
     if (is.null(mcmc_samples)) {
@@ -536,6 +551,8 @@ plot_reconstruction <- function(counts, mcmc_samples = NULL, signatures = NULL, 
         }
     }
     
+    cat("Plotting reconstructions for each sample...\n")
+    
     # Plotting
     COLORS <- c("deepskyblue", "black", "firebrick2", "gray76", "darkolivegreen3", "rosybrown2")
     TYPES <- c("C>A", "C>G", "C>T", "T>A", "T>C", "T>G")
@@ -552,7 +569,7 @@ plot_reconstruction <- function(counts, mcmc_samples = NULL, signatures = NULL, 
     if (!is.null(pdf_path)) {
         stopifnot(is.character(pdf_path))
         pdf(pdf_path, width = 24, height = 18)
-        par(mar = c(8, 8, 7, 2.75))
+        par(mar = c(6, 8, 6, 2.75), oma = c(3, 0, 2, 0))
     }
     par(mfrow = c(2, 1))
     
@@ -574,7 +591,7 @@ plot_reconstruction <- function(counts, mcmc_samples = NULL, signatures = NULL, 
         
         # Plot catalogue reconstruction
         bars <- barplot(reconstructions[i, , ], 
-                        col = sigcols, lwd = 0.3,
+                        col = sigcols, border = "white",
                         yaxt = "n", ylim = c(0, max_y), xlim = c(-1, 116),
                         cex = 1.3, cex.axis = 1.5, cex.lab = 1, las = 2, 
                         xaxs = "i", family = "mono")
@@ -587,10 +604,10 @@ plot_reconstruction <- function(counts, mcmc_samples = NULL, signatures = NULL, 
         if (!is.null(mcmc_samples)) {
             arrows(bars, colSums(reconstructions[i, , ]), 
                    bars, hpds[i, 1, ], 
-                   angle = 90, length = 0.05, lwd = 1.5, col = "gray35")
+                   angle = 90, length = 0.03, lwd = 1.5, col = "gray35")
             arrows(bars, colSums(reconstructions[i, , ]), 
                    bars, hpds[i, 2, ], 
-                   angle = 90, length = 0.05, lwd = 1.5, col = "gray35")
+                   angle = 90, length = 0.03, lwd = 1.5, col = "gray35")
         }
         # Mutation type labels
         rect(xleft = XL, xright = XR, ybottom = max_y * 0.95, ytop = max_y, 
@@ -603,10 +620,9 @@ plot_reconstruction <- function(counts, mcmc_samples = NULL, signatures = NULL, 
         else {
             sig_names <- rownames(signatures)
         }
-        legend("topright", inset = c(0, 0.13),
-               legend = rev(paste0(sig_names, " (", round(exposures[i, ], 3), ")")), 
-               fill = rev(sigcols),
-               cex = 1.5, bty = "n")
+        legend("topright", inset = c(0, 0.13), ncol = 2,
+               legend = paste0(sig_names, " (", round(exposures[i, ], 3), ")"), 
+               fill = sigcols, cex = 1.5, bty = "n")
     }
     
     par(mfrow = c(1, 1))
