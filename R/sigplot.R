@@ -99,6 +99,7 @@ ggplot_signatures <- function(samples) {
 #' @importFrom "ggplot2" ggplot aes geom_col geom_errorbar scale_fill_manual guides theme_bw ggtitle ylim
 #' @export
 ggplot_exposures <- function(samples, colours = NULL) {
+    .Deprecated("ggplot_exposures", msg = "ggplot based plotting functions are being retired")
     exposures <- extract(samples)$exposures
     if (is.null(colours) || length(colours) != 2) colours <- c("dodgerblue", "grey80")
     max.y <- 0
@@ -123,19 +124,6 @@ ggplot_exposures <- function(samples, colours = NULL) {
     }
     plots
 }
-
-# #' Returns a list of normalised exposure plots, with error bars.
-# #' @param samples Sampling object such as returned by extract_signatures.
-# #' @examples
-# #' Generate a list of exposure plots for all samples, showing 3 extracted signatures
-# #' samples <- extract_signatures(mycounts, nsignatures = 3, method = "nmf") 
-# #' plots <- plot_exposures(samples)
-# #' m <- marrangeGrob(plots, nrow = 1, ncol = 3) # use gridExtra to plot all on same page
-# #' @importFrom "rstan" extract
-# #' @importFrom "ggplot2" ggplot aes geom_col geom_errorbar scale_fill_manual guides theme_bw ggtitle ylim
-# #' @return List of plot objects
-# #' @export
-# plot_exposures <- ggplot_exposures
 
 #' Returns a list of normalised exposure plots, with error bars.
 #' @param samples Sampling object such as returned by extract_signatures.
