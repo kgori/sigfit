@@ -6,19 +6,13 @@ data {
     int<lower=1> S;   // number of fixed signatures
     int<lower=1> G;   // number of genomes
     int<lower=1> N;   // number of extra signatures
-    matrix[S, C] fixed_sigs;  // matrix of signatures (rows) by categories (columns)
-    int counts[G, C];         // data = counts per genome (rows) in each category (columns)
+    matrix[S, C] fixed_sigs;   // matrix of signatures (rows) by categories (columns)
+    int<lower=0> counts[G, C]; // data = counts per genome (rows) in each category (columns)
 }
 transformed data {
-    int T = S + N;              // total number of signatures, including extra signatures
-    vector[C] signature_prior;  // Jeffreys prior for extra_signature
-    vector[T] exposures_prior;  // Jeffreys prior for exposures
-    for (c in 1:C) {
-        signature_prior[c] = 0.5;
-    }
-    for (t in 1:T) {
-        exposures_prior[t] = 0.5;
-    }
+    int T = S + N;   // total number of signatures, including extra signatures
+    vector[C] alpha = rep_vector(0.5, C);  // Jeffreys prior for extra_signatures
+    vector[T] kappa = rep_vector(0.5, T);  // Jeffreys prior for exposures
 }
 parameters {
     simplex[C] extra_sigs[N];  // additional signatures to extract
@@ -31,17 +25,26 @@ transformed parameters {
     probs = array_to_matrix(exposures) * signatures;
 }
 model {
+    // Priors for extra signatures
     for (n in 1:N) {
-        extra_sigs[n] ~ dirichlet(signature_prior);
+        extra_sigs[n] ~ dirichlet(alpha);
     }
+    
     for (g in 1:G) {
-        exposures[g] ~ dirichlet(exposures_prior);
+        // Priors for exposures
+        exposures[g] ~ dirichlet(kappa);
+        
+        // Likelihood
         counts[g] ~ multinomial(to_vector(probs[g]));
     }
 }
 generated quantities {
     vector[G] log_lik;
+    real bic;
+    
     for (g in 1:G) {
         log_lik[g] = multinomial_lpmf(counts[g] | to_vector(probs[g]));
     }
+    
+    bic = 2 * sum(log_lik) - log(G) * (G*(T-1) + N*(C-1));
 }
