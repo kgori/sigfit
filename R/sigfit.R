@@ -349,7 +349,7 @@ plot_exposures <- function(counts, exposures = NULL, mcmc_samples = NULL, pdf_pa
     }
     if (!is.null(signature_names)) {
         for (i in 1:length(exposures)) {
-            colnames(exposures[[i]]) <- rownames(sigs)
+            colnames(exposures[[i]]) <- signature_names
         }
     }
     exposures <- to_matrix(exposures)
