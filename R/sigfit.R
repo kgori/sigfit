@@ -330,12 +330,15 @@ plot_spectrum <- function(spectra, counts = FALSE, name = NULL, max_y = NULL, pd
 #' \code{plot_exposures} produces barplots that show the distribution of
 #' signatures exposures across catalogues.
 #' @export
-plot_exposures <- function(counts, exposures = NULL, mcmc_samples = NULL, pdf_path = NULL, signature_names = NULL, thresh = 0.01, sig_color_palette = NULL) {
+plot_exposures <- function(counts, exposures = NULL, mcmc_samples = NULL, pdf_path = NULL,
+                           signature_names = NULL, thresh = 0.01, prob = 0.95,
+                           sig_color_palette = NULL) {
     if (is.null(exposures) & is.null(mcmc_samples)) {
         stop("Either `exposures` (matrix or list) or `mcmc_samples` (stanfit object) must be provided.")
     }
     if (!is.null(mcmc_samples)) {
-        exposures <- retrieve_pars(mcmc_samples, "exposures", signature_names = signature_names)
+        exposures <- retrieve_pars(mcmc_samples, "exposures", signature_names = signature_names,
+                                   prob = prob)
         lwr <- exposures$lower
         upr <- exposures$upper
     }
