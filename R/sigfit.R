@@ -400,7 +400,7 @@ plot_exposures <- function(counts, exposures = NULL, mcmc_samples = NULL, pdf_pa
     # Plot global exposures
     colours <- rep("dodgerblue4", NSIG)
     if (!is.null(lwr)) {
-        colours[lwr < thresh] <- "grey"
+        colours[lwr_global < thresh] <- "grey"
     }
     bars <- barplot(exposures_global, col = colours, border = "white", cex.names = 1.1, 
                     cex.main = 1.4, ylim = c(0, max_y), axes = F, las = ifelse(NSIG > 8, 2, 1),
