@@ -430,7 +430,9 @@ plot_exposures <- function(counts, exposures = NULL, mcmc_samples = NULL, pdf_pa
         mtext(text = "Mutations", side = 2, line = 2.5)
         
         # Legend
-        legend("topright", bty = "n", ncol = 2, xpd = TRUE, inset = c(0.035, 0),
+        # expand legend box horizontally if there are lots of signatures
+        LEGENDCOLS <- max(2, ceiling(ncol(exposures) / 10))
+        legend("topright", bty = "n", ncol = LEGENDCOLS, xpd = TRUE, inset = c(0.035, 0),
                fill = sigcols, border = "white", legend = colnames(exposures))
         
         # Plot relative exposures
