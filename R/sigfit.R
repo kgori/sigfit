@@ -25,6 +25,17 @@ remove_zeros_ <- function(mtx, min_allowed = 1e-9) {
     )
 }
 
+#' From https://stackoverflow.com/a/21689613/1875814
+#' Produce Excel-style letter labels - A, B, ..., Z, AA, AB, ..., AZ, ..., ZZ, AAA, ...
+letterwrap <- function(n, depth = 1) {
+    args <- lapply(1:depth, FUN = function(x) return(LETTERS))
+    x <- do.call(expand.grid, args = list(args, stringsAsFactors = F))
+    x <- x[, rev(names(x)), drop = F]
+    x <- do.call(paste0, x)
+    if (n <= length(x)) return(x[1:n])
+    return(c(x, letterwrap(n - length(x), depth = depth + 1)))
+}
+
 #' Reverse complement a nucleotide sequence string
 #' Input is string, output is character vector
 rev_comp <- function(nucleotides) {
@@ -336,10 +347,16 @@ plot_exposures <- function(counts, exposures = NULL, mcmc_samples = NULL, pdf_pa
         lwr <- NULL
         upr <- NULL
     }
+    if (!is.null(signature_names)) {
+        for (i in 1:length(exposures)) {
+            colnames(exposures[[i]]) <- rownames(sigs)
+        }
+    }
     exposures <- to_matrix(exposures)
     stopifnot(nrow(counts) == nrow(exposures))
     NSAMP <- nrow(counts)
     NSIG <- ncol(exposures)
+    LETTERLABELS <- letterwrap(NSIG)
     
     if (is.null(rownames(counts))) {
         rownames(exposures) <- paste("Sample", 1:nrow(exposures))
@@ -348,7 +365,7 @@ plot_exposures <- function(counts, exposures = NULL, mcmc_samples = NULL, pdf_pa
         rownames(exposures) <- rownames(counts)
     }
     if (is.null(colnames(exposures))) {
-        colnames(exposures) <- paste("Signature", LETTERS[1:NSIG])
+        colnames(exposures) <- paste("Signature", LETTERLABELS[1:NSIG])
     }
     
     if (is.null(sig_color_palette)) {
@@ -657,7 +674,8 @@ plot_reconstruction <- function(counts, mcmc_samples = NULL, signatures = NULL, 
         text(x = (XL + XR) / 2, y = max_y * 0.9, labels = TYPES, cex = 2.25)
         # Legend
         if (is.null(rownames(signatures))) {
-            sig_names <- paste("Signature", LETTERS[1:NSIG])
+            LETTERLABELS <- letterwrap(NSIG)
+            sig_names <- paste("Signature", LETTERLABELS[1:NSIG])
         }
         else {
             sig_names <- rownames(signatures)
@@ -766,7 +784,8 @@ retrieve_pars <- function(mcmc_samples, feature, prob = 0.95, signature_names = 
         if (feature == "signatures") {
             names2 <- mut_types()
             if (is.null(signature_names)) {
-                names1 <- paste("Signature", LETTERS[1:dim(feat)[2]])
+                LETTERLABELS <- letterwrap(dim(feat)[2])
+                names1 <- paste("Signature", LETTERLABELS[1:dim(feat)[2]])
             }
             else {
                 if (dim(feat)[2] != length(signature_names)) {
@@ -778,7 +797,8 @@ retrieve_pars <- function(mcmc_samples, feature, prob = 0.95, signature_names = 
         else if (feature == "exposures") {
             names1 <- NULL
             if (is.null(signature_names)) {
-                names2 <- paste("Signature", LETTERS[1:dim(feat)[3]])
+                LETTERLABELS <- letterwrap(dim(feat)[3])
+                names2 <- paste("Signature", LETTERLABELS[1:dim(feat)[3]])
             }
             else {
                 if (dim(feat)[3] != length(signature_names))  {
@@ -804,7 +824,8 @@ retrieve_pars <- function(mcmc_samples, feature, prob = 0.95, signature_names = 
     else {
         names1 <- NULL
         if (is.null(signature_names)) {
-            names2 <- paste("Signature", LETTERS[1:dim(feat)[3]])
+            LETTERLABELS <- letterwrap(dim(feat)[3])
+            names2 <- paste("Signature", LETTERLABELS[1:dim(feat)[3]])
         }
         else {
             if (dim(feat)[3] != length(signature_names)) {
