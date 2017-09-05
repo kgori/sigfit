@@ -11,7 +11,7 @@ to_matrix <- function(x) {
 
 build_opps_matrix <- function(nsamples, keyword) {
     matrix(rep(human_trinuc_freqs(keyword), nsamples),
-           nrow = nsamples, ncol = ncol(counts), 
+           nrow = nsamples, 
            byrow = TRUE)
 }
 
@@ -581,7 +581,7 @@ plot_reconstruction <- function(counts, mcmc_samples = NULL, signatures = NULL, 
             
             # For EMu results
             if ("multiplier" %in% names(e)) {
-                opp <- matrix(rep(as.matrix(opportunities[1, ]), NSIG),
+                opp <- matrix(rep(as.matrix(opportunities[sample, ]), NSIG),
                               nrow = NSIG,
                               byrow = TRUE)
                 
