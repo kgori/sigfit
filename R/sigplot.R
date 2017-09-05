@@ -135,7 +135,7 @@ ggplot_exposures <- function(samples, colours = NULL) {
 #' @importFrom "rstan" extract
 #' @importFrom "ggplot2" ggplot aes geom_col geom_errorbar scale_fill_manual guides theme_bw theme ggtitle ylim element_blank
 #' @importFrom "reshape2" melt
-#' @importFrom "gridExtra" grid.arrange
+#' @importFrom "gridExtra" grid.arrange marrangeGrob
 #' @importFrom "coda" as.mcmc HPDinterval
 #' @export
 ggplot_reconstruction <- function(samples, counts, opportunities = NULL) {
@@ -293,12 +293,17 @@ ggplot_reconstruction <- function(samples, counts, opportunities = NULL) {
     plots
 }
 
-#' Plot the BIC values as violin plots
-#' @param sample_list - list of stanfit samples produced by extract_signatures for a range of numbers of signatures
+#' Plot the BIC values of a list of stanfit objects as violin plots
+#' @param sample_list - list of stanfit samples, such as those produced 
+#' by extract_signatures when given a range of numbers of signatures to 
+#' extract
 #' @importFrom "ggplot2" ggplot aes geom_violin theme_bw ggtitle labs
 #' @importFrom "rstan" extract
 #' @export
-ggplot_bic <- function(sample_list) {
+plot_bic_violin <- function(sample_list, fill = NULL, color = NULL) {
+    fill_color <- ifelse(is.null(fill), "mediumseagreen", fill)
+    line_color <- ifelse(is.null(color), "black", color)
+    
     df <- data.frame()
     for (samples in sample_list) {
         if (!isS4(samples)) next
@@ -309,7 +314,7 @@ ggplot_bic <- function(sample_list) {
         df <- rbind(df, temp_df)
     }
     ggplot(data = df) + 
-        geom_violin(aes(x = factor(signatures), y = bic), fill = "mediumseagreen", color = "black") + 
+        geom_violin(aes(x = factor(signatures), y = bic), fill = fill_color, color = line_color) + 
         theme_bw() +
         ggtitle(paste0("BIC scores vs. model complexity")) + 
         labs(x = "Number of signatures", y = "BIC")
