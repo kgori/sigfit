@@ -32,12 +32,10 @@ model {
     }
 }
 generated quantities {
-    vector[G*C] log_lik;
+    vector[G] log_lik;
     real bic;
-    for (i in 1:G) {
-        for (j in 1:C) {
-            log_lik[(i-1)*C + j] = poisson_lpmf(counts[i, j] | lambda[i, j]);
-        }
+    for (g in 1:G) {
+        log_lik[g] = poisson_lpmf(counts[g] | lambda[g]);
     }
     bic = 2 * sum(log_lik) - log(G) * (G*S);
 }
