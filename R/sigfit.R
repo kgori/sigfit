@@ -9,6 +9,12 @@ to_matrix <- function(x) {
     x
 }
 
+build_opps_matrix <- function(nsamples, keyword) {
+    matrix(rep(human_trinuc_freqs(keyword), nsamples),
+           nrow = nsamples, ncol = ncol(counts), 
+           byrow = TRUE)
+}
+
 #' Cosine similarity between two vectors
 cosine_sim <- function(x, y) { x %*% y / sqrt(x%*%x * y%*%y) }
 
@@ -505,13 +511,11 @@ plot_reconstruction <- function(counts, mcmc_samples = NULL, signatures = NULL, 
     if (is.null(opportunities)) {
         opportunities <- matrix(1, nrow = NSAMP, ncol = NCAT)
     }
-    else if (opportunities == "human-genome") {
-        opportunities <- matrix(rep(human_trinuc_freqs("genome"), NSAMP),
-                                nrow = NSAMP, ncol = ncol(counts), byrow = TRUE)
+    else if (is.character(opportunities) & opportunities == "human-genome") {
+        opportunities <- build_opps_matrix(NSAMP, "genome")
     }
-    else if (opportunities == "human-exome") {
-        opportunities <- matrix(rep(human_trinuc_freqs("exome"), NSAMP),
-                                nrow = NSAMP, ncol = ncol(counts), byrow = TRUE)
+    else if (is.character(opportunities) & opportunities == "human-exome") {
+        opportunities <- build_opps_matrix(NSAMP, "exome")
     }
     else if (!is.matrix(opportunities)) {
         opportunities <- as.matrix(opportunities)
@@ -893,13 +897,11 @@ fit_signatures <- function(counts, signatures, prior = NULL,
         if (is.null(opportunities)) {
             opportunities <- matrix(1, nrow = nrow(counts), ncol = ncol(counts))
         }
-        else if (opportunities == "human-genome") {
-            opportunities <- matrix(rep(human_trinuc_freqs("genome"), nrow(counts)),
-                                    nrow = nrow(counts), ncol = ncol(counts), byrow = T)
+        else if (is.character(opportunities) & opportunities == "human-genome") {
+            opportunities <- build_opps_matrix(nrow(counts), "genome")
         }
-        else if (opportunities == "human-exome") {
-            opportunities <- matrix(rep(human_trinuc_freqs("exome"), nrow(counts)),
-                                    nrow = nrow(counts), ncol = ncol(counts), byrow = T)
+        else if (is.character(opportunities) & opportunities == "human-exome") {
+            opportunities <- build_opps_matrix(nrow(counts), "exome")
         }
         if (!is.matrix(opportunities)) {
             opportunities <- as.matrix(opportunities)
@@ -955,7 +957,7 @@ fit_signatures <- function(counts, signatures, prior = NULL,
 #' @importFrom "rstan" extract
 #' @export
 extract_signatures <- function(counts, nsignatures, method = "emu", 
-                               opportunities = NULL, exposures_prior = 0.5, 
+                               opportunities = NULL, exposures_prior = 0.5,
                                stanfunc = "sampling", ...) {
     # Force counts to matrix
     counts <- to_matrix(counts)
@@ -966,13 +968,11 @@ extract_signatures <- function(counts, nsignatures, method = "emu",
         if (is.null(opportunities)) {
             opportunities <- matrix(1, nrow = nrow(counts), ncol = ncol(counts))
         }
-        else if (opportunities == "human-genome") {
-            opportunities <- matrix(rep(human_trinuc_freqs("genome"), nrow(counts)),
-                                    nrow = nrow(counts), ncol = ncol(counts), byrow = TRUE)
+        else if (is.character(opportunities) & opportunities == "human-genome") {
+            opportunities <- build_opps_matrix(nrow(counts), "genome")
         }
-        else if (opportunities == "human-exome") {
-            opportunities <- matrix(rep(human_trinuc_freqs("exome"), nrow(counts)),
-                                    nrow = nrow(counts), ncol = ncol(counts), byrow = TRUE)
+        else if (is.character(opportunities) & opportunities == "human-exome") {
+            opportunities <- build_opps_matrix(nrow(counts), "exome")
         }
         if (!is.matrix(opportunities)) {
             opportunities <- as.matrix(opportunities)
@@ -1072,7 +1072,8 @@ extract_signatures <- function(counts, nsignatures, method = "emu",
 #' @importFrom "rstan" vb
 #' @export
 fit_extract_signatures <- function(counts, signatures, num_extra_sigs, 
-                                   stanfunc = "sampling", ...) {
+                                   method = "nmf", opportunities = NULL, 
+                                   exposures_prior = 0.5, stanfunc = "sampling", ...) {
     # Force counts to matrix
     counts <- to_matrix(counts)
     
@@ -1083,16 +1084,47 @@ fit_extract_signatures <- function(counts, signatures, num_extra_sigs,
     # counts[NSAMPLES, NCAT], signatures[NSIG, NCAT]
     stopifnot(ncol(counts) == ncol(signatures))
     
-    dat <- list(
-        C = ncol(counts),
-        S = nrow(signatures),
-        G = nrow(counts),
-        N = as.integer(num_extra_sigs),
-        fixed_sigs = signatures,
-        counts = counts
-    )
-    ## Only NMF implemented so far
-    model <- stanmodels$sigfit_fitex_nmf
+    # EMu model
+    if (method == "emu") {
+        # Build opportunities matrix
+        if (is.null(opportunities)) {
+            opportunities <- matrix(1, nrow = nrow(counts), ncol = ncol(counts))
+        }
+        else if (is.character(opportunities) & opportunities == "human-genome") {
+            opportunities <- build_opps_matrix(nrow(counts), "genome")
+        }
+        else if (is.character(opportunities) & opportunities == "human-exome") {
+            opportunities <- build_opps_matrix(nrow(counts), "exome")
+        }
+        if (!is.matrix(opportunities)) {
+            opportunities <- as.matrix(opportunities)
+        }
+        stopifnot(all(dim(opportunities) == dim(counts)))
+        
+        model <- stanmodels$sigfit_fitex_emu
+        dat <- list(
+            C = ncol(counts),
+            S = nrow(signatures),
+            G = nrow(counts),
+            N = as.integer(num_extra_sigs),
+            fixed_sigs = signatures,
+            counts = counts,
+            opps = opportunities
+        )
+    }
+    
+    else if (method == "nmf") {
+    
+        dat <- list(
+            C = ncol(counts),
+            S = nrow(signatures),
+            G = nrow(counts),
+            N = as.integer(num_extra_sigs),
+            fixed_sigs = signatures,
+            counts = counts
+        )
+        model <- stanmodels$sigfit_fitex_nmf
+    }
     
     if (stanfunc == "sampling") {
         cat("Stan sampling:")
