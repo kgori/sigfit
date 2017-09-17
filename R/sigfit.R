@@ -859,8 +859,8 @@ retrieve_pars <- function(mcmc_samples, feature, prob = 0.95, signature_names = 
 #' Run MCMC to fit signatures and estimate exposures
 #' @param counts Matrix of mutation counts per category (columns) per genome sample (rows).
 #' @param signatures Matrix of mutational signatures (rows) to be fitted.
-#' @param prior Vector with one element per signature, to be used as the Dirichlet prior in the sampling chain. 
-#' Default prior is uniform (uninformative).
+#' @param exp_prior Vector with one element per signature, to be used as the Dirichlet prior for 
+#' the signature exposures in the sampling chain. Default prior is uniform (uninformative).
 #' @param method Model to sample from; either \code{"nmf"} or \code{"emu"}.
 #' @param opportunities Optional matrix of mutational opportunities for \code{"emu"} method; must have same 
 #' dimension as \code{counts}. If equals to \code{"human-genome"} or \code{"human-exome"}, the reference h
@@ -868,19 +868,21 @@ retrieve_pars <- function(mcmc_samples, feature, prob = 0.95, signature_names = 
 #' @param ... Arguments to pass to \code{rstan::sampling}.
 #' @examples
 #'  # Custom prior favours signature 1 over 2, 3 and 4
-#' samples <- fit_signatures(mycounts, mysignatures, prior = c(5, 1, 1, 1))
+#' samples <- fit_signatures(mycounts, mysignatures, exp_prior = c(5, 1, 1, 1))
 #' 
 #' # Run a single chain for quite a long time
 #' samples <- fit_signatures(mycounts, mysignatures, chains = 1, niter = 13000, warmup = 3000)
 #' @useDynLib sigfit, .registration = TRUE
 #' @importFrom "rstan" sampling
 #' @export
-fit_signatures <- function(counts, signatures, prior = NULL,
+fit_signatures <- function(counts, signatures, exp_prior = NULL,
                            method = "nmf", opportunities = NULL, ...) {
-    if (is.null(prior)) {
-        prior = rep(1, nrow(signatures))
+    # Check exposure priors
+    if (is.null(exp_prior)) {
+        exp_prior = rep(1, nrow(signatures))
     }
-    stopifnot(length(prior) == nrow(signatures))
+    exp_prior <- as.numeric(exp_prior)
+    stopifnot(length(exp_prior) == nrow(signatures))
     
     # Force counts to matrix
     counts <- to_matrix(counts)
@@ -891,7 +893,7 @@ fit_signatures <- function(counts, signatures, prior = NULL,
     # Check dimensions are correct. Should be:
     # counts[NSAMPLES, NCAT], signatures[NSIG, NCAT]
     stopifnot(ncol(counts) == ncol(signatures))
-    stopifnot(length(prior) == nrow(signatures))
+    stopifnot(length(exp_prior) == nrow(signatures))
     
     if (method == "emu") {
         if (is.null(opportunities)) {
@@ -916,7 +918,7 @@ fit_signatures <- function(counts, signatures, prior = NULL,
             signatures = signatures,
             counts = counts,
             opps = opportunities,
-            alpha = prior
+            alpha = exp_prior
         )
         model <- stanmodels$sigfit_fit_emu
     }
@@ -928,7 +930,7 @@ fit_signatures <- function(counts, signatures, prior = NULL,
             G = nrow(counts),
             signatures = signatures,
             counts = counts,
-            alpha = prior
+            alpha = exp_prior
         )
         model <- stanmodels$sigfit_fit_nmf
     }
@@ -944,7 +946,8 @@ fit_signatures <- function(counts, signatures, prior = NULL,
 #' @param opportunities Optional matrix of mutational opportunities for \code{"emu"} method; 
 #' must have same dimension as \code{counts}. If equals to \code{"human-genome"} or 
 #' \code{"human-exome"}, the reference human genome/exome opportunities will be used for every sample.
-#' @param exposures_prior Single numeric value to use for all the exposure priors; by default, 0.5 (i.e. Jeffreys prior).
+#' @param sig_prior Matrix with one row per signature and one column per category, to be used as the Dirichlet 
+#' priors for the signatures to be extracted. Default priors are uniform (uninformative).
 #' @param stanfunc \code{"sampling"}|\code{"optimizing"}|\code{"vb"} Choice of rstan inference strategy. 
 #' \code{"sampling"} is the full Bayesian MCMC approach, and is the default. \code{"optimizing"}
 #' returns the Maximum a Posteriori (MAP) point estimates via numerical optimization.
@@ -957,8 +960,15 @@ fit_signatures <- function(counts, signatures, prior = NULL,
 #' @importFrom "rstan" extract
 #' @export
 extract_signatures <- function(counts, nsignatures, method = "emu", 
-                               opportunities = NULL, exposures_prior = 0.5,
+                               opportunities = NULL, sig_prior = NULL,
                                stanfunc = "sampling", ...) {
+    # Check signature priors
+    if (is.null(sig_prior)) {
+        sig_prior = matrix(1, nrow = nsignatures, ncol = ncol(counts))
+    }
+    sig_prior <- as.matrix(sig_prior)
+    stopifnot(nrow(sig_prior) == nsignatures)
+    stopifnot(ncol(sig_prior) == ncol(counts))
     # Force counts to matrix
     counts <- to_matrix(counts)
     
@@ -985,7 +995,8 @@ extract_signatures <- function(counts, nsignatures, method = "emu",
             G = nrow(counts),
             S = nsignatures[1],
             counts = counts,
-            opps = opportunities
+            opps = opportunities,
+            alpha = sig_prior
         )
     }
     
@@ -1001,7 +1012,7 @@ extract_signatures <- function(counts, nsignatures, method = "emu",
             G = nrow(counts),
             S = as.integer(nsignatures[1]),
             counts = counts,
-            exposures_prior_val = as.numeric(exposures_prior)
+            alpha = sig_prior
         )
     }
     else {
@@ -1060,6 +1071,8 @@ extract_signatures <- function(counts, nsignatures, method = "emu",
 #' (columns).
 #' @param signatures Matrix of fixed mutational signatures (columns) to be fitted.
 #' @param num_extra_sigs Number of additional signatures to be extracted.
+#' @param sig_prior Matrix with one row per additional signature and one column per category, to be used as the
+#' Dirichlet priors for the additional signatures to be extracted. Default priors are uniform (uninformative).
 #' @param stanfunc \code{"sampling"}|\code{"optimizing"}|\code{"vb"} Choice of rstan 
 #' inference strategy. \code{"sampling"} is the full Bayesian MCMC approach, and is the 
 #' default. \code{"optimizing"} returns the Maximum a Posteriori (MAP) point estimates 
@@ -1072,8 +1085,15 @@ extract_signatures <- function(counts, nsignatures, method = "emu",
 #' @importFrom "rstan" vb
 #' @export
 fit_extract_signatures <- function(counts, signatures, num_extra_sigs, 
-                                   method = "nmf", opportunities = NULL, 
-                                   exposures_prior = 0.5, stanfunc = "sampling", ...) {
+                                   method = "nmf", opportunities = NULL, sig_prior = NULL,
+                                   stanfunc = "sampling", ...) {
+    # Check signature priors
+    if (is.null(sig_prior)) {
+        sig_prior = matrix(1, nrow = num_extra_sigs, ncol = ncol(counts))
+    }
+    sig_prior <- as.matrix(sig_prior)
+    stopifnot(nrow(sig_prior) == num_extra_sigs)
+    stopifnot(ncol(sig_prior) == ncol(counts))
     # Force counts to matrix
     counts <- to_matrix(counts)
     
@@ -1109,21 +1129,22 @@ fit_extract_signatures <- function(counts, signatures, num_extra_sigs,
             N = as.integer(num_extra_sigs),
             fixed_sigs = signatures,
             counts = counts,
-            opps = opportunities
+            opps = opportunities,
+            alpha = sig_prior
         )
     }
     
     else if (method == "nmf") {
-    
+        model <- stanmodels$sigfit_fitex_nmf
         dat <- list(
             C = ncol(counts),
             S = nrow(signatures),
             G = nrow(counts),
             N = as.integer(num_extra_sigs),
             fixed_sigs = signatures,
-            counts = counts
+            counts = counts,
+            alpha = sig_prior
         )
-        model <- stanmodels$sigfit_fitex_nmf
     }
     
     if (stanfunc == "sampling") {

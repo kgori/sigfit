@@ -2,16 +2,16 @@ functions {
     #include "common_functions.stan"
 }
 data {
-    int<lower=1> C;   // number of categories
-    int<lower=1> S;   // number of fixed signatures
-    int<lower=1> G;   // number of genomes
-    int<lower=1> N;   // number of extra signatures
+    int<lower=1> C;            // number of categories
+    int<lower=1> S;            // number of fixed signatures
+    int<lower=1> G;            // number of genomes
+    int<lower=1> N;            // number of extra signatures
     matrix[S, C] fixed_sigs;   // matrix of signatures (rows) by categories (columns)
     int<lower=0> counts[G, C]; // data = counts per genome (rows) in each category (columns)
+    matrix[N, C] alpha;        // priors for extra signatures
 }
 transformed data {
     int T = S + N;   // total number of signatures, including extra signatures
-    vector[C] alpha = rep_vector(0.5, C);  // Jeffreys prior for extra_signatures
     vector[T] kappa = rep_vector(0.5, T);  // Jeffreys prior for exposures
 }
 parameters {
@@ -27,11 +27,11 @@ transformed parameters {
 model {
     // Priors for extra signatures
     for (n in 1:N) {
-        extra_sigs[n] ~ dirichlet(alpha);
+        extra_sigs[n] ~ dirichlet(alpha[n]);
     }
     
     for (g in 1:G) {
-        // Priors for exposures
+        // Priors for exposures (Jeffreys)
         exposures[g] ~ dirichlet(kappa);
         
         // Likelihood
