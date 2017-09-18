@@ -5,8 +5,8 @@
 \title{Fits signatures to estimate exposures in a set of mutation counts
 and extracts additional signatures present in the samples.}
 \usage{
-fit_extract_signatures(counts, signatures, num_extra_sigs,
-  stanfunc = "sampling", ...)
+fit_extract_signatures(counts, signatures, num_extra_sigs, method = "nmf",
+  opportunities = NULL, sig_prior = NULL, stanfunc = "sampling", ...)
 }
 \arguments{
 \item{counts}{Matrix of mutation counts for each sample (rows) in each category
@@ -15,6 +15,9 @@ fit_extract_signatures(counts, signatures, num_extra_sigs,
 \item{signatures}{Matrix of fixed mutational signatures (columns) to be fitted.}
 
 \item{num_extra_sigs}{Number of additional signatures to be extracted.}
+
+\item{sig_prior}{Matrix with one row per additional signature and one column per category, to be used as the
+Dirichlet priors for the additional signatures to be extracted. Default priors are uniform (uninformative).}
 
 \item{stanfunc}{\code{"sampling"}|\code{"optimizing"}|\code{"vb"} Choice of rstan 
 inference strategy. \code{"sampling"} is the full Bayesian MCMC approach, and is the 

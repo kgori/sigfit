@@ -33,7 +33,7 @@ transformed parameters {
 model {
     // Priors for extra signatures
     for (n in 1:N) {
-        extra_sigs[n] ~ dirichlet(alpha[n]);
+        extra_sigs[n] ~ dirichlet(alpha[n]');
     }
 
     for (g in 1:G) {

@@ -38,7 +38,7 @@ model {
     
     for (s in 1:S) {
         // Priors for signatures
-        signatures[s] ~ dirichlet(alpha[s]);
+        signatures[s] ~ dirichlet(alpha[s]');
     }
 
     for (g in 1:G) {

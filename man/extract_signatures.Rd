@@ -5,7 +5,7 @@
 \title{Extract signatures from a set of mutation counts}
 \usage{
 extract_signatures(counts, nsignatures, method = "emu",
-  opportunities = NULL, exposures_prior = 0.5, stanfunc = "sampling", ...)
+  opportunities = NULL, sig_prior = NULL, stanfunc = "sampling", ...)
 }
 \arguments{
 \item{counts}{Matrix of mutation counts for each sample (rows) in each category
@@ -19,7 +19,8 @@ extract_signatures(counts, nsignatures, method = "emu",
 must have same dimension as \code{counts}. If equals to \code{"human-genome"} or 
 \code{"human-exome"}, the reference human genome/exome opportunities will be used for every sample.}
 
-\item{exposures_prior}{Single numeric value to use for all the exposure priors; by default, 0.5 (i.e. Jeffreys prior).}
+\item{sig_prior}{Matrix with one row per signature and one column per category, to be used as the Dirichlet 
+priors for the signatures to be extracted. Default priors are uniform (uninformative).}
 
 \item{stanfunc}{\code{"sampling"}|\code{"optimizing"}|\code{"vb"} Choice of rstan inference strategy. 
 \code{"sampling"} is the full Bayesian MCMC approach, and is the default. \code{"optimizing"}
