@@ -194,7 +194,7 @@ build_catalogues <- function(variants) {
     }))
 }
 
-#' Fetches COSMIC mutational signatures.
+#' Fetch COSMIC mutational signatures
 #' @param reorder Reorders the matrix by substitution type and trinucleotide.
 #' @export
 fetch_cosmic_data <- function(reorder = TRUE, remove_zeros = TRUE) {
@@ -215,6 +215,49 @@ fetch_cosmic_data <- function(reorder = TRUE, remove_zeros = TRUE) {
 #' @export
 stan_models <- function() {
     stanmodels
+}
+
+#' Convert signatures between models
+#' \code{convert_signatures} converts between the representation of signatures used
+#' in the NMF model (which is relative to the reference mutational opportunities), and
+#' the representation used in the EMu model (which is not relative to mutational opportunities).
+#' This is done by multiplying or dividing each signature by the average mutational opportunities
+#' of the samples, or by the human genome/exome reference trinucleotide frequencies.
+#' @param signatures Either a matrix of mutational signatures, with 96 columns and one row per
+#' signature, or a list of signatures as produced by \code{\link{retrieve_pars}}.
+#' @param ref_opportunities Numeric vector of reference or average mutational opportunities, with 
+#' 96 elements. If equals to \code{"human-genome"} or \code{"human-exome"}, the reference human 
+#' genome/exome opportunities will be used.
+#' @param model_to The model to convert to: either \code{"nmf"} (in which case the signatures will
+#' be multiplied by the opportunities) or \code{"emu"} (in which case the signatures will be divided
+#' by the opportunities).
+convert_signatures <- function(signatures, ref_opportunities, model_to) {
+    if (ref_opportunities == "human-genome") {
+        ref_opportunities <- human_trinuc_freqs("genome")
+    }
+    else if (ref_opportunities == "human-exome") {
+        ref_opportunities <- human_trinuc_freqs("exome")
+    }
+    ref_opportunities <- as.numeric(ref_opportunities)
+    
+    signatures <- to_matrix(signatures)
+    stopifnot(length(ref_opportunities) == ncol(signatures))
+    
+    if (model_to == "nmf") {
+        t(apply(signatures, 1, function(row) {
+            x <- row * ref_opportunities
+            x / sum(x)
+        }))
+    }
+    else if (model_to == "emu") {
+        t(apply(signatures, 1, function(row) {
+            x <- row / ref_opportunities
+            x / sum(x)
+        }))
+    }
+    else {
+        stop("`model_to` must be either \"nmf\" or \"emu\".")
+    }
 }
 
 #' Plot mutational spectra
