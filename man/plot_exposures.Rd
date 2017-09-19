@@ -7,7 +7,8 @@
 signatures exposures across catalogues.}
 \usage{
 plot_exposures(counts, exposures = NULL, mcmc_samples = NULL,
-  pdf_path = NULL, sig_color_palette = NULL)
+  pdf_path = NULL, signature_names = NULL, thresh = 0.01, prob = 0.95,
+  sig_color_palette = NULL)
 }
 \description{
 Plot signature exposures

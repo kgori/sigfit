@@ -4,7 +4,7 @@
 \alias{fit_signatures}
 \title{Run MCMC to fit signatures and estimate exposures}
 \usage{
-fit_signatures(counts, signatures, prior = NULL, method = "nmf",
+fit_signatures(counts, signatures, exp_prior = NULL, method = "nmf",
   opportunities = NULL, ...)
 }
 \arguments{
@@ -12,8 +12,8 @@ fit_signatures(counts, signatures, prior = NULL, method = "nmf",
 
 \item{signatures}{Matrix of mutational signatures (rows) to be fitted.}
 
-\item{prior}{Vector with one element per signature, to be used as the Dirichlet prior in the sampling chain. 
-Default prior is uniform (uninformative).}
+\item{exp_prior}{Vector with one element per signature, to be used as the Dirichlet prior for 
+the signature exposures in the sampling chain. Default prior is uniform (uninformative).}
 
 \item{method}{Model to sample from; either \code{"nmf"} or \code{"emu"}.}
 
@@ -28,7 +28,7 @@ Run MCMC to fit signatures and estimate exposures
 }
 \examples{
  # Custom prior favours signature 1 over 2, 3 and 4
-samples <- fit_signatures(mycounts, mysignatures, prior = c(5, 1, 1, 1))
+samples <- fit_signatures(mycounts, mysignatures, exp_prior = c(5, 1, 1, 1))
 
 # Run a single chain for quite a long time
 samples <- fit_signatures(mycounts, mysignatures, chains = 1, niter = 13000, warmup = 3000)

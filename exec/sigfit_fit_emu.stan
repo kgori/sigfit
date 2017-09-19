@@ -15,7 +15,7 @@ parameters {
     real<lower=0> multiplier[G];
 }
 transformed parameters {
-    // poisson parameters
+    // Poisson parameters
     matrix[G, C] lambda = array_to_matrix(exposures) * signatures .* opps;
     for (g in 1:G) {
         lambda[g] = lambda[g] * multiplier[g];

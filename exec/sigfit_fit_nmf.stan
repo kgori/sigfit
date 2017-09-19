@@ -18,7 +18,10 @@ transformed parameters {
 }
 model {
     for (g in 1:G) {
+        // Priors
         exposures[g] ~ dirichlet(alpha);
+        
+        // Likelihood
         counts[g] ~ multinomial(probs[g]');
     }
 }
