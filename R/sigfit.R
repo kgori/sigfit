@@ -9,6 +9,7 @@ to_matrix <- function(x) {
     x
 }
 
+#' Build a opportunities matrix
 build_opps_matrix <- function(nsamples, keyword) {
     matrix(rep(human_trinuc_freqs(keyword), nsamples),
            nrow = nsamples, 
@@ -53,15 +54,15 @@ rev_comp <- function(nucleotides) {
     })))
 }
 
-#' Returns default colour palette for signatures
+#' Generate default colour palette for signatures
 default_sig_palette <- function(n) {
     rep(c("#1B9E77", "#D95F02", "#7570B3", "#E7298A", "#66A61E", "#E6AB02", 
           "#A6761D", "#666666", "#E41A1C", "#377EB8", "#4DAF4A", "#984EA3", 
           "#FF7F00", "#FFFF33", "#A65628", "#F781BF", "#999999"), 
-        3)[1:n]
+        5)[1:n]
 }
 
-#' Returns character vector of 96 (pyrimidine) trinucleotide mutation types
+#' Generate character vector of 96 (pyrimidine) trinucleotide mutation types
 mut_types <- function() {
     bases <- c("A", "C", "G", "T")
     paste0(rep(rep(bases, each = 4), 6),
@@ -73,23 +74,18 @@ mut_types <- function() {
            rep(bases, 6 * 16 / 4))
 }
 
-#' Returns human genome or exome trinucleotide frequencies. This is useful to
-#' de-normalize signatures that were obtained using the mutational opportunities
-#' from the human genome/exome, in order to compare them to signatures extracted
-#' without incorporating opportunities.
-#' @param type Either "genome" (default) or "exome".
-#' @examples
-#' Extract signatures using human exome opportunitites
-#' samples <- extract_signatures(mycounts, nsignatures = 3, method = "emu", 
-#' opportunities = "human-exome")
-#' sigs <- retrieve_pars(samples, "signatures")
+#' Access stan models
+#' @export
+stan_models <- function() {
+    stanmodels
+}
+
+#' Retrieve human trinucleotide frequencies
 #' 
-#' # De-normalize (mean) extracted signatures
-#' freqs <- human_trinuc_freqs("exome")
-#' sigs_denorm <- apply(sigs, 1, function(sig) { 
-#'      tmp <- sig[,1] * freqs
-#'      tmp / sum(tmp)
-#' })
+#' \code{human_trinuc_freqs} returns the reference human genome or exome 
+#' trinucleotide frequencies.
+#' @param type Either "genome" (default) or "exome".
+#' @return A numeric vector containinig 96 frequency values (one per trinucleotide type).
 #' @export
 human_trinuc_freqs <- function(type = "genome") {
     if (type == "genome") {
@@ -151,16 +147,32 @@ human_trinuc_freqs <- function(type = "genome") {
     }
 }
 
-#' Builds mutational catalogues from a table containing the base change and
-#' trinucleotide context of each single-nucleotide variant in every sample.
+#' Build mutational catalogues
+#' 
+#' \{build_catalogues} generates a set of mutational catalogues from a table containing 
+#' the base change and trinucleotide context of each single-nucleotide variant in every sample.
 #' @param variants Matrix with one row per single-nucleotide variant, and four columns:
-#' Sample ID (character, e.g. "Sample 1"); REF base (character: "A", "C", "G", or "T"); ALT 
-#' base (character: "A", "C", "G", or "T"); and trinucleotide context of the variant (reference 
-#' sequence between the positions immediately before and after the variant, e.g. "TCA").
+#' \itemizer{
+#'  \item{Sample ID (character, e.g. "Sample 1")}
+#'  \item{Reference allele (character: "A", "C", "G", or "T")}
+#'  \item{Alternate allele (character: "A", "C", "G", or "T")}
+#'  \item{Trinucleotide context of the variant (the reference sequence between the positions 
+#'  immediately before and after the variant; character, e.g. "TCA")}
+#' }
+#' @return A matrix of mutation counts, where each row corresponds to a sample and each column
+#' corresponds to one of the 96 trinucleotide mutation types.
+#' @examples
+#' # Load example mutation data
+#' data("mutations_21bc")
+#' head(mutations_21bc)
+#' 
+#' # Build catalogues
+#' counts <- build_catalogues(mutations_21bc)
+#' counts
 #' @export
 build_catalogues <- function(variants) {
     if (ncol(variants) != 4) {
-        stop("`variants` must be a matrix with 4 columns and one row per variant; see documentation.")
+        stop("`variants` must be a matrix with 4 columns and one row per variant.\nType `?build_catalogues` to see the documentation.")
     }
     
     # Check that REF base coincides with middle base in trinucleotide
@@ -195,7 +207,15 @@ build_catalogues <- function(variants) {
 }
 
 #' Fetch COSMIC mutational signatures
-#' @param reorder Reorders the matrix by substitution type and trinucleotide.
+#' 
+#' \code{fetch_cosmic_data} downloads the latest release of signatures from COSMIC
+#' (http://cancer.sanger.ac.uk/cosmic/signatures) and produces a matrix of signatures
+#' that can be used for signature fitting.
+#' @param reorder If \code{TRUE}, the matrix will be reordered by substitution type and trinucleotide.
+#' @param remove_zeros If \code{TRUE}, pseudocounts will be added to prevent the signatures from
+#' containing any zeros, which can affect computation of the log likelihood.
+#' @return Matrix of signatures, with one row per signature and one column for each of
+#' the 96 trinucleotide mutation types.
 #' @export
 fetch_cosmic_data <- function(reorder = TRUE, remove_zeros = TRUE) {
     cosmic_sigs <- read.table("http://cancer.sanger.ac.uk/cancergenome/assets/signatures_probabilities.txt", 
@@ -211,12 +231,6 @@ fetch_cosmic_data <- function(reorder = TRUE, remove_zeros = TRUE) {
     cosmic_sigs
 }
 
-#' Access stan models
-#' @export
-stan_models <- function() {
-    stanmodels
-}
-
 #' Convert signatures between models
 #' 
 #' \code{convert_signatures} converts between the representation of signatures used
@@ -224,14 +238,29 @@ stan_models <- function() {
 #' the representation used in the EMu model (which is not relative to mutational opportunities).
 #' This is done by multiplying or dividing each signature by the average mutational opportunities
 #' of the samples, or by the human genome/exome reference trinucleotide frequencies.
-#' @param signatures Either a matrix of mutational signatures, with 96 columns and one row per
-#' signature, or a list of signatures as produced by \code{\link{retrieve_pars}}.
+#' @param signatures Either a matrix of mutational signatures, with one row per signature and one
+#' column for each of the 96 mutation types, or a list of signatures generated via
+#' \code{\link{retrieve_pars}}.
 #' @param ref_opportunities Numeric vector of reference or average mutational opportunities, with 
-#' 96 elements. If equal to \code{"human-genome"} or \code{"human-exome"}, the reference human 
-#' genome/exome opportunities will be used.
+#' one element for each of the 96 mutation types. If equal to \code{"human-genome"} or \code{"human-exome"}, 
+#' the reference human genome/exome mutational opportunities will be used.
 #' @param model_to The model to convert to: either \code{"nmf"} (in which case the signatures will
 #' be multiplied by the opportunities) or \code{"emu"} (in which case the signatures will be divided
 #' by the opportunities).
+#' @return A matrix of signatures with the same dimensions as \code{signatures}.
+#' @examples
+#' # Fetch COSMIC signatures 
+#' # These are in "NMF" format, i.e. they are relative to the human genome mutational opportunities
+#' sigs <- fetch_cosmic_data()
+#' 
+#' # Plot COSMIC signature 1
+#' barplot(sigs[1,])
+#' 
+#' # Convert signatures to the "EMu" format, i.e. make them not relative to mutational opportunities
+#' conv_sigs <- convert_signatures(sigs, ref_opportunities = "human-genome", model_to = "emu")
+#' 
+#' # Plot COSMIC signature 1, converted to "EMu" format
+#' barplot(conv_sigs[1,])
 #' @export
 convert_signatures <- function(signatures, ref_opportunities, model_to) {
     if (ref_opportunities == "human-genome") {
@@ -266,24 +295,34 @@ convert_signatures <- function(signatures, ref_opportunities, model_to) {
 #' 
 #' Plots one or more spectra, which can be either mutational catalogues or mutational
 #' signatures. If multiple spectra are provided, generates one plot per spectrum.
-#' @param spectra Either a vector with 96 elements, a matrix with 96 columns and one row per signature/catalogue,
-#' or a list of signature matrices, obtained via \code{retrieve_pars()}. In the latter case, HPD intervals will
-#' also be plotted. Rownames are interpreted as the sample/signature names.
-#' @param counts Do the values in \code{spectra} represent mutation counts instead of mutation probabilities?
+#' @param spectra Either a vector with one elements for each of the 96 mutation types, or a matrix 
+#' with 96 columns and one row per signature/catalogue, or a list of signatures as produced by 
+#' \code{\link{retrieve_pars}}. In the latter case, HPD intervals will also be plotted. 
+#' Row names will be used as the sample/signature names.
+#' @param counts If true, the values in \code{spectra} will be interpreted as mutation counts 
+#' instead of mutation probabilities.
 #' @param name Name to include in the plot title; useful when plotting a single spectrum.
+#' @param pdf_path If provided, the plots will be output to a PDF file with this path. The PDF 
+#' size and graphical parameters are automatically set to appropriate values.
+#' @param max_y Maximum limit of the y-axis; default is variable.
 #' @examples
-#' # Extract signatures using the EMu (Poisson) model
-#' samples <- extract_signatures(mycounts, nsignatures = 3, method = "emu", 
-#' opportunities = "human-genome")
+#' # Load example mutational catalogues
+#' data("counts_21bc")
 #' 
-#' # Retrieve and plot signatures
-#' signatures <- retrieve_pars(samples, "signatures")
-#' pdf("Signatures.pdf", width=24, height=11)
-#' par(mar=c(9, 8, 6, 2.75))
-#' plot_spectrum(signatures)
-#' dev.off()
+#' # Plot catalogues (use 'counts' option)
+#' plot_spectrum(counts_21bc, counts = TRUE, pdf_path = "Catalogues.pdf")
+#' 
+#' # Extract signatures using the EMu (Poisson) model
+#' samples <- extract_signatures(counts_21bc, nsignatures = 2, method = "emu",
+#'                               opportunities = "human-genome", iter = 1000)
+#' 
+#' # Retrieve extracted signatures
+#' sigs <- retrieve_pars(samples, "signatures")
+#' 
+#' # Plot signatures
+#' plot_spectrum(sigs, pdf_path = "Signatures.pdf")
 #' @export
-plot_spectrum <- function(spectra, counts = FALSE, name = NULL, max_y = NULL, pdf_path = NULL) {
+plot_spectrum <- function(spectra, counts = FALSE, name = NULL, pdf_path = NULL, max_y = NULL) {
     NCAT <- 96  # number of categories
     # Fetch HPD interval values, if present
     if (is.list(spectra) & "mean" %in% names(spectra)) {
@@ -380,8 +419,22 @@ plot_spectrum <- function(spectra, counts = FALSE, name = NULL, max_y = NULL, pd
 
 #' Plot signature exposures
 #' 
-#' \code{plot_exposures} produces barplots that show the distribution of
-#' signatures exposures across catalogues.
+#' \code{plot_exposures} produces barplots showing the distribution of
+#' signature exposures across the mutational catalogues (samples).
+#' @param counts Matrix of observed mutation counts, with one row per sample and column for each of
+#' the 96 mutation types. Must be an integer matrix.
+#' @param exposures Either a matrix of signature exposures, with one row per sample and one column 
+#' per signature, or a list of exposures as produced by \code{\link{retrieve_pars}}. 
+#' Only needed if \code{mcmc_samples} is not provided.
+#' @param mcmc_samples Object of class stanfit, generated via either \code{\link{fit_signatures}}
+#' or \code{\link{extract_signatures}}. Only needed if \code{exposures} is not provided.
+#' @param pdf_path If provided, the plots will be output to a PDF file with this path. The size
+#' and graphical parameters of the plots are automatically set to appropriate values.
+#' @param signature_names
+#' @param thresh
+#' @param hpd_prob
+#' @param sig_color_palette Character vector of color names or hexadecimal codes to use for each signature.
+#' Must have at least as many elements as the number of signatures.
 #' @export
 plot_exposures <- function(counts, exposures = NULL, mcmc_samples = NULL, pdf_path = NULL,
                            signature_names = NULL, thresh = 0.01, hpd_prob = 0.95,
@@ -508,40 +561,48 @@ plot_exposures <- function(counts, exposures = NULL, mcmc_samples = NULL, pdf_pa
 #' Plot mutational spectrum reconstructions
 #' 
 #' \code{plot_reconstruction} plots the reconstructions of the original mutational catalogues using the 
-#' signatures and/or exposures obtained through extraction or fitting. If provided with multiple catalogues, it generates one
-#' plot per catalogue. Data can be provided either as a single stanfit object resulting from extraction/fitting, 
-#' or as separate objects for mutation counts, signatures and exposures. The latter option does not allow
-#' plotting of error bars in the reconstructed catalogue.
-#' @param counts Matrix of observed mutation counts, with 96 columns and
-#' one row per sample.
-#' @param mcmc_samples Object of class stanfit, produced by either \code{\link{fit_signatures}}
-#' or \code{\link{extract_signatures}}. Needed if \code{counts}, \code{signatures} or \code{exposures}
+#' signatures and/or exposures obtained through extraction or fitting. If provided with multiple catalogues, 
+#' it generates one plot per catalogue. Fitting or extraction results can be provided either as a single 
+#' stanfit object (generated via \code{\link{fit_signatures}} or \code{\link{extract_signatures}}), 
+#' or as separate signatures and exposures matrices (or lists produced via \code{\link{retrieve_pars}}). 
+#' Only the former option allows incorporating HPD interval bars in the reconstructed catalogue.
+#' @param counts Matrix of observed mutation counts, with one row per sample and column for each of
+#' the 96 mutation types. Must be an integer matrix.
+#' @param mcmc_samples Object of class stanfit, generated via either \code{\link{fit_signatures}}
+#' or \code{\link{extract_signatures}}. Only needed if \code{signatures} or \code{exposures}
 #' are not provided.
-#' @param signatures Either a matrix of mutational signatures, with 96 columns and one row per
-#' signature, or a list of signatures as produced by \code{\link{retrieve_pars}}. Only needed if 
-#' \code{mcmc_samples} is not provided.
+#' @param signatures Either a matrix of mutational signatures, with one row per signature and one
+#' column for each of the 96 mutation types, or a list of signatures generated via
+#' \code{\link{retrieve_pars}}. Only needed if \code{mcmc_samples} is not provided.
 #' @param exposures Either a matrix of signature exposures, with one row per sample and one column 
-#' per signature, or a list of exposures as produced by \code{\link{retrieve_pars}}. Only needed if \code{mcmc_samples} is not provided.
-#' @param opportunities If signatures or exposures were obtained using \code{method="emu"},
-#' the opportunities used for extraction/fitting need to be provided here. Admits values \code{"human-genome"}
-#' and \code{"human-exome"}. Only needed if \code{mcmc_samples} is not provided.
-#' @param pdf_path If provided, the plots will be output to a PDF file with this path.
-#' @param sig_color_palette Character vector of colour names or hexadecimal codes to use for each signature.
+#' per signature, or a list of exposures as produced by \code{\link{retrieve_pars}}. 
+#' Only needed if \code{mcmc_samples} is not provided.
+#' @param opportunities If \code{signatures} and/or \code{exposures} were obtained by extracting or fitting
+#' signatures using the "EMu" model (\code{method = "emu"}), these should be the same opportunities used 
+#' for extraction/fitting. Admits values \code{"human-genome"} and \code{"human-exome"}.
+#' @param pdf_path If provided, the plots will be output to a PDF file with this path. The PDF 
+#' size and graphical parameters are automatically set to appropriate values.
+#' @param sig_color_palette Character vector of color names or hexadecimal codes to use for each signature.
 #' Must have at least as many elements as the number of signatures.
 #' @examples
+#' # Load example mutational catalogues
+#' data("counts_21bc")
+#' 
 #' # Extract signatures using the EMu (Poisson) model
-#' samples <- extract_signatures(mycounts, nsignatures = 3, method = "emu", 
-#' opportunities = "human-genome")
+#' samples <- extract_signatures(counts_21bc, nsignatures = 2, method = "emu",
+#'                               opportunities = "human-genome", iter = 1000)
 #' 
 #' # Retrieve signatures and exposures
 #' signatures <- retrieve_pars(samples, "signatures")
 #' exposures <- retrieve_pars(samples, "exposures")
 #' 
-#' # Plot reconstructed catalogues
-#' pdf("Reconstruction.pdf", width = 24, height = 18)
-#' par(mar = c(8, 8, 7, 2.75))
-#' plot_reconstruction(mycounts, signatures, exposures, opportunities = "human-genome")
-#' dev.off()
+#' # Plot reconstructed catalogues using stanfit object
+#' plot_reconstruction(counts_21bc, mcmc_samples = samples, opportunities = "human-genome",
+#'                     pdf_path = "Reconstructions_1.pdf")
+#'                     
+#' # Plot reconstructed catalogues using retrieved signatures and exposures
+#' plot_reconstruction(counts_21bc, signatures = signatures, exposures = exposures,
+#'                     opportunities = "human-genome", pdf_path = "Reconstructions_2.pdf")
 #' @importFrom "rstan" extract
 #' @importFrom "coda" as.mcmc HPDinterval
 #' @export
@@ -751,22 +812,24 @@ plot_reconstruction <- function(counts, mcmc_samples = NULL, signatures = NULL, 
 #'  \item{Signature exposures}
 #'  \item{All the reconstructed mutational spectra}
 #' }
-#' @param counts Matrix of observed mutation counts, with 96 columns and
-#' one row per sample.
+#' @param counts Matrix of observed mutation counts, with one row per sample and column for each of
+#' the 96 mutation types. Must be an integer matrix.
 #' @param out_path Path to the directory where the output PDF files will be stored.
 #' Will be created if it does not exist.
-#' @param mcmc_samples Object of class stanfit, produced by either \code{\link{fit_signatures}}
-#' or \code{\link{extract_signatures}}. Needed if \code{counts}, \code{signatures} or \code{exposures}
+#' @param prefix Optional prefix to be added to the output file names.
+#' @param mcmc_samples Object of class stanfit, generated via either \code{\link{fit_signatures}}
+#' or \code{\link{extract_signatures}}. Only needed if \code{signatures} or \code{exposures}
 #' are not provided.
-#' @param signatures Either a matrix of mutational signatures, with 96 columns and one row per
-#' signature, or a list of signatures as produced by \code{\link{retrieve_pars}}. Only needed if 
-#' \code{mcmc_samples} is not provided.
+#' @param signatures Either a matrix of mutational signatures, with one row per signature and one
+#' column for each of the 96 mutation types, or a list of signatures generated via
+#' \code{\link{retrieve_pars}}. Only needed if \code{mcmc_samples} is not provided.
 #' @param exposures Either a matrix of signature exposures, with one row per sample and one column 
-#' per signature, or a list of exposures as produced by \code{\link{retrieve_pars}}. Only needed if \code{mcmc_samples} is not provided.
-#' @param opportunities If signatures or exposures were obtained using \code{method="emu"},
-#' the opportunities used for extraction/fitting need to be provided here. Admits values \code{"human-genome"}
-#' and \code{"human-exome"}. Only needed if \code{mcmc_samples} is not provided.
-#' @param sig_color_palette Character vector of colour names or hexadecimal codes to use for each signature.
+#' per signature, or a list of exposures as produced by \code{\link{retrieve_pars}}. 
+#' Only needed if \code{mcmc_samples} is not provided.
+#' @param opportunities If \code{signatures} and/or \code{exposures} were obtained by extracting or fitting
+#' signatures using the "EMu" model (\code{method = "emu"}), these should be the same opportunities used 
+#' for extraction/fitting. Admits values \code{"human-genome"} and \code{"human-exome"}.
+#' @param sig_color_palette Character vector of color names or hexadecimal codes to use for each signature.
 #' Must have at least as many elements as the number of signatures.
 #' @importFrom "rstan" extract
 #' @export
@@ -849,7 +912,8 @@ plot_all <- function(counts, out_path, prefix = NULL, mcmc_samples = NULL, signa
 #' different number of signatures.
 #' @param sample_list List of objects of class stanfit. Elements of the list
 #' which are not of class stanfit are ignored.
-#' @param counts Matrix of mutation counts, with 96 columns and one row per catalogue.
+#' @param counts Matrix of observed mutation counts, with one row per sample and column for each of
+#' the 96 mutation types. Must be an integer matrix.
 #' @param stat Function for measuring goodness of fit. Admits values "cosine" 
 #' (cosine similarity; default) or "L2" (L2 norm, a.k.a. Euclidean distance).
 #' @importFrom "rstan" extract
@@ -905,7 +969,8 @@ plot_gof <- function(sample_list, counts, stat = "cosine") {
 #' Retrieve model parameters
 #' 
 #' Obtains summary values for a set of model parameters (signatures or exposures) from a stanfit object.
-#' @param mcmc_samples An object of class stanfit, resulting from MCMC sampling through either \code{fit_signatures} or \code{extract_signatures}.
+#' @param mcmc_samples Object of class stanfit, generated via either \code{\link{fit_signatures}}
+#' or \code{\link{extract_signatures}}.
 #' @param feature Name of the parameter set to extract; either \code{"signatures"} or \code{"exposures"}.
 #' @param hpd_prob A numeric scalar in the interval (0,1) giving the target probability content of the HPD intervals.
 #' @param signature_names Vector containing the names of the signatures used for fitting. Used only when 
@@ -1000,14 +1065,18 @@ retrieve_pars <- function(mcmc_samples, feature, hpd_prob = 0.95, signature_name
 }
 
 #' Run MCMC to fit signatures and estimate exposures
-#' @param counts Matrix of mutation counts per category (columns) per genome sample (rows).
-#' @param signatures Matrix of mutational signatures (rows) to be fitted.
+#' @param counts Matrix of observed mutation counts, with one row per sample and column for each of
+#' the 96 mutation types. Must be an integer matrix.
+#' @param signatures Mutational signatures to be fitted. Either a matrix with one row per signature
+#' and one column for each of the 96 mutation types, or a list of signatures generated via
+#' \code{\link{retrieve_pars}}.
 #' @param exp_prior Vector with one element per signature, to be used as the Dirichlet prior for 
 #' the signature exposures in the sampling chain. Default prior is uniform (uninformative).
 #' @param method Model to sample from; either \code{"nmf"} or \code{"emu"}.
-#' @param opportunities Optional matrix of mutational opportunities for \code{"emu"} method; must have same 
-#' dimension as \code{counts}. If equal to \code{"human-genome"} or \code{"human-exome"}, the reference
-#' human genome/exome opportunities will be used for every sample.
+#' @param opportunities Optional matrix of mutational opportunities for the "EMu" model 
+#' (\code{method = "emu"}) method. Must be a matrix with same dimension as \code{counts}. 
+#' If equal to \code{"human-genome"} or \code{"human-exome"}, the reference human genome/exome 
+#' opportunities will be used for every sample.
 #' @param ... Arguments to pass to \code{rstan::sampling}.
 #' @examples
 #'  # Custom prior favours signature 1 over 2, 3 and 4
@@ -1027,8 +1096,9 @@ fit_signatures <- function(counts, signatures, exp_prior = NULL,
     exp_prior <- as.numeric(exp_prior)
     stopifnot(length(exp_prior) == nrow(signatures))
     
-    # Force counts to matrix
+    # Force counts and signatures to matrix
     counts <- to_matrix(counts)
+    signatures <- to_matrix(signatures)
     
     # Add pseudocounts to signatures
     signatures <- remove_zeros_(signatures)
@@ -1082,13 +1152,14 @@ fit_signatures <- function(counts, signatures, exp_prior = NULL,
 
 #' Extract signatures from a set of mutation counts
 #' 
-#' @param counts Matrix of mutation counts for each sample (rows) in each category
-#' (columns).
+#' @param counts Matrix of observed mutation counts, with one row per sample and column for each of
+#' the 96 mutation types. Must be an integer matrix.
 #' @param nsignatures Number (or range of numbers) of signatures to extract.
 #' @param method Either \code{"emu"} (default) or \code{"nmf"}.
-#' @param opportunities Optional matrix of mutational opportunities for \code{"emu"} method; 
-#' must have same dimension as \code{counts}. If equal to \code{"human-genome"} or 
-#' \code{"human-exome"}, the reference human genome/exome opportunities will be used for every sample.
+#' @param opportunities Optional matrix of mutational opportunities for the "EMu" model 
+#' (\code{method = "emu"}) method. Must be a matrix with same dimension as \code{counts}. 
+#' If equal to \code{"human-genome"} or \code{"human-exome"}, the reference human genome/exome 
+#' opportunities will be used for every sample.
 #' @param sig_prior Matrix with one row per signature and one column per category, to be used as the Dirichlet 
 #' priors for the signatures to be extracted. Default priors are uniform (uninformative).
 #' @param stanfunc \code{"sampling"}|\code{"optimizing"}|\code{"vb"} Choice of rstan inference strategy. 
@@ -1211,9 +1282,11 @@ extract_signatures <- function(counts, nsignatures, method = "emu",
 #' 
 #' \code{fit_extract_signatures} fits signatures to estimate exposures in a set of mutation counts
 #' and extracts additional signatures present in the samples.
-#' @param counts Matrix of mutation counts for each sample (rows) in each category
-#' (columns).
-#' @param signatures Matrix of fixed mutational signatures (columns) to be fitted.
+#' @param counts Matrix of observed mutation counts, with one row per sample and column for each of
+#' the 96 mutation types. Must be an integer matrix.
+#' @param signatures Fixed mutational signatures (columns) to be fitted. Either a matrix with one row 
+#' per signature and one column for each of the 96 mutation types, or a list of signatures generated via
+#' \code{\link{retrieve_pars}}.
 #' @param num_extra_sigs Number of additional signatures to be extracted.
 #' @param sig_prior Matrix with one row per additional signature and one column per category, to be used as the
 #' Dirichlet priors for the additional signatures to be extracted. Default priors are uniform (uninformative).
@@ -1238,8 +1311,10 @@ fit_extract_signatures <- function(counts, signatures, num_extra_sigs,
     sig_prior <- as.matrix(sig_prior)
     stopifnot(nrow(sig_prior) == num_extra_sigs)
     stopifnot(ncol(sig_prior) == ncol(counts))
-    # Force counts to matrix
+    
+    # Force counts and signatures to matrix
     counts <- to_matrix(counts)
+    signatures <- to_matrix(signatures)
     
     # Add pseudocounts to signatures
     signatures <- remove_zeros_(signatures)
