@@ -479,7 +479,7 @@ plot_exposures <- function(counts, exposures = NULL, mcmc_samples = NULL, pdf_pa
         exposures_abs <- exposures * muts
         
         # Plot absolute exposures
-        bars <- barplot(t(exposures_abs), col = sigcols, las = 2, border = "white", #space = 0, 
+        bars <- barplot(t(exposures_abs), col = sigcols, las = 2, lwd = 0.5, #border = "white",
                         cex.names = 0.8, cex.main = 1.4, axes = FALSE,
                         main = "Signature exposures per sample (absolute)")
         axis(side = 2, cex.axis = 1.1, las = 2, line = -2)
@@ -492,7 +492,7 @@ plot_exposures <- function(counts, exposures = NULL, mcmc_samples = NULL, pdf_pa
                fill = sigcols, border = "white", legend = colnames(exposures))
         
         # Plot relative exposures
-        bars <- barplot(t(exposures), col = sigcols, las = 2, border = "white", #space = 0, 
+        bars <- barplot(t(exposures), col = sigcols, las = 2, lwd = 0.5, #border = sigcols,
                         cex.names = 0.8, cex.main = 1.4, axes = FALSE,
                         main = "Signature exposures per sample (relative)")
         axis(side = 2, cex.axis = 1.1, las = 2, line = -2)
@@ -597,7 +597,6 @@ plot_reconstruction <- function(counts, mcmc_samples = NULL, signatures = NULL, 
     
     # Case B: MCMC samples given instead of matrices
     else {
-        #total <- NULL        
         e <- extract(mcmc_samples)
         NREP <- dim(e$exposures)[1]
         stopifnot(NSAMP == dim(e$exposures)[2])
@@ -654,10 +653,6 @@ plot_reconstruction <- function(counts, mcmc_samples = NULL, signatures = NULL, 
                     c(3, 1, 2)
                 )
             }
-            # if (is.null(total))
-            #     total <- arr
-            # else
-            #     total <- total + arr
 
             reconstructions[sample, , ] <- apply(arr, c(2, 3), mean)
             hpds[sample, , ] <- t(HPDinterval(
@@ -775,47 +770,55 @@ plot_reconstruction <- function(counts, mcmc_samples = NULL, signatures = NULL, 
 #' Must have at least as many elements as the number of signatures.
 #' @importFrom "rstan" extract
 #' @export
-plot_all <- function(counts, out_path, mcmc_samples = NULL, signatures = NULL, exposures = NULL,
-                     opportunities = NULL, exp_thresh = 0.01, hpd_prob = 0.95, sig_color_palette = NULL) {
+plot_all <- function(counts, out_path, prefix = NULL, mcmc_samples = NULL, signatures = NULL, exposures = NULL,
+                     opportunities = NULL, exp_thresh = 0.01, hpd_prob = 0.95, signature_names = NULL, sig_color_palette = NULL) {
     
     if (is.null(mcmc_samples) & (is.null(exposures) | is.null(signatures))) {
         stop("Either `mcmc_samples` (stanfit object), or both `signatures` and `exposures` (matrices or lists), must be provided.")
     }
-    if (is.null(signatures)) {
-        if (!("signatures" %in% names(extract(mcmc_samples)))) {
-            stop("`mcmc_samples` contains signature fitting results: a signatures matrix must be provided via `signatures`")
-        }
+    if (is.null(signatures) & !("signatures" %in% mcmc_samples@model_pars)) { 
+        stop("`mcmc_samples` contains signature fitting results: a signatures matrix must be provided via `signatures`")
     }
+    
+    if (is.null(opportunities)) {
+        opportunities <- matrix(1, nrow = nrow(counts), ncol = ncol(counts))
+    }
+    else if (is.character(opportunities) & opportunities == "human-genome") {
+        opportunities <- build_opps_matrix(nrow(counts), "genome")
+    }
+    else if (is.character(opportunities) & opportunities == "human-exome") {
+        opportunities <- build_opps_matrix(nrow(counts), "exome")
+    }
+    if (!is.matrix(opportunities)) {
+        opportunities <- as.matrix(opportunities)
+    }
+    stopifnot(all(dim(opportunities) == dim(counts)))
     
     # Create output directory if it does not exist
     dir.create(out_path, showWarnings=F)
-    time_str <- gsub("-|:| |BST", "", Sys.time())
+    if (!is.null(prefix)) {
+        prefix <- paste0(prefix, "_")
+    }
+    #time_str <- gsub("-|:| |BST", "", Sys.time())
     
     cat("Plotting original catalogues...\n")
     plot_spectrum(counts, counts = TRUE, 
-                  pdf_path = paste0(out_path, "/Catalogues_", time_str, ".pdf"))
+                  pdf_path = paste0(out_path, "/", prefix, "Catalogues_", Sys.Date(), ".pdf"))
     
     # Case A: matrices provided instead of MCMC samples
     if (is.null(mcmc_samples)) {
         cat("Plotting mutational signatures...\n")
         plot_spectrum(signatures, 
-                      pdf_path = paste0(out_path, "/Signatures_", time_str, ".pdf"))
+                      pdf_path = paste0(out_path, "/", prefix, "Signatures_", Sys.Date(), ".pdf"))
+        
         cat("Plotting signature exposures...\n")
-        if (is.list(signatures) & ("mean" %in% names(signatures))) {
-            sig_names <- rownames(signatures$mean)
-        }
-        else if (is.matrix(signatures)) {
-            sig_names <- rownames(signatures)
-        }
-        else {
-            sig_names <- NULL
-        }
-        plot_exposures(counts, exposures = exposures, signature_names = sig_names, 
+        plot_exposures(counts, exposures = exposures, signature_names = signature_names, 
                        thresh = exp_thresh, sig_color_palette = sig_color_palette, 
-                       pdf_path = paste0(out_path, "/Exposures_", time_str, ".pdf"))
+                       pdf_path = paste0(out_path, "/", prefix, "Exposures_", Sys.Date(), ".pdf"))
+        
         plot_reconstruction(counts, signatures = signatures, exposures = exposures, 
                             opportunities = opportunities, sig_color_palette = sig_color_palette,
-                            pdf_path = paste0(out_path, "/Reconstructions_", time_str, ".pdf"))
+                            pdf_path = paste0(out_path, "/", prefix, "Reconstructions_", Sys.Date(), ".pdf"))
     }
     
     # Case B: MCMC samples provided instead of matrices
@@ -823,14 +826,16 @@ plot_all <- function(counts, out_path, mcmc_samples = NULL, signatures = NULL, e
         cat("Plotting mutational signatures...\n")
         signatures <- retrieve_pars(mcmc_samples, feature = "signatures")
         plot_spectrum(signatures, 
-                      pdf_path = paste0(out_path, "/Signatures_", time_str, ".pdf"))
+                      pdf_path = paste0(out_path, "/", prefix, "Signatures_", Sys.Date(), ".pdf"))
+        
         cat("Plotting signature exposures...\n")
-        plot_exposures(counts, mcmc_samples = mcmc_samples, signature_names = sig_names, 
+        plot_exposures(counts, mcmc_samples = mcmc_samples, signature_names = signature_names, 
                        thresh = exp_thresh, hpd_prob = hpd_prob, sig_color_palette = sig_color_palette,
-                       pdf_path = paste0(out_path, "/Exposures_", time_str, ".pdf"))
+                       pdf_path = paste0(out_path, "/", prefix, "Exposures_", Sys.Date(), ".pdf"))
+        
         plot_reconstruction(counts, mcmc_samples = mcmc_samples, opportunities = opportunities, 
                             sig_color_palette = sig_color_palette,
-                            pdf_path = paste0(out_path, "/Reconstructions_", time_str, ".pdf"))
+                            pdf_path = paste0(out_path, "/", prefix, "Reconstructions_", Sys.Date(), ".pdf"))
     }
 }
 
@@ -862,12 +867,13 @@ plot_gof <- function(sample_list, counts, stat = "cosine") {
     for (samples in sample_list) {
         if (class(samples) != "stanfit") next
         
-        e <- extract(samples)
-        if ("lambda" %in% names(e)) {
+        if ("lambda" %in% samples@model_pars) {
+            e <- extract(samples, pars = "lambda")
             reconstructed <- apply(e$lambda, c(2, 3), mean)
             method <- "EMu"
         }
         else {
+            e <- extract(samples, pars = "probs")
             reconstructed <- apply(e$probs, c(2, 3), mean) * rowSums(counts)
             method = "NMF"
         }

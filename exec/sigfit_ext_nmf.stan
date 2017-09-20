@@ -5,7 +5,7 @@ data {
     int<lower=1> C;             // number of mutation categories
     int<lower=1> S;             // number of mutational signatures
     int<lower=1> G;             // number of genomes
-    int<lower=0> counts[G, C];  // data = counts per category (columns) per genome sample (rows)
+    int<lower=0> counts[G, C];  // matrix of counts per category (columns) per genome sample (rows)
     matrix[S, C] alpha;         // prior for signatures
 }
 parameters {
