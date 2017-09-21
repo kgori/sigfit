@@ -293,18 +293,18 @@ convert_signatures <- function(signatures, ref_opportunities, model_to) {
 
 #' Plot mutational spectra
 #' 
-#' Plots one or more spectra, which can be either mutational catalogues or mutational
-#' signatures. If multiple spectra are provided, generates one plot per spectrum.
-#' @param spectra Either a vector with one elements for each of the 96 mutation types, or a matrix 
+#' \code{plot_spectrum} generates plots of one or more spectra, which can be either mutational 
+#' catalogues or mutational signatures. If multiple spectra are provided, it makes one plot per spectrum.
+#' @param spectra Either a vector with one element for each of the 96 mutation types, or a matrix 
 #' with 96 columns and one row per signature/catalogue, or a list of signatures as produced by 
 #' \code{\link{retrieve_pars}}. In the latter case, HPD intervals will also be plotted. 
-#' Row names will be used as the sample/signature names.
-#' @param counts If true, the values in \code{spectra} will be interpreted as mutation counts 
+#' Row names will be adopted as the sample/signature names.
+#' @param counts If \code{TRUE}, the values in \code{spectra} will be interpreted as mutation counts 
 #' instead of mutation probabilities.
 #' @param name Name to include in the plot title; useful when plotting a single spectrum.
 #' @param pdf_path If provided, the plots will be output to a PDF file with this path. The PDF 
-#' size and graphical parameters are automatically set to appropriate values.
-#' @param max_y Maximum limit of the y-axis; default is variable.
+#' size and graphical parameters will be automatically set to appropriate values.
+#' @param max_y Fixed maximum limit of the y-axis (if necessary).
 #' @examples
 #' # Load example mutational catalogues
 #' data("counts_21bc")
@@ -419,20 +419,22 @@ plot_spectrum <- function(spectra, counts = FALSE, name = NULL, pdf_path = NULL,
 
 #' Plot signature exposures
 #' 
-#' \code{plot_exposures} produces barplots showing the distribution of
-#' signature exposures across the mutational catalogues (samples).
-#' @param counts Matrix of observed mutation counts, with one row per sample and column for each of
-#' the 96 mutation types. Must be an integer matrix.
+#' \code{plot_exposures} plots the distribution of signature exposures across the samples.
+#' @param counts Matrix of observed mutation counts (integers), with one row per sample and 
+#' column for each of the 96 mutation types.
 #' @param exposures Either a matrix of signature exposures, with one row per sample and one column 
 #' per signature, or a list of exposures as produced by \code{\link{retrieve_pars}}. 
 #' Only needed if \code{mcmc_samples} is not provided.
 #' @param mcmc_samples Object of class stanfit, generated via either \code{\link{fit_signatures}}
 #' or \code{\link{extract_signatures}}. Only needed if \code{exposures} is not provided.
-#' @param pdf_path If provided, the plots will be output to a PDF file with this path. The size
-#' and graphical parameters of the plots are automatically set to appropriate values.
-#' @param signature_names
-#' @param thresh
-#' @param hpd_prob
+#' @param pdf_path If provided, the plots will be output to a PDF file with this path. The PDF 
+#' size and graphical parameters will be automatically set to appropriate values.
+#' @param signature_names Vector containing the names of the signatures. Only used when plotting
+#' exposures obtained through signature fitting (not extraction).
+#' @param thresh Minimum probability value that should be reached by the lower end of exposure HPD
+#' intervals. The exposures for which the lower HPD bound is below this value will be colored in grey.
+#' @param hpd_prob A value in the interval (0, 1), giving the target probability content of 
+#' the HPD intervals.
 #' @param sig_color_palette Character vector of color names or hexadecimal codes to use for each signature.
 #' Must have at least as many elements as the number of signatures.
 #' @export
@@ -565,9 +567,9 @@ plot_exposures <- function(counts, exposures = NULL, mcmc_samples = NULL, pdf_pa
 #' it generates one plot per catalogue. Fitting or extraction results can be provided either as a single 
 #' stanfit object (generated via \code{\link{fit_signatures}} or \code{\link{extract_signatures}}), 
 #' or as separate signatures and exposures matrices (or lists produced via \code{\link{retrieve_pars}}). 
-#' Only the former option allows incorporating HPD interval bars in the reconstructed catalogue.
-#' @param counts Matrix of observed mutation counts, with one row per sample and column for each of
-#' the 96 mutation types. Must be an integer matrix.
+#' Only the former option allows the incorporation of HPD intervals to the reconstructed catalogue.
+#' @param counts Matrix of observed mutation counts (integers), with one row per sample and 
+#' column for each of the 96 mutation types.
 #' @param mcmc_samples Object of class stanfit, generated via either \code{\link{fit_signatures}}
 #' or \code{\link{extract_signatures}}. Only needed if \code{signatures} or \code{exposures}
 #' are not provided.
@@ -581,7 +583,7 @@ plot_exposures <- function(counts, exposures = NULL, mcmc_samples = NULL, pdf_pa
 #' signatures using the "EMu" model (\code{method = "emu"}), these should be the same opportunities used 
 #' for extraction/fitting. Admits values \code{"human-genome"} and \code{"human-exome"}.
 #' @param pdf_path If provided, the plots will be output to a PDF file with this path. The PDF 
-#' size and graphical parameters are automatically set to appropriate values.
+#' size and graphical parameters will be automatically set to appropriate values.
 #' @param sig_color_palette Character vector of color names or hexadecimal codes to use for each signature.
 #' Must have at least as many elements as the number of signatures.
 #' @examples
@@ -805,16 +807,16 @@ plot_reconstruction <- function(counts, mcmc_samples = NULL, signatures = NULL, 
 
 #' Plot all results from signature fitting or extraction
 #' 
-#' For a given set of signature fitting or extraction data, \code{plot_all} plots, in PDF format: 
+#' For a given set of signature fitting or extraction results, \code{plot_all} plots, in PDF format: 
 #' \itemize{
 #'  \item{All the original (input) mutational catalogues}
 #'  \item{Mutational signatures}
 #'  \item{Signature exposures}
 #'  \item{All the reconstructed mutational spectra}
 #' }
-#' @param counts Matrix of observed mutation counts, with one row per sample and column for each of
-#' the 96 mutation types. Must be an integer matrix.
-#' @param out_path Path to the directory where the output PDF files will be stored.
+#' @param counts Matrix of observed mutation counts (integers), with one row per sample and 
+#' column for each of the 96 mutation types.
+#' @param out_path Path to the directory where the output PDF files will be stored. M
 #' Will be created if it does not exist.
 #' @param prefix Optional prefix to be added to the output file names.
 #' @param mcmc_samples Object of class stanfit, generated via either \code{\link{fit_signatures}}
@@ -822,7 +824,7 @@ plot_reconstruction <- function(counts, mcmc_samples = NULL, signatures = NULL, 
 #' are not provided.
 #' @param signatures Either a matrix of mutational signatures, with one row per signature and one
 #' column for each of the 96 mutation types, or a list of signatures generated via
-#' \code{\link{retrieve_pars}}. Only needed if \code{mcmc_samples} is not provided.
+#' \code{\link{retrieve_pars}}. Only needed if \code{mcmc_samples} is not provided. [Matrix/List]
 #' @param exposures Either a matrix of signature exposures, with one row per sample and one column 
 #' per signature, or a list of exposures as produced by \code{\link{retrieve_pars}}. 
 #' Only needed if \code{mcmc_samples} is not provided.
@@ -831,6 +833,25 @@ plot_reconstruction <- function(counts, mcmc_samples = NULL, signatures = NULL, 
 #' for extraction/fitting. Admits values \code{"human-genome"} and \code{"human-exome"}.
 #' @param sig_color_palette Character vector of color names or hexadecimal codes to use for each signature.
 #' Must have at least as many elements as the number of signatures.
+#' @examples
+#' # Load example mutational catalogues
+#' data("counts_21bc")
+#' 
+#' # Extract signatures using the EMu (Poisson) model
+#' samples <- extract_signatures(counts_21bc, nsignatures = 2, method = "emu",
+#'                               opportunities = "human-genome", iter = 1000)
+#' 
+#' # Retrieve signatures and exposures
+#' signatures <- retrieve_pars(samples, "signatures")
+#' exposures <- retrieve_pars(samples, "exposures")
+#' 
+#' # Plot results using stanfit object
+#' plot_all(counts_21bc, out_path = ".", mcmc_samples = samples, 
+#'          opportunities = "human-genome")
+#'                     
+#' # Plot results using retrieved signatures and exposures
+#' plot_all(counts_21bc, out_path = ".", signatures = signatures, 
+#'          exposures = exposures, opportunities = "human-genome")
 #' @importFrom "rstan" extract
 #' @export
 plot_all <- function(counts, out_path, prefix = NULL, mcmc_samples = NULL, signatures = NULL, exposures = NULL,
@@ -902,20 +923,16 @@ plot_all <- function(counts, out_path, prefix = NULL, mcmc_samples = NULL, signa
     }
 }
 
-
-
-
 #' Plot goodness of fit
 #' 
 #' \code{plot_gof} plots the goodness of fit of a set of samples, each of which
 #' has typically been sampled using an extraction model (EMu or NMF) with a 
 #' different number of signatures.
-#' @param sample_list List of objects of class stanfit. Elements of the list
-#' which are not of class stanfit are ignored.
-#' @param counts Matrix of observed mutation counts, with one row per sample and column for each of
-#' the 96 mutation types. Must be an integer matrix.
-#' @param stat Function for measuring goodness of fit. Admits values "cosine" 
-#' (cosine similarity; default) or "L2" (L2 norm, a.k.a. Euclidean distance).
+#' @param sample_list List of objects of class stanfit. Elements which are not of class stanfit are ignored.
+#' @param counts Matrix of observed mutation counts (integers), with one row per sample and 
+#' column for each of the 96 mutation types.
+#' @param stat Function for measuring goodness of fit. Admits values \code{"cosine"} 
+#' (cosine similarity; default) or \code{"L2"} (L2 norm, a.k.a. Euclidean distance).
 #' @importFrom "rstan" extract
 #' @export
 plot_gof <- function(sample_list, counts, stat = "cosine") {
@@ -972,23 +989,29 @@ plot_gof <- function(sample_list, counts, stat = "cosine") {
 #' @param mcmc_samples Object of class stanfit, generated via either \code{\link{fit_signatures}}
 #' or \code{\link{extract_signatures}}.
 #' @param feature Name of the parameter set to extract; either \code{"signatures"} or \code{"exposures"}.
-#' @param hpd_prob A numeric scalar in the interval (0,1) giving the target probability content of the HPD intervals.
+#' @param hpd_prob A value in the interval (0, 1), giving the target probability content of 
+#' the HPD intervals.
 #' @param signature_names Vector containing the names of the signatures used for fitting. Used only when 
 #' retrieving exposures from fitted signatures.
 #' @examples
-#' # Extract signatures using the EMu (Poisson) model
-#' samples <- extract_signatures(mycounts, nsignatures = 3, method = "emu", 
-#' opportunities = "human-genome")
+#' # Load example mutational catalogues
+#' data("counts_21bc")
 #' 
-#' # Retrieve array of signatures
+#' # Extract signatures using the EMu (Poisson) model
+#' samples <- extract_signatures(counts_21bc, nsignatures = 2, method = "emu",
+#'                               opportunities = "human-genome", iter = 1000)
+#' 
+#' # Retrieve signatures and exposures
 #' signatures <- retrieve_pars(samples, "signatures")
 #' 
 #' # Retrieve array of exposures using 90% HPD intervals
 #' exposures <- retrieve_pars(samples, "exposures", hpd_prob = 0.9)
 #' 
-#' # Plot signatures and mean exposures
+#' # Plot signatures
 #' plot_spectrum(signatures)
-#' barplot(exposures$mean)   ## or barplot(exposures[[1]])
+#' 
+#' # Plot mean exposures
+#' barplot(exposures$mean)   ## or: barplot(exposures[[1]])
 #' @importFrom "rstan" extract
 #' @importFrom "coda" HPDinterval
 #' @importFrom "coda" as.mcmc
@@ -1064,9 +1087,13 @@ retrieve_pars <- function(mcmc_samples, feature, hpd_prob = 0.95, signature_name
     feat_summ
 }
 
-#' Run MCMC to fit signatures and estimate exposures
-#' @param counts Matrix of observed mutation counts, with one row per sample and column for each of
-#' the 96 mutation types. Must be an integer matrix.
+#' Fit mutational signatures
+#' 
+#' \code{fit_signatures} runs MCMC sampling to fit a set of mutational signatures 
+#' to a collection of mutational catalogues and estimate the exposure of each
+#' catalogue to each signature.
+#' @param counts Matrix of observed mutation counts (integers), with one row per sample and 
+#' column for each of the 96 mutation types.
 #' @param signatures Mutational signatures to be fitted. Either a matrix with one row per signature
 #' and one column for each of the 96 mutation types, or a list of signatures generated via
 #' \code{\link{retrieve_pars}}.
@@ -1152,8 +1179,8 @@ fit_signatures <- function(counts, signatures, exp_prior = NULL,
 
 #' Extract signatures from a set of mutation counts
 #' 
-#' @param counts Matrix of observed mutation counts, with one row per sample and column for each of
-#' the 96 mutation types. Must be an integer matrix.
+#' @param counts Matrix of observed mutation counts (integers), with one row per sample and 
+#' column for each of the 96 mutation types.
 #' @param nsignatures Number (or range of numbers) of signatures to extract.
 #' @param method Either \code{"emu"} (default) or \code{"nmf"}.
 #' @param opportunities Optional matrix of mutational opportunities for the "EMu" model 
@@ -1282,8 +1309,8 @@ extract_signatures <- function(counts, nsignatures, method = "emu",
 #' 
 #' \code{fit_extract_signatures} fits signatures to estimate exposures in a set of mutation counts
 #' and extracts additional signatures present in the samples.
-#' @param counts Matrix of observed mutation counts, with one row per sample and column for each of
-#' the 96 mutation types. Must be an integer matrix.
+#' @param counts Matrix of observed mutation counts (integers), with one row per sample and 
+#' column for each of the 96 mutation types.
 #' @param signatures Fixed mutational signatures (columns) to be fitted. Either a matrix with one row 
 #' per signature and one column for each of the 96 mutation types, or a list of signatures generated via
 #' \code{\link{retrieve_pars}}.
