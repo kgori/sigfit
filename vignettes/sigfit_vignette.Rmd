@@ -73,7 +73,7 @@ Since we are fitting known signatures and not extracting new ones, we can provid
 ```{r retrieve_exposures}
 exposures <- retrieve_pars(mcmc_samples, 
                            feature = "exposures", 
-                           prob = 0.95, 
+                           hpd_prob = 0.95, 
                            signature_names = rownames(sigs))
 names(exposures)
 exposures$mean
