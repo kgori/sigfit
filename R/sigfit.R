@@ -943,25 +943,25 @@ plot_gof <- function(sample_list, counts, stat = "cosine") {
         stop("Enter a valid option for `stat` -> \"cosine\", \"L2\"")
     }
     
-    nS <- c()
-    gof <- c()
+    nS <- NULL
+    gof <- NULL
     for (samples in sample_list) {
         if (class(samples) != "stanfit") next
         
         if ("lambda" %in% samples@model_pars) {
-            e <- extract(samples, pars = "lambda")
+            e <- extract(samples, pars = c("lambda", "signatures"))
             reconstructed <- apply(e$lambda, c(2, 3), mean)
             method <- "EMu"
         }
         else {
-            e <- extract(samples, pars = "probs")
+            e <- extract(samples, pars = c("probs", "signatures"))
             reconstructed <- apply(e$probs, c(2, 3), mean) * rowSums(counts)
             method = "NMF"
         }
         stopifnot(length(as.vector(reconstructed)) == length(as.vector(counts)))
         
-        nS <- append(nS, dim(e$signatures)[2])
-        gof <- append(gof, gof_function(as.vector(reconstructed),
+        nS <- c(nS, dim(e$signatures)[2])
+        gof <- c(gof, gof_function(as.vector(reconstructed),
                                         as.vector(counts)))
     }
     
@@ -1108,7 +1108,7 @@ retrieve_pars <- function(mcmc_samples, feature, hpd_prob = 0.95, signature_name
 #' opportunities will be used for every sample.
 #' @param ... Arguments to pass to \code{rstan::sampling}.
 #' @returns A stanfit object containing the Monte Carlo samples from MCMC (from which the model
-#' parameters can be extracted using \code{retrieve_parameters}), as well as information about
+#' parameters can be extracted using \code{\link{retrieve_parameters}}), as well as information about
 #' the model and sampling process.
 #' @examples
 #' # Load example mutational catalogues
@@ -1202,27 +1202,29 @@ fit_signatures <- function(counts, signatures, exp_prior = NULL,
 #' @param sig_prior Matrix with one row per signature and one column per category, to be used as the Dirichlet 
 #' priors for the signatures to be extracted. Only used when \code{nsignatures} is a scalar.
 #' Default priors are uniform (uninformative).
-#' @param stanfunc \code{"sampling"}|\code{"optimizing"}|\code{"vb"} Choice of rstan inference strategy. 
-#' \code{"sampling"} is the full Bayesian MCMC approach, and is the default. \code{"optimizing"}
-#' returns the Maximum a Posteriori (MAP) point estimates via numerical optimization.
+#' @param stanfunc Choice of rstan inference strategy; admits values \code{"sampling"}, \code{"optimizing"}
+#' and \code{"vb"}. \code{"sampling"} is the full Bayesian MCMC approach, and is the default. 
+#' \code{"optimizing"} returns the Maximum a Posteriori (MAP) point estimates via numerical optimization.
 #' \code{"vb"} uses Variational Bayes to approximate the full posterior.
-#' @param ... Any other parameters to pass to rstan.
+#' @param ... Any other parameters to pass to the sampling function (by default, \code{\link{rstan::sampling}}).
 #' @returns A stanfit object containing the Monte Carlo samples from MCMC (from which the model
-#' parameters can be extracted using \code{retrieve_parameters}), as well as information about
+#' parameters can be extracted using \code{\link{retrieve_parameters}}), as well as information about
 #' the model and sampling process.
 #' @examples
 #' # Load example mutational catalogues
 #' data("counts_21bc")
 #' 
-#' # Extract 3 signatures using the NMF (multinomial) model
-#' samples_nmf <- extract_signatures(counts_21bc, nsignatures = 3, method = "nmf",
+#' # Extract 3 to 6 signatures using the NMF (multinomial) model
+#' # (500 warm-up iterations + 500 sampling iterations)
+#' samples_nmf <- extract_signatures(counts_21bc, nsignatures = 3:6, method = "nmf",
 #'                                   iter = 1000, seed = 1)
+#' str(samples_nmf)
 #' 
-#' # Extract 3 signatures using the EMu (Poisson) model
-#' samples_emu <- extract_signatures(counts_21bc, nsignatures = 3, method = "emu",
-#'                                   opportunities = "human-genome", iter = 1000, seed = 1)
-#'                                   
-#' # Examine the resulting stanfit object
+#' # Extract 5 signatures using the EMu (Poisson) model
+#' # (300 warm-up iterations + 600 sampling iterations)
+#' samples_emu <- extract_signatures(counts_21bc, nsignatures = 5, method = "emu", 
+#'                                   opportunities = "human-genome",
+#'                                   iter = 900, warmup = 300, seed = 1)
 #' str(samples_emu)
 #' @useDynLib sigfit, .registration = TRUE
 #' @importFrom "rstan" sampling
@@ -1363,7 +1365,7 @@ extract_signatures <- function(counts, nsignatures, method = "emu",
 #' full posterior.
 #' @param ... Any other parameters to pass through to rstan.
 #' @returns A stanfit object containing the Monte Carlo samples from MCMC (from which the model
-#' parameters can be extracted using \code{retrieve_parameters}), as well as information about
+#' parameters can be extracted using \code{\link{retrieve_parameters}}), as well as information about
 #' the model and sampling process.
 #' @examples
 #' # Load example mutational catalogues
@@ -1379,6 +1381,11 @@ extract_signatures <- function(counts, nsignatures, method = "emu",
 fit_extract_signatures <- function(counts, signatures, num_extra_sigs, 
                                    method = "nmf", opportunities = NULL, sig_prior = NULL,
                                    stanfunc = "sampling", ...) {
+    # Check that num_extra_sigs is scalar
+    if (length(num_extra_sigs) > 1) {
+        stop("`num_extra_sigs` must be a scalar (single value).")
+    }
+    
     # Check signature priors
     if (is.null(sig_prior)) {
         sig_prior <- matrix(1, nrow = num_extra_sigs, ncol = ncol(counts))
