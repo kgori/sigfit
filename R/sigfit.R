@@ -152,7 +152,7 @@ human_trinuc_freqs <- function(type = "genome") {
 #' \{build_catalogues} generates a set of mutational catalogues from a table containing 
 #' the base change and trinucleotide context of each single-nucleotide variant in every sample.
 #' @param variants Matrix with one row per single-nucleotide variant, and four columns:
-#' \itemize{
+#' \itemizer{
 #'  \item{Sample ID (character, e.g. "Sample 1")}
 #'  \item{Reference allele (character: "A", "C", "G", or "T")}
 #'  \item{Alternate allele (character: "A", "C", "G", or "T")}
@@ -993,6 +993,8 @@ plot_gof <- function(sample_list, counts, stat = "cosine") {
 #' the HPD intervals.
 #' @param signature_names Vector containing the names of the signatures used for fitting. Used only when 
 #' retrieving exposures from fitted signatures.
+#' @returns A list of three matrices, which respectively contain the values corresponding to the
+#' mean of the model parameter of interest, and to the lower and upper ends of its HPD interval.
 #' @examples
 #' # Load example mutational catalogues
 #' data("counts_21bc")
@@ -1105,12 +1107,22 @@ retrieve_pars <- function(mcmc_samples, feature, hpd_prob = 0.95, signature_name
 #' If equal to \code{"human-genome"} or \code{"human-exome"}, the reference human genome/exome 
 #' opportunities will be used for every sample.
 #' @param ... Arguments to pass to \code{rstan::sampling}.
+#' @returns A stanfit object containing the Monte Carlo samples from MCMC (from which the model
+#' parameters can be extracted using \code{retrieve_parameters}), as well as information about
+#' the model and sampling process.
 #' @examples
-#'  # Custom prior favours signature 1 over 2, 3 and 4
-#' samples <- fit_signatures(mycounts, mysignatures, exp_prior = c(5, 1, 1, 1))
+#' # Load example mutational catalogues
+#' data("counts_21bc")
 #' 
-#' # Run a single chain for quite a long time
-#' samples <- fit_signatures(mycounts, mysignatures, chains = 1, niter = 13000, warmup = 3000)
+#' # Fetch COSMIC signatures 
+#' signatures <- fetch_cosmic_data()
+#' 
+#' # Fit signatures 1 to 4, using a custom prior that favors signature 1 over the rest
+#' samples_1 <- fit_signatures(counts_21bc, signatures[1:4, ], exp_prior = c(10, 1, 1, 1))
+#' 
+#' # Fit all the signatures, running a single chain for many iterations
+#' # (and using a fixed seed to make results reproducible)
+#' samples_2 <- fit_signatures(counts_21bc, signatures, chains = 1, niter = 13000, warmup = 3000, seed = 1)
 #' @useDynLib sigfit, .registration = TRUE
 #' @importFrom "rstan" sampling
 #' @export
@@ -1181,19 +1193,37 @@ fit_signatures <- function(counts, signatures, exp_prior = NULL,
 #' 
 #' @param counts Matrix of observed mutation counts (integers), with one row per sample and 
 #' column for each of the 96 mutation types.
-#' @param nsignatures Number (or range of numbers) of signatures to extract.
+#' @param nsignatures Number (or vector of numbers) of signatures to extract.
 #' @param method Either \code{"emu"} (default) or \code{"nmf"}.
 #' @param opportunities Optional matrix of mutational opportunities for the "EMu" model 
 #' (\code{method = "emu"}) method. Must be a matrix with same dimension as \code{counts}. 
 #' If equal to \code{"human-genome"} or \code{"human-exome"}, the reference human genome/exome 
 #' opportunities will be used for every sample.
 #' @param sig_prior Matrix with one row per signature and one column per category, to be used as the Dirichlet 
-#' priors for the signatures to be extracted. Default priors are uniform (uninformative).
+#' priors for the signatures to be extracted. Only used when \code{nsignatures} is a scalar.
+#' Default priors are uniform (uninformative).
 #' @param stanfunc \code{"sampling"}|\code{"optimizing"}|\code{"vb"} Choice of rstan inference strategy. 
 #' \code{"sampling"} is the full Bayesian MCMC approach, and is the default. \code{"optimizing"}
 #' returns the Maximum a Posteriori (MAP) point estimates via numerical optimization.
 #' \code{"vb"} uses Variational Bayes to approximate the full posterior.
 #' @param ... Any other parameters to pass to rstan.
+#' @returns A stanfit object containing the Monte Carlo samples from MCMC (from which the model
+#' parameters can be extracted using \code{retrieve_parameters}), as well as information about
+#' the model and sampling process.
+#' @examples
+#' # Load example mutational catalogues
+#' data("counts_21bc")
+#' 
+#' # Extract 3 signatures using the NMF (multinomial) model
+#' samples_nmf <- extract_signatures(counts_21bc, nsignatures = 3, method = "nmf",
+#'                                   iter = 1000, seed = 1)
+#' 
+#' # Extract 3 signatures using the EMu (Poisson) model
+#' samples_emu <- extract_signatures(counts_21bc, nsignatures = 3, method = "emu",
+#'                                   opportunities = "human-genome", iter = 1000, seed = 1)
+#'                                   
+#' # Examine the resulting stanfit object
+#' str(samples_emu)
 #' @useDynLib sigfit, .registration = TRUE
 #' @importFrom "rstan" sampling
 #' @importFrom "rstan" optimizing
@@ -1203,13 +1233,10 @@ fit_signatures <- function(counts, signatures, exp_prior = NULL,
 extract_signatures <- function(counts, nsignatures, method = "emu", 
                                opportunities = NULL, sig_prior = NULL,
                                stanfunc = "sampling", ...) {
-    # Check signature priors
-    if (is.null(sig_prior)) {
-        sig_prior = matrix(1, nrow = nsignatures, ncol = ncol(counts))
+    if (!is.null(sig_prior) & length(nsignatures) > 1) {
+        stop("`sig_prior` is only admitted when `nsignatures` is a scalar (single value).")
     }
-    sig_prior <- as.matrix(sig_prior)
-    stopifnot(nrow(sig_prior) == nsignatures)
-    stopifnot(ncol(sig_prior) == ncol(counts))
+    
     # Force counts to matrix
     counts <- to_matrix(counts)
     
@@ -1264,6 +1291,9 @@ extract_signatures <- function(counts, nsignatures, method = "emu",
     if (length(nsignatures) > 1) {
         out <- vector(mode = "list", length = max(nsignatures))
         for (n in nsignatures) {
+            # Create signature priors
+            sig_prior = matrix(1, nrow = n, ncol = ncol(counts))
+            
             cat("Extracting", n, "signatures\n")
             dat$S <- as.integer(n)
             if (stanfunc == "sampling") {
@@ -1288,6 +1318,14 @@ extract_signatures <- function(counts, nsignatures, method = "emu",
     
     # Single nsignatures value case
     else {
+        # Check signature priors
+        if (is.null(sig_prior)) {
+            sig_prior = matrix(1, nrow = nsignatures, ncol = ncol(counts))
+        }
+        sig_prior <- as.matrix(sig_prior)
+        stopifnot(nrow(sig_prior) == nsignatures)
+        stopifnot(ncol(sig_prior) == ncol(counts))
+        
         cat("Extracting", nsignatures, "signatures\n")
         if (stanfunc == "sampling") {
             cat("Stan sampling:")
@@ -1323,6 +1361,15 @@ extract_signatures <- function(counts, nsignatures, method = "emu",
 #' via numerical optimization. \code{"vb"} uses Variational Bayes to approximate the 
 #' full posterior.
 #' @param ... Any other parameters to pass through to rstan.
+#' @returns A stanfit object containing the Monte Carlo samples from MCMC (from which the model
+#' parameters can be extracted using \code{retrieve_parameters}), as well as information about
+#' the model and sampling process.
+#' @examples
+#' # Load example mutational catalogues
+#' data("counts_21bc")
+#' 
+#' ...
+#' 
 #' @useDynLib sigfit, .registration = TRUE
 #' @importFrom "rstan" sampling
 #' @importFrom "rstan" optimizing
