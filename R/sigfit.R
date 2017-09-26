@@ -1261,7 +1261,7 @@ extract_signatures <- function(counts, nsignatures, method = "emu",
         dat <- list(
             C = ncol(counts),
             G = nrow(counts),
-            S = nsignatures[1],
+            S = as.integer(nsignatures[1]),
             counts = counts,
             opps = opportunities,
             alpha = sig_prior
@@ -1291,11 +1291,11 @@ extract_signatures <- function(counts, nsignatures, method = "emu",
     if (length(nsignatures) > 1) {
         out <- vector(mode = "list", length = max(nsignatures))
         for (n in nsignatures) {
-            # Create signature priors
-            sig_prior = matrix(1, nrow = n, ncol = ncol(counts))
+            # Complete model data
+            dat$alpha <- matrix(1, nrow = n, ncol = ncol(counts))
+            dat$S <- as.integer(n)
             
             cat("Extracting", n, "signatures\n")
-            dat$S <- as.integer(n)
             if (stanfunc == "sampling") {
                 cat("Stan sampling:")
                 out[[n]] <- sampling(model, data = dat, chains = 1, ...)
@@ -1320,12 +1320,13 @@ extract_signatures <- function(counts, nsignatures, method = "emu",
     else {
         # Check signature priors
         if (is.null(sig_prior)) {
-            sig_prior = matrix(1, nrow = nsignatures, ncol = ncol(counts))
+            sig_prior <- matrix(1, nrow = nsignatures, ncol = ncol(counts))
         }
         sig_prior <- as.matrix(sig_prior)
         stopifnot(nrow(sig_prior) == nsignatures)
         stopifnot(ncol(sig_prior) == ncol(counts))
-        
+        dat$alpha <- sig_prior
+
         cat("Extracting", nsignatures, "signatures\n")
         if (stanfunc == "sampling") {
             cat("Stan sampling:")
@@ -1380,7 +1381,7 @@ fit_extract_signatures <- function(counts, signatures, num_extra_sigs,
                                    stanfunc = "sampling", ...) {
     # Check signature priors
     if (is.null(sig_prior)) {
-        sig_prior = matrix(1, nrow = num_extra_sigs, ncol = ncol(counts))
+        sig_prior <- matrix(1, nrow = num_extra_sigs, ncol = ncol(counts))
     }
     sig_prior <- as.matrix(sig_prior)
     stopifnot(nrow(sig_prior) == num_extra_sigs)
