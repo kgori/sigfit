@@ -163,11 +163,11 @@ human_trinuc_freqs <- function(type = "genome") {
 #' corresponds to one of the 96 trinucleotide mutation types.
 #' @examples
 #' # Load example mutation data
-#' data("mutations_21bc")
-#' head(mutations_21bc)
+#' data("mutations_21breast")
+#' head(mutations_21breast)
 #' 
 #' # Build catalogues
-#' counts <- build_catalogues(mutations_21bc)
+#' counts <- build_catalogues(mutations_21breast)
 #' counts
 #' @export
 build_catalogues <- function(variants) {
@@ -250,17 +250,21 @@ fetch_cosmic_data <- function(reorder = TRUE, remove_zeros = TRUE) {
 #' @return A matrix of signatures with the same dimensions as \code{signatures}.
 #' @examples
 #' # Fetch COSMIC signatures 
-#' # These are in "NMF" format, i.e. they are relative to the human genome mutational opportunities
-#' sigs <- fetch_cosmic_data()
+#' # These are in "NMF" format, i.e. they are relative
+#' # to the human genome mutational opportunities
+#' signatures <- fetch_cosmic_data()
 #' 
 #' # Plot COSMIC signature 1
-#' barplot(sigs[1,])
+#' barplot(signatures[1,])
 #' 
-#' # Convert signatures to the "EMu" format, i.e. make them not relative to mutational opportunities
-#' conv_sigs <- convert_signatures(sigs, ref_opportunities = "human-genome", model_to = "emu")
+#' # Convert signatures to the "EMu" format, i.e. make 
+#' # them not relative to mutational opportunities
+#' converted_signatures <- convert_signatures(signatures,
+#'                                            ref_opportunities = "human-genome",
+#'                                            model_to = "emu")
 #' 
 #' # Plot COSMIC signature 1, converted to "EMu" format
-#' barplot(conv_sigs[1,])
+#' barplot(converted_signatures[1,])
 #' @export
 convert_signatures <- function(signatures, ref_opportunities, model_to) {
     if (ref_opportunities == "human-genome") {
@@ -307,13 +311,13 @@ convert_signatures <- function(signatures, ref_opportunities, model_to) {
 #' @param max_y Fixed maximum limit of the y-axis (if necessary).
 #' @examples
 #' # Load example mutational catalogues
-#' data("counts_21bc")
+#' data("counts_21breast")
 #' 
 #' # Plot catalogues (use 'counts' option)
-#' plot_spectrum(counts_21bc, counts = TRUE, pdf_path = "Catalogues.pdf")
+#' plot_spectrum(counts_21breast, counts = TRUE, pdf_path = "Catalogues.pdf")
 #' 
 #' # Extract signatures using the EMu (Poisson) model
-#' samples <- extract_signatures(counts_21bc, nsignatures = 2, method = "emu",
+#' samples <- extract_signatures(counts_21breast, nsignatures = 2, method = "emu",
 #'                               opportunities = "human-genome", iter = 1000)
 #' 
 #' # Retrieve extracted signatures
@@ -588,10 +592,10 @@ plot_exposures <- function(counts, exposures = NULL, mcmc_samples = NULL, pdf_pa
 #' Must have at least as many elements as the number of signatures.
 #' @examples
 #' # Load example mutational catalogues
-#' data("counts_21bc")
+#' data("counts_21breast")
 #' 
 #' # Extract signatures using the EMu (Poisson) model
-#' samples <- extract_signatures(counts_21bc, nsignatures = 2, method = "emu",
+#' samples <- extract_signatures(counts_21breast, nsignatures = 2, method = "emu",
 #'                               opportunities = "human-genome", iter = 1000)
 #' 
 #' # Retrieve signatures and exposures
@@ -599,11 +603,11 @@ plot_exposures <- function(counts, exposures = NULL, mcmc_samples = NULL, pdf_pa
 #' exposures <- retrieve_pars(samples, "exposures")
 #' 
 #' # Plot reconstructed catalogues using stanfit object
-#' plot_reconstruction(counts_21bc, mcmc_samples = samples, opportunities = "human-genome",
+#' plot_reconstruction(counts_21breast, mcmc_samples = samples, opportunities = "human-genome",
 #'                     pdf_path = "Reconstructions_1.pdf")
 #'                     
 #' # Plot reconstructed catalogues using retrieved signatures and exposures
-#' plot_reconstruction(counts_21bc, signatures = signatures, exposures = exposures,
+#' plot_reconstruction(counts_21breast, signatures = signatures, exposures = exposures,
 #'                     opportunities = "human-genome", pdf_path = "Reconstructions_2.pdf")
 #' @importFrom "rstan" extract
 #' @importFrom "coda" as.mcmc HPDinterval
@@ -835,10 +839,10 @@ plot_reconstruction <- function(counts, mcmc_samples = NULL, signatures = NULL, 
 #' Must have at least as many elements as the number of signatures.
 #' @examples
 #' # Load example mutational catalogues
-#' data("counts_21bc")
+#' data("counts_21breast")
 #' 
 #' # Extract signatures using the EMu (Poisson) model
-#' samples <- extract_signatures(counts_21bc, nsignatures = 2, method = "emu",
+#' samples <- extract_signatures(counts_21breast, nsignatures = 2, method = "emu",
 #'                               opportunities = "human-genome", iter = 1000)
 #' 
 #' # Retrieve signatures and exposures
@@ -846,11 +850,11 @@ plot_reconstruction <- function(counts, mcmc_samples = NULL, signatures = NULL, 
 #' exposures <- retrieve_pars(samples, "exposures")
 #' 
 #' # Plot results using stanfit object
-#' plot_all(counts_21bc, out_path = ".", mcmc_samples = samples, 
+#' plot_all(counts_21breast, out_path = ".", mcmc_samples = samples, 
 #'          opportunities = "human-genome")
 #'                     
 #' # Plot results using retrieved signatures and exposures
-#' plot_all(counts_21bc, out_path = ".", signatures = signatures, 
+#' plot_all(counts_21breast, out_path = ".", signatures = signatures, 
 #'          exposures = exposures, opportunities = "human-genome")
 #' @importFrom "rstan" extract
 #' @export
@@ -997,10 +1001,10 @@ plot_gof <- function(sample_list, counts, stat = "cosine") {
 #' mean of the model parameter of interest, and to the lower and upper ends of its HPD interval.
 #' @examples
 #' # Load example mutational catalogues
-#' data("counts_21bc")
+#' data("counts_21breast")
 #' 
 #' # Extract signatures using the EMu (Poisson) model
-#' samples <- extract_signatures(counts_21bc, nsignatures = 2, method = "emu",
+#' samples <- extract_signatures(counts_21breast, nsignatures = 2, method = "emu",
 #'                               opportunities = "human-genome", iter = 1000)
 #' 
 #' # Retrieve signatures and exposures
@@ -1112,17 +1116,20 @@ retrieve_pars <- function(mcmc_samples, feature, hpd_prob = 0.95, signature_name
 #' the model and sampling process.
 #' @examples
 #' # Load example mutational catalogues
-#' data("counts_21bc")
+#' data("counts_21breast")
 #' 
 #' # Fetch COSMIC signatures 
 #' signatures <- fetch_cosmic_data()
 #' 
 #' # Fit signatures 1 to 4, using a custom prior that favors signature 1 over the rest
-#' samples_1 <- fit_signatures(counts_21bc, signatures[1:4, ], exp_prior = c(10, 1, 1, 1))
+#' # (4 chains, 500 warmup iterations + 500 sampling iterations -- use more in practice)
+#' samples_1 <- fit_signatures(counts_21breast, signatures[1:4, ], 
+#'                             exp_prior = c(10, 1, 1, 1), iter = 1000)
 #' 
 #' # Fit all the signatures, running a single chain for many iterations
-#' # (and using a fixed seed to make results reproducible)
-#' samples_2 <- fit_signatures(counts_21bc, signatures, chains = 1, niter = 13000, warmup = 3000, seed = 1)
+#' # (3000 warmup iterations + 10000 sampling iterations)
+#' samples_2 <- fit_signatures(counts_21breast, signatures, chains = 1, 
+#'                             iter = 13000, warmup = 3000)
 #' @useDynLib sigfit, .registration = TRUE
 #' @importFrom "rstan" sampling
 #' @export
@@ -1207,24 +1214,25 @@ fit_signatures <- function(counts, signatures, exp_prior = NULL,
 #' \code{"optimizing"} returns the Maximum a Posteriori (MAP) point estimates via numerical optimization.
 #' \code{"vb"} uses Variational Bayes to approximate the full posterior.
 #' @param ... Any other parameters to pass to the sampling function (by default, \code{\link{rstan::sampling}}).
+#' (The number of chains is set to 1 and cannot be changed, to prevent 'label switching' problems.)
 #' @returns A stanfit object containing the Monte Carlo samples from MCMC (from which the model
 #' parameters can be extracted using \code{\link{retrieve_parameters}}), as well as information about
 #' the model and sampling process.
 #' @examples
 #' # Load example mutational catalogues
-#' data("counts_21bc")
+#' data("counts_21breast")
 #' 
 #' # Extract 3 to 6 signatures using the NMF (multinomial) model
-#' # (500 warm-up iterations + 500 sampling iterations)
-#' samples_nmf <- extract_signatures(counts_21bc, nsignatures = 3:6, method = "nmf",
-#'                                   iter = 1000, seed = 1)
+#' # (500 warmup iterations + 500 sampling iterations -- use more in practice)
+#' samples_nmf <- extract_signatures(counts_21breast, nsignatures = 3:6, 
+#'                                   method = "nmf", iter = 1000)
 #' str(samples_nmf)
 #' 
 #' # Extract 5 signatures using the EMu (Poisson) model
-#' # (300 warm-up iterations + 600 sampling iterations)
-#' samples_emu <- extract_signatures(counts_21bc, nsignatures = 5, method = "emu", 
+#' # (300 warmup iterations + 600 sampling iterations -- use more in practice)
+#' samples_emu <- extract_signatures(counts_21breast, nsignatures = 5, method = "emu", 
 #'                                   opportunities = "human-genome",
-#'                                   iter = 900, warmup = 300, seed = 1)
+#'                                   iter = 900, warmup = 300)
 #' str(samples_emu)
 #' @useDynLib sigfit, .registration = TRUE
 #' @importFrom "rstan" sampling
@@ -1363,16 +1371,31 @@ extract_signatures <- function(counts, nsignatures, method = "emu",
 #' default. \code{"optimizing"} returns the Maximum a Posteriori (MAP) point estimates 
 #' via numerical optimization. \code{"vb"} uses Variational Bayes to approximate the 
 #' full posterior.
-#' @param ... Any other parameters to pass through to rstan.
+#' @param ... Any other parameters to pass to the sampling function (by default, \code{\link{rstan::sampling}}).
+#' (The number of chains is set to 1 and cannot be changed, to prevent 'label switching' problems.)
 #' @returns A stanfit object containing the Monte Carlo samples from MCMC (from which the model
 #' parameters can be extracted using \code{\link{retrieve_parameters}}), as well as information about
 #' the model and sampling process.
 #' @examples
-#' # Load example mutational catalogues
-#' data("counts_21bc")
+#' # Fetch COSMIC signatures 
+#' signatures <- fetch_cosmic_data()
+#'
+#' # Simulate two catalogues using signatures 1, 4, 5, 7, with
+#' # proportions 4:2:3:1 and 2:3:4:1, respectively
+#' probs <- rbind(signatures[, c(1, 4, 5, 7)] %*% c(0.4, 0.2, 0.3, 0.1),
+#'                signatures[, c(1, 4, 5, 7)] %*% c(0.2, 0.3, 0.4, 0.1))
+#' mutations <- rbind(rmultinom(1, 20000, probs[1, ]),
+#'                    rmultinom(1, 20000, probs[2, ]))  
 #' 
-#' ...
+#' # Assuming that we do not know signature 7 a priori, but we know the others
+#' # to be present, extract 1 signature while fitting signatures 1, 4 and 5.
+#' # (500 warmup iterations + 500 sampling iterations -- use more in practice)
+#' mcmc_samples <- fit_extract_signatures(mutations, signatures = signatures[c(1, 4, 5), ],
+#'                                        num_extra_sigs = 1, method = "nmf", iter = 1000)
 #' 
+#' # Plot extracted signature
+#' extr_sig <- retrieve_pars(mcmc_samples, "signatures")
+#' plot_spectrum(extr_sig)
 #' @useDynLib sigfit, .registration = TRUE
 #' @importFrom "rstan" sampling
 #' @importFrom "rstan" optimizing
