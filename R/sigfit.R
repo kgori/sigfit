@@ -163,11 +163,11 @@ human_trinuc_freqs <- function(type = "genome") {
 #' corresponds to one of the 96 trinucleotide mutation types.
 #' @examples
 #' # Load example mutation data
-#' data("mutations_21breast")
-#' head(mutations_21breast)
+#' data("variants_21breast")
+#' head(variants_21breast)
 #' 
 #' # Build catalogues
-#' counts <- build_catalogues(mutations_21breast)
+#' counts <- build_catalogues(variants_21breast)
 #' counts
 #' @export
 build_catalogues <- function(variants) {
@@ -223,7 +223,7 @@ fetch_cosmic_data <- function(reorder = TRUE, remove_zeros = TRUE) {
     if (reorder) {
         cosmic_sigs <- cosmic_sigs[order(cosmic_sigs[["Substitution Type"]], cosmic_sigs[["Trinucleotide"]]),]
     }
-    rownames(cosmic_sigs) <- cosmic_sigs[["Somatic Mutation Type"]]
+    rownames(cosmic_sigs) <- mut_types()
     cosmic_sigs <- t(cosmic_sigs[, paste("Signature", 1:30)])
     if (remove_zeros) {
         cosmic_sigs <- remove_zeros_(cosmic_sigs)
@@ -318,7 +318,7 @@ convert_signatures <- function(signatures, ref_opportunities, model_to) {
 #' 
 #' # Extract signatures using the EMu (Poisson) model
 #' samples <- extract_signatures(counts_21breast, nsignatures = 2, method = "emu",
-#'                               opportunities = "human-genome", iter = 1000)
+#'                               opportunities = "human-genome", iter = 800)
 #' 
 #' # Retrieve extracted signatures
 #' sigs <- retrieve_pars(samples, "signatures")
@@ -596,7 +596,7 @@ plot_exposures <- function(counts, exposures = NULL, mcmc_samples = NULL, pdf_pa
 #' 
 #' # Extract signatures using the EMu (Poisson) model
 #' samples <- extract_signatures(counts_21breast, nsignatures = 2, method = "emu",
-#'                               opportunities = "human-genome", iter = 1000)
+#'                               opportunities = "human-genome", iter = 800)
 #' 
 #' # Retrieve signatures and exposures
 #' signatures <- retrieve_pars(samples, "signatures")
@@ -843,19 +843,20 @@ plot_reconstruction <- function(counts, mcmc_samples = NULL, signatures = NULL, 
 #' 
 #' # Extract signatures using the EMu (Poisson) model
 #' samples <- extract_signatures(counts_21breast, nsignatures = 2, method = "emu",
-#'                               opportunities = "human-genome", iter = 1000)
+#'                               opportunities = "human-genome", iter = 800)
 #' 
 #' # Retrieve signatures and exposures
 #' signatures <- retrieve_pars(samples, "signatures")
 #' exposures <- retrieve_pars(samples, "exposures")
 #' 
 #' # Plot results using stanfit object
-#' plot_all(counts_21breast, out_path = ".", mcmc_samples = samples, 
-#'          opportunities = "human-genome")
+#' plot_all(counts_21breast, out_path = ".", prefix = "Test1", 
+#'          mcmc_samples = samples, opportunities = "human-genome")
 #'                     
 #' # Plot results using retrieved signatures and exposures
-#' plot_all(counts_21breast, out_path = ".", signatures = signatures, 
-#'          exposures = exposures, opportunities = "human-genome")
+#' plot_all(counts_21breast, out_path = ".", prefix = "Test2", 
+#'          signatures = signatures, exposures = exposures, 
+#'          opportunities = "human-genome")
 #' @importFrom "rstan" extract
 #' @export
 plot_all <- function(counts, out_path, prefix = NULL, mcmc_samples = NULL, signatures = NULL, exposures = NULL,
@@ -864,23 +865,11 @@ plot_all <- function(counts, out_path, prefix = NULL, mcmc_samples = NULL, signa
     if (is.null(mcmc_samples) & (is.null(exposures) | is.null(signatures))) {
         stop("Either `mcmc_samples` (stanfit object), or both `signatures` and `exposures` (matrices or lists), must be provided.")
     }
-    if (is.null(signatures) & !("signatures" %in% mcmc_samples@model_pars)) { 
-        stop("`mcmc_samples` contains signature fitting results: a signatures matrix must be provided via `signatures`")
+    if (!is.null(mcmc_samples)) {
+        if (is.null(signatures) & !("signatures" %in% mcmc_samples@model_pars)) { 
+            stop("`mcmc_samples` contains signature fitting results: a signatures matrix must be provided via `signatures`")
+        }
     }
-    
-    if (is.null(opportunities)) {
-        opportunities <- matrix(1, nrow = nrow(counts), ncol = ncol(counts))
-    }
-    else if (is.character(opportunities) & opportunities == "human-genome") {
-        opportunities <- build_opps_matrix(nrow(counts), "genome")
-    }
-    else if (is.character(opportunities) & opportunities == "human-exome") {
-        opportunities <- build_opps_matrix(nrow(counts), "exome")
-    }
-    if (!is.matrix(opportunities)) {
-        opportunities <- as.matrix(opportunities)
-    }
-    stopifnot(all(dim(opportunities) == dim(counts)))
     
     # Create output directory if it does not exist
     dir.create(out_path, showWarnings=F)
@@ -1005,7 +994,7 @@ plot_gof <- function(sample_list, counts, stat = "cosine") {
 #' 
 #' # Extract signatures using the EMu (Poisson) model
 #' samples <- extract_signatures(counts_21breast, nsignatures = 2, method = "emu",
-#'                               opportunities = "human-genome", iter = 1000)
+#'                               opportunities = "human-genome", iter = 800)
 #' 
 #' # Retrieve signatures and exposures
 #' signatures <- retrieve_pars(samples, "signatures")
@@ -1122,9 +1111,9 @@ retrieve_pars <- function(mcmc_samples, feature, hpd_prob = 0.95, signature_name
 #' signatures <- fetch_cosmic_data()
 #' 
 #' # Fit signatures 1 to 4, using a custom prior that favors signature 1 over the rest
-#' # (4 chains, 500 warmup iterations + 500 sampling iterations -- use more in practice)
+#' # (4 chains, 300 warmup iterations + 300 sampling iterations -- use more in practice)
 #' samples_1 <- fit_signatures(counts_21breast, signatures[1:4, ], 
-#'                             exp_prior = c(10, 1, 1, 1), iter = 1000)
+#'                             exp_prior = c(10, 1, 1, 1), iter = 600)
 #' 
 #' # Fit all the signatures, running a single chain for many iterations
 #' # (3000 warmup iterations + 10000 sampling iterations)
@@ -1223,16 +1212,16 @@ fit_signatures <- function(counts, signatures, exp_prior = NULL,
 #' data("counts_21breast")
 #' 
 #' # Extract 3 to 6 signatures using the NMF (multinomial) model
-#' # (500 warmup iterations + 500 sampling iterations -- use more in practice)
+#' # (400 warmup iterations + 400 sampling iterations -- use more in practice)
 #' samples_nmf <- extract_signatures(counts_21breast, nsignatures = 3:6, 
-#'                                   method = "nmf", iter = 1000)
+#'                                   method = "nmf", iter = 800)
 #' str(samples_nmf)
 #' 
 #' # Extract 5 signatures using the EMu (Poisson) model
-#' # (300 warmup iterations + 600 sampling iterations -- use more in practice)
+#' # (400 warmup iterations + 500 sampling iterations -- use more in practice)
 #' samples_emu <- extract_signatures(counts_21breast, nsignatures = 5, method = "emu", 
 #'                                   opportunities = "human-genome",
-#'                                   iter = 900, warmup = 300)
+#'                                   iter = 900, warmup = 400)
 #' str(samples_emu)
 #' @useDynLib sigfit, .registration = TRUE
 #' @importFrom "rstan" sampling
@@ -1382,20 +1371,21 @@ extract_signatures <- function(counts, nsignatures, method = "emu",
 #'
 #' # Simulate two catalogues using signatures 1, 4, 5, 7, with
 #' # proportions 4:2:3:1 and 2:3:4:1, respectively
-#' probs <- rbind(signatures[, c(1, 4, 5, 7)] %*% c(0.4, 0.2, 0.3, 0.1),
-#'                signatures[, c(1, 4, 5, 7)] %*% c(0.2, 0.3, 0.4, 0.1))
-#' mutations <- rbind(rmultinom(1, 20000, probs[1, ]),
-#'                    rmultinom(1, 20000, probs[2, ]))  
+#' probs <- rbind(c(0.4, 0.2, 0.3, 0.1) %*% signatures[c(1, 4, 5, 7), ],
+#'                c(0.2, 0.3, 0.4, 0.1) %*% signatures[c(1, 4, 5, 7), ])
+#' mutations <- rbind(t(rmultinom(1, 20000, probs[1, ])),
+#'                    t(rmultinom(1, 20000, probs[2, ])))  
 #' 
 #' # Assuming that we do not know signature 7 a priori, but we know the others
 #' # to be present, extract 1 signature while fitting signatures 1, 4 and 5.
-#' # (500 warmup iterations + 500 sampling iterations -- use more in practice)
+#' # (400 warmup iterations + 400 sampling iterations -- use more in practice)
 #' mcmc_samples <- fit_extract_signatures(mutations, signatures = signatures[c(1, 4, 5), ],
-#'                                        num_extra_sigs = 1, method = "nmf", iter = 1000)
+#'                                        num_extra_sigs = 1, method = "nmf", iter = 800)
 #' 
-#' # Plot extracted signature
-#' extr_sig <- retrieve_pars(mcmc_samples, "signatures")
-#' plot_spectrum(extr_sig)
+#' # Plot original and extracted signature 7
+#' extr_sigs <- retrieve_pars(mcmc_samples, "signatures")
+#' plot_spectrum(signatures[7, ], pdf_path = "COSMIC_Sig7.pdf", name="COSMIC sig. 7")
+#' plot_spectrum(extr_sigs, pdf_path = "Extracted_Sigs.pdf")
 #' @useDynLib sigfit, .registration = TRUE
 #' @importFrom "rstan" sampling
 #' @importFrom "rstan" optimizing
