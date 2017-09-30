@@ -119,11 +119,11 @@ anon <- suppressWarnings(
 
 ### Example 2: Extracting mutational signatures from multiple breast cancer samples
 
-For this second example, we will use single-nucleotide variant data from a set of 21 breast cancer samples, published in [Nik-Zainal _et al._, _Cell_ 2012](http://dx.doi.org/10.1016/j.cell.2012.04.024). These data can be accessed using ```data("mutations_21bc")```.
+For this second example, we will use single-nucleotide variant data from a set of 21 breast cancer samples, published in [Nik-Zainal _et al._, _Cell_ 2012](http://dx.doi.org/10.1016/j.cell.2012.04.024). These data can be accessed using ```data("mutations_21breast")```.
 
 ```{r load_mutations}
-data("mutations_21bc")
-head(mutations_21bc)
+data("mutations_21breast")
+head(mutations_21breast)
 ```
 
 This table shows the structure of the variant data that can be used as input for the package. It is a matrix with one row per variant, and four columns:
@@ -136,31 +136,31 @@ This table shows the structure of the variant data that can be used as input for
  Importantly, since each variant can only have a single sample ID, variants which are found in more than one sample need to be included in the table multiple time, using different sample IDs. The order in which the samples are found in this table will be the order in which they will be displayed hereafter. In this case, the samples are already sorted alphabetically:
  
 ```{r show_samples}
-unique(mutations_21bc[, 1])
+unique(mutations_21breast[, 1])
 ```
 
 The first step is to transform these variants into mutational catalogues, which is done by the ```build_catalogues``` function.
 
 ```{r build_catalogues}
-counts_21bc <- build_catalogues(mutations_21bc)
-dim(counts_21bc)
+counts_21breast <- build_catalogues(mutations_21breast)
+dim(counts_21breast)
 ```
 
 The mutational catalogues are stored as a matrix of mutation counts, where each row refers to a sample and each column correspond to a trinucleotide mutation type.
 
-This set of 21 mutational catalogues can be loaded directly using ```data("counts_21bc")```.
+This set of 21 mutational catalogues can be loaded directly using ```data("counts_21breast")```.
 
 We can plot the spectrum of all the mutational catalogues using the ```plot_spectrum``` function, as in the previous example. If the supplied table contains more than one catalogue, this function will produce one plot per catalogue, which makes using a PDF output file (```pdf_path``` argument) more convenient.
 
 ```{r fig.width=24, fig.height=30, out.width = '100%', fig.align = "center", eval=FALSE, plot_spectra}
 par(mfrow = c(7, 3))
-plot_spectrum(counts_21bc, 
+plot_spectrum(counts_21breast, 
               counts = TRUE)
 ```
 
 ```{r fig.width=24, fig.height=25, out.width = '100%', fig.align = "center", echo=FALSE, silent_plot_spectra}
 par(mfrow = c(7, 3), mar = c(5,6,7,2))
-plot_spectrum(counts_21bc, counts = TRUE)
+plot_spectrum(counts_21breast, counts = TRUE)
 ```
 
 ---
