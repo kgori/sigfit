@@ -1474,3 +1474,34 @@ fit_extract_signatures <- function(counts, signatures, num_extra_sigs,
         vb(model, data = dat, ...)
     }
 }
+
+#' Find the best matches between two sets of signatures
+#' 
+#' \code{match_signatures} compares two independent estimates of signatures to find the closest
+#' matches between them.
+#' @param sigs_a Signatures estimate: either a list such as one produced by \code{\link{retrieve_pars}}, with
+#' a \code{$mean} entry, or a matrix with one signature per row.
+#' @param sigs_b Signatures estimate as for \code{sigs_a}.
+#' @returns A vector describing for each signature in \code{sigs_a}, the index of the closest match in 
+#' \code{sigs_b}.
+#' @importFrom "clue" solve_LSAP
+#' @export
+match_signatures <- function(sigs_a, sigs_b) {
+    if ("mean" %in% names(sigs_a)) a <- sigs_a$mean
+    else a <- sigs_a
+    
+    if ("mean" %in% names(sigs_b)) b <- sigs_b$mean
+    else b <- sigs_b
+    
+    nA <- nrow(a)
+    nB <- nrow(b)
+    stopifnot(nA == nB)
+    
+    m <- matrix(0.0, nrow = nA, ncol = nB)
+    for (i in 1:nA) {
+        for (j in 1:nB) {
+            m[i, j] <- cosine_sim(a[i, ], b[j, ])
+        }
+    }
+    solve_LSAP(m, maximum = TRUE)
+}
