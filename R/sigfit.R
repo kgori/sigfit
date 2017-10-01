@@ -434,12 +434,15 @@ plot_spectrum <- function(spectra, counts = FALSE, name = NULL, pdf_path = NULL,
 #' the HPD intervals.
 #' @param horiz_labels If \code{TRUE}, sample name labels will be displayed horizontally in the
 #' barplots.
+#' @param legend_pos Character indicating the position of the legend in the exposures barplot. Admits values
+#' \code{"bottomright"}, \code{"bottom"}, \code{"bottomleft"}, \code{"left"}, \code{"topleft"}, \code{"top"}, 
+#' \code{"topright"}, \code{"right"} and \code{"center"}.
 #' @param sig_color_palette Character vector of color names or hexadecimal codes to use for each signature.
 #' Must have at least as many elements as the number of signatures.
 #' @export
 plot_exposures <- function(counts, exposures = NULL, mcmc_samples = NULL, pdf_path = NULL,
                            signature_names = NULL, thresh = 0.01, hpd_prob = 0.95,
-                           horiz_labels = FALSE, sig_color_palette = NULL) {
+                           horiz_labels = FALSE, legend_pos = "topright", sig_color_palette = NULL) {
     if (is.null(exposures) & is.null(mcmc_samples)) {
         stop("Either `exposures` (matrix or list) or `mcmc_samples` (stanfit object) must be provided.")
     }
@@ -543,7 +546,7 @@ plot_exposures <- function(counts, exposures = NULL, mcmc_samples = NULL, pdf_pa
         # Legend
         # expand legend box horizontally if there are lots of signatures
         LEGENDCOLS <- max(2, ceiling(ncol(exposures) / 10))
-        legend("topright", bty = "n", ncol = LEGENDCOLS, xpd = TRUE, inset = c(0.035, 0),
+        legend(legend_pos, bty = "n", ncol = LEGENDCOLS, xpd = TRUE, inset = c(0.035, 0),
                fill = sigcols, border = "white", legend = colnames(exposures))
         
         # Plot relative exposures
@@ -584,6 +587,9 @@ plot_exposures <- function(counts, exposures = NULL, mcmc_samples = NULL, pdf_pa
 #' for extraction/fitting. Admits values \code{"human-genome"} and \code{"human-exome"}.
 #' @param pdf_path If provided, the plots will be output to a PDF file with this path. The PDF 
 #' size and graphical parameters will be automatically set to appropriate values.
+#' @param legend_pos Character indicating the position of the legend in the reconstructed spectrum. Admits values
+#' \code{"bottomright"}, \code{"bottom"}, \code{"bottomleft"}, \code{"left"}, \code{"topleft"}, \code{"top"}, 
+#' \code{"topright"}, \code{"right"} and \code{"center"}.
 #' @param sig_color_palette Character vector of color names or hexadecimal codes to use for each signature.
 #' Must have at least as many elements as the number of signatures.
 #' @examples
@@ -609,7 +615,8 @@ plot_exposures <- function(counts, exposures = NULL, mcmc_samples = NULL, pdf_pa
 #' @importFrom "coda" as.mcmc HPDinterval
 #' @export
 plot_reconstruction <- function(counts, mcmc_samples = NULL, signatures = NULL, exposures = NULL, 
-                                opportunities = NULL, pdf_path = NULL, sig_color_palette = NULL) {
+                                opportunities = NULL, pdf_path = NULL, legend_pos = "topright", 
+                                sig_color_palette = NULL) {
     
     NCAT <- 96             # number of categories (enforcing trinucleotides)
     NSAMP <- nrow(counts)  # number of samples
@@ -794,7 +801,7 @@ plot_reconstruction <- function(counts, mcmc_samples = NULL, signatures = NULL, 
         else {
             sig_names <- rownames(signatures)
         }
-        legend("topright", inset = c(0, 0.13), ncol = 2,
+        legend(legend_pos, inset = c(0, 0.13), ncol = 2,
                legend = paste0(sig_names, " (", round(exposures[i, ], 3), ")"), 
                fill = sigcols, border = "white", cex = 1.5, bty = "n")
     }
@@ -839,6 +846,12 @@ plot_reconstruction <- function(counts, mcmc_samples = NULL, signatures = NULL, 
 #' barplots. This value is passed to the \code{plot_exposures} function.
 #' @param hpd_prob A value in the interval (0, 1), giving the target probability content of 
 #' the HPD intervals. This value is passed to the \code{plot_exposures} function.
+#' @param exp_legend_pos Character indicating the position of the legend in the exposures barplot. Admits values
+#' \code{"bottomright"}, \code{"bottom"}, \code{"bottomleft"}, \code{"left"}, \code{"topleft"}, \code{"top"}, 
+#' \code{"topright"}, \code{"right"} and \code{"center"}. This value is passed to the \code{plot_exposures} function.
+#' @param rec_legend_pos Character indicating the position of the legend in the reconstructed spectrum. Admits values
+#' \code{"bottomright"}, \code{"bottom"}, \code{"bottomleft"}, \code{"left"}, \code{"topleft"}, \code{"top"}, 
+#' \code{"topright"}, \code{"right"} and \code{"center"}. This value is passed to the \code{plot_reconstruction} function.
 #' @param sig_color_palette Character vector of color names or hexadecimal codes to use for each signature.
 #' Must have at least as many elements as the number of signatures. This value is passed to the 
 #' \code{plot_exposures} and \code{plot_reconstruction} functions.
@@ -866,7 +879,8 @@ plot_reconstruction <- function(counts, mcmc_samples = NULL, signatures = NULL, 
 #' @export
 plot_all <- function(counts, out_path, prefix = NULL, mcmc_samples = NULL, signatures = NULL, exposures = NULL,
                      opportunities = NULL, thresh = 0.01, horiz_labels = FALSE, hpd_prob = 0.95, 
-                     signature_names = NULL, sig_color_palette = NULL) {
+                     signature_names = NULL, exp_legend_pos = "topright", rec_legend_pos = "topright", 
+                     sig_color_palette = NULL) {
     
     if (is.null(mcmc_samples) & (is.null(exposures) | is.null(signatures))) {
         stop("Either `mcmc_samples` (stanfit object), or both `signatures` and `exposures` (matrices or lists), must be provided.")
@@ -896,11 +910,13 @@ plot_all <- function(counts, out_path, prefix = NULL, mcmc_samples = NULL, signa
         
         cat("Plotting signature exposures...\n")
         plot_exposures(counts, exposures = exposures, signature_names = signature_names, 
-                       thresh = thresh, sig_color_palette = sig_color_palette, horiz_labels = horiz_labels,
+                       thresh = thresh, sig_color_palette = sig_color_palette, 
+                       horiz_labels = horiz_labels, legend_pos = exp_legend_pos,
                        pdf_path = paste0(out_path, "/", prefix, "Exposures_", Sys.Date(), ".pdf"))
         
         plot_reconstruction(counts, signatures = signatures, exposures = exposures, 
-                            opportunities = opportunities, sig_color_palette = sig_color_palette,
+                            opportunities = opportunities, legend_pos = rec_legend_pos, 
+                            sig_color_palette = sig_color_palette,
                             pdf_path = paste0(out_path, "/", prefix, "Reconstructions_", Sys.Date(), ".pdf"))
     }
     
@@ -915,12 +931,13 @@ plot_all <- function(counts, out_path, prefix = NULL, mcmc_samples = NULL, signa
         
         cat("Plotting signature exposures...\n")
         plot_exposures(counts, mcmc_samples = mcmc_samples, signature_names = signature_names, 
-                       thresh = thresh, hpd_prob = hpd_prob, 
-                       horiz_labels = horiz_labels, sig_color_palette = sig_color_palette,
+                       thresh = thresh, hpd_prob = hpd_prob, horiz_labels = horiz_labels, 
+                       legend_pos = exp_legend_pos, sig_color_palette = sig_color_palette,
                        pdf_path = paste0(out_path, "/", prefix, "Exposures_", Sys.Date(), ".pdf"))
         
-        plot_reconstruction(counts, mcmc_samples = mcmc_samples, signatures = signatures,
-                            opportunities = opportunities, sig_color_palette = sig_color_palette,
+        plot_reconstruction(counts, mcmc_samples = mcmc_samples, signatures = signatures, 
+                            opportunities = opportunities, legend_pos = rec_legend_pos, 
+                            sig_color_palette = sig_color_palette,
                             pdf_path = paste0(out_path, "/", prefix, "Reconstructions_", Sys.Date(), ".pdf"))
     }
 }
