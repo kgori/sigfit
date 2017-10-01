@@ -432,12 +432,14 @@ plot_spectrum <- function(spectra, counts = FALSE, name = NULL, pdf_path = NULL,
 #' intervals. The exposures for which the lower HPD bound is below this value will be colored in grey.
 #' @param hpd_prob A value in the interval (0, 1), giving the target probability content of 
 #' the HPD intervals.
+#' @param horiz_labels If \code{TRUE}, sample name labels will be displayed horizontally in the
+#' barplots.
 #' @param sig_color_palette Character vector of color names or hexadecimal codes to use for each signature.
 #' Must have at least as many elements as the number of signatures.
 #' @export
 plot_exposures <- function(counts, exposures = NULL, mcmc_samples = NULL, pdf_path = NULL,
                            signature_names = NULL, thresh = 0.01, hpd_prob = 0.95,
-                           sig_color_palette = NULL) {
+                           horiz_labels = FALSE, sig_color_palette = NULL) {
     if (is.null(exposures) & is.null(mcmc_samples)) {
         stop("Either `exposures` (matrix or list) or `mcmc_samples` (stanfit object) must be provided.")
     }
@@ -531,7 +533,8 @@ plot_exposures <- function(counts, exposures = NULL, mcmc_samples = NULL, pdf_pa
         exposures_abs <- exposures * muts
         
         # Plot absolute exposures
-        bars <- barplot(t(exposures_abs), col = sigcols, las = 2, lwd = 0.25,
+        las = ifelse(horiz_labels, 1, 2)
+        bars <- barplot(t(exposures_abs), col = sigcols, las = las, lwd = 0.25,
                         cex.names = 0.8, cex.main = 1.4, axes = FALSE,
                         main = "Signature exposures per sample (absolute)")
         axis(side = 2, cex.axis = 1.1, las = 2, line = -2)
@@ -544,7 +547,7 @@ plot_exposures <- function(counts, exposures = NULL, mcmc_samples = NULL, pdf_pa
                fill = sigcols, border = "white", legend = colnames(exposures))
         
         # Plot relative exposures
-        bars <- barplot(t(exposures), col = sigcols, las = 2, lwd = 0.25,
+        bars <- barplot(t(exposures), col = sigcols, las = las, lwd = 0.25,
                         cex.names = 0.8, cex.main = 1.4, axes = FALSE,
                         main = "Signature exposures per sample (relative)")
         axis(side = 2, cex.axis = 1.1, las = 2, line = -2)
@@ -806,10 +809,10 @@ plot_reconstruction <- function(counts, mcmc_samples = NULL, signatures = NULL, 
 #' 
 #' For a given set of signature fitting or extraction results, \code{plot_all} plots, in PDF format: 
 #' \itemize{
-#'  \item{All the original (input) mutational catalogues}
-#'  \item{Mutational signatures}
-#'  \item{Signature exposures}
-#'  \item{All the reconstructed mutational spectra}
+#'  \item{All the original (input) mutational catalogues (via \code{\link{plot_spectrum}})}
+#'  \item{Mutational signatures (via \code{\link{plot_spectrum}})}
+#'  \item{Signature exposures (via \code{\link{plot_exposures}})}
+#'  \item{All the reconstructed mutational spectra (via \code{\link{plot_reconstruction}})}
 #' }
 #' @param counts Matrix of observed mutation counts (integers), with one row per sample and 
 #' column for each of the 96 mutation types.
@@ -829,8 +832,16 @@ plot_reconstruction <- function(counts, mcmc_samples = NULL, signatures = NULL, 
 #' @param opportunities If \code{signatures} and/or \code{exposures} were obtained by extracting or fitting
 #' signatures using the "EMu" model (\code{method = "emu"}), these should be the same opportunities used 
 #' for extraction/fitting. Admits values \code{"human-genome"} and \code{"human-exome"}.
+#' @param thresh Minimum probability value that should be reached by the lower end of exposure HPD
+#' intervals. The exposures for which the lower HPD bound is below this value will be colored in grey.
+#' This value is passed to the \code{plot_exposures} function.
+#' @param horiz_labels If \code{TRUE}, sample name labels will be displayed horizontally in the
+#' barplots. This value is passed to the \code{plot_exposures} function.
+#' @param hpd_prob A value in the interval (0, 1), giving the target probability content of 
+#' the HPD intervals. This value is passed to the \code{plot_exposures} function.
 #' @param sig_color_palette Character vector of color names or hexadecimal codes to use for each signature.
-#' Must have at least as many elements as the number of signatures.
+#' Must have at least as many elements as the number of signatures. This value is passed to the 
+#' \code{plot_exposures} and \code{plot_reconstruction} functions.
 #' @examples
 #' # Load example mutational catalogues
 #' data("counts_21breast")
@@ -854,7 +865,8 @@ plot_reconstruction <- function(counts, mcmc_samples = NULL, signatures = NULL, 
 #' @importFrom "rstan" extract
 #' @export
 plot_all <- function(counts, out_path, prefix = NULL, mcmc_samples = NULL, signatures = NULL, exposures = NULL,
-                     opportunities = NULL, exp_thresh = 0.01, hpd_prob = 0.95, signature_names = NULL, sig_color_palette = NULL) {
+                     opportunities = NULL, thresh = 0.01, horiz_labels = FALSE, hpd_prob = 0.95, 
+                     signature_names = NULL, sig_color_palette = NULL) {
     
     if (is.null(mcmc_samples) & (is.null(exposures) | is.null(signatures))) {
         stop("Either `mcmc_samples` (stanfit object), or both `signatures` and `exposures` (matrices or lists), must be provided.")
@@ -884,7 +896,7 @@ plot_all <- function(counts, out_path, prefix = NULL, mcmc_samples = NULL, signa
         
         cat("Plotting signature exposures...\n")
         plot_exposures(counts, exposures = exposures, signature_names = signature_names, 
-                       thresh = exp_thresh, sig_color_palette = sig_color_palette, 
+                       thresh = thresh, sig_color_palette = sig_color_palette, horiz_labels = horiz_labels,
                        pdf_path = paste0(out_path, "/", prefix, "Exposures_", Sys.Date(), ".pdf"))
         
         plot_reconstruction(counts, signatures = signatures, exposures = exposures, 
@@ -903,7 +915,8 @@ plot_all <- function(counts, out_path, prefix = NULL, mcmc_samples = NULL, signa
         
         cat("Plotting signature exposures...\n")
         plot_exposures(counts, mcmc_samples = mcmc_samples, signature_names = signature_names, 
-                       thresh = exp_thresh, hpd_prob = hpd_prob, sig_color_palette = sig_color_palette,
+                       thresh = thresh, hpd_prob = hpd_prob, 
+                       horiz_labels = horiz_labels, sig_color_palette = sig_color_palette,
                        pdf_path = paste0(out_path, "/", prefix, "Exposures_", Sys.Date(), ".pdf"))
         
         plot_reconstruction(counts, mcmc_samples = mcmc_samples, signatures = signatures,
