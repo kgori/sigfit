@@ -906,8 +906,8 @@ plot_all <- function(counts, out_path, prefix = NULL, mcmc_samples = NULL, signa
                        thresh = exp_thresh, hpd_prob = hpd_prob, sig_color_palette = sig_color_palette,
                        pdf_path = paste0(out_path, "/", prefix, "Exposures_", Sys.Date(), ".pdf"))
         
-        plot_reconstruction(counts, mcmc_samples = mcmc_samples, opportunities = opportunities, 
-                            sig_color_palette = sig_color_palette,
+        plot_reconstruction(counts, mcmc_samples = mcmc_samples, signatures = signatures,
+                            opportunities = opportunities, sig_color_palette = sig_color_palette,
                             pdf_path = paste0(out_path, "/", prefix, "Reconstructions_", Sys.Date(), ".pdf"))
     }
 }
