@@ -821,7 +821,8 @@ plot_reconstruction <- function(counts, mcmc_samples = NULL, signatures = NULL, 
 #' are not provided.
 #' @param signatures Either a matrix of mutational signatures, with one row per signature and one
 #' column for each of the 96 mutation types, or a list of signatures generated via
-#' \code{\link{retrieve_pars}}. Only needed if \code{mcmc_samples} is not provided. [Matrix/List]
+#' \code{\link{retrieve_pars}}. Only needed if \code{mcmc_samples} is not provided, or if it
+#' contains signature fitting (instead of signature extraction) results.
 #' @param exposures Either a matrix of signature exposures, with one row per sample and one column 
 #' per signature, or a list of exposures as produced by \code{\link{retrieve_pars}}. 
 #' Only needed if \code{mcmc_samples} is not provided.
@@ -894,7 +895,9 @@ plot_all <- function(counts, out_path, prefix = NULL, mcmc_samples = NULL, signa
     # Case B: MCMC samples provided instead of matrices
     else {
         cat("Plotting mutational signatures...\n")
-        signatures <- retrieve_pars(mcmc_samples, feature = "signatures")
+        if ("signatures" %in% mcmc_samples@model_pars) {
+            signatures <- retrieve_pars(mcmc_samples, feature = "signatures")
+        }
         plot_spectrum(signatures, 
                       pdf_path = paste0(out_path, "/", prefix, "Signatures_", Sys.Date(), ".pdf"))
         
