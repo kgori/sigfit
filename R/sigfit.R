@@ -10,8 +10,8 @@ to_matrix <- function(x) {
 }
 
 #' Build a opportunities matrix
-build_opps_matrix <- function(nsamples, keyword) {
-    matrix(rep(human_trinuc_freqs(keyword), nsamples),
+build_opps_matrix <- function(nsamples, keyword, strand) {
+    matrix(rep(human_trinuc_freqs(keyword, strand), nsamples),
            nrow = nsamples, 
            byrow = TRUE)
 }
@@ -62,16 +62,22 @@ default_sig_palette <- function(n) {
         5)[1:n]
 }
 
-#' Generate character vector of 96 (pyrimidine) trinucleotide mutation types
-mut_types <- function() {
+#' Generates character vector of 96 (or 192, if strand=T) trinucleotide mutation types
+mut_types <- function(strand = FALSE) {
     bases <- c("A", "C", "G", "T")
-    paste0(rep(rep(bases, each = 4), 6),
-           rep(bases[c(2, 4)], each = 48),
-           rep(bases, 6 * 16 / 4),
-           ">",
-           rep(rep(bases, each = 4), 6),
-           c(rep(bases[-2], each = 16), rep(bases[-4], each = 16)),
-           rep(bases, 6 * 16 / 4))
+    muts <- paste0(rep(rep(bases, each = 4), 6),
+                   rep(bases[c(2, 4)], each = 48),
+                   rep(bases, 6 * 16 / 4),
+                   ">",
+                   rep(rep(bases, each = 4), 6),
+                   c(rep(bases[-2], each = 16), rep(bases[-4], each = 16)),
+                   rep(bases, 6 * 16 / 4))
+    if (strand) {
+        paste(c(rep("T", 96), rep("U", 96)), muts, sep = ":")
+    }
+    else {
+        muts
+    }
 }
 
 #' Access stan models
@@ -84,66 +90,78 @@ stan_models <- function() {
 #' 
 #' \code{human_trinuc_freqs} returns the reference human genome or exome 
 #' trinucleotide frequencies.
-#' @param type Either "genome" (default) or "exome".
-#' @return A numeric vector containinig 96 frequency values (one per trinucleotide type).
+#' @param type Character; either \code{"genome"} (default) or \code{"exome"}.
+#' @param strand Logical; if \code{TRUE}, a strand-bias representation of catalogues
+#' and signatures will be used.
+#' @return A numeric vector containinig 96 frequency values (one per trinucleotide type), if
+#' \code{strand=FALSE}, or 192 frequency values (one per trinucleotide and strand type), if
+#' \code{strand=TRUE}. In the latter case, the trinucleotide frequencies are assumed to be
+#' equally distributed between the two strands.
 #' @export
-human_trinuc_freqs <- function(type = "genome") {
+human_trinuc_freqs <- function(type = "genome", strand = FALSE) {
     if (type == "genome") {
         # Human genome trinucleotide frequencies (from EMu)
-        c(1.14e+08, 6.60e+07, 1.43e+07, 9.12e+07, # C>A @ AC[ACGT]
-          1.05e+08, 7.46e+07, 1.57e+07, 1.01e+08, # C>A @ CC[ACGT]
-          8.17e+07, 6.76e+07, 1.35e+07, 7.93e+07, # C>A @ GC[ACGT]
-          1.11e+08, 8.75e+07, 1.25e+07, 1.25e+08, # C>A @ TC[ACGT]
-          1.14e+08, 6.60e+07, 1.43e+07, 9.12e+07, # C>G @ AC[ACGT]
-          1.05e+08, 7.46e+07, 1.57e+07, 1.01e+08, # C>G @ CC[ACGT]
-          8.17e+07, 6.76e+07, 1.35e+07, 7.93e+07, # C>G @ GC[ACGT]
-          1.11e+08, 8.75e+07, 1.25e+07, 1.25e+08, # C>G @ TC[ACGT]
-          1.14e+08, 6.60e+07, 1.43e+07, 9.12e+07, # C>T @ AC[ACGT]
-          1.05e+08, 7.46e+07, 1.57e+07, 1.01e+08, # C>T @ CC[ACGT]
-          8.17e+07, 6.76e+07, 1.35e+07, 7.93e+07, # C>T @ GC[ACGT]
-          1.11e+08, 8.75e+07, 1.25e+07, 1.25e+08, # C>T @ TC[ACGT]
-          1.17e+08, 7.57e+07, 1.04e+08, 1.41e+08, # T>A @ AC[ACGT]
-          7.31e+07, 9.55e+07, 1.15e+08, 1.13e+08, # T>A @ CC[ACGT]
-          6.43e+07, 5.36e+07, 8.52e+07, 8.27e+07, # T>A @ GC[ACGT]
-          1.18e+08, 1.12e+08, 1.07e+08, 2.18e+08, # T>A @ TC[ACGT]
-          1.17e+08, 7.57e+07, 1.04e+08, 1.41e+08, # T>C @ AC[ACGT]
-          7.31e+07, 9.55e+07, 1.15e+08, 1.13e+08, # T>C @ CC[ACGT]
-          6.43e+07, 5.36e+07, 8.52e+07, 8.27e+07, # T>C @ GC[ACGT]
-          1.18e+08, 1.12e+08, 1.07e+08, 2.18e+08, # T>C @ TC[ACGT]
-          1.17e+08, 7.57e+07, 1.04e+08, 1.41e+08, # T>G @ AC[ACGT]
-          7.31e+07, 9.55e+07, 1.15e+08, 1.13e+08, # T>G @ AC[ACGT]
-          6.43e+07, 5.36e+07, 8.52e+07, 8.27e+07, # T>G @ AG[ACGT]
-          1.18e+08, 1.12e+08, 1.07e+08, 2.18e+08) # T>G @ AT[ACGT]
+        freq <- c(1.14e+08, 6.60e+07, 1.43e+07, 9.12e+07, # C>A @ AC[ACGT]
+                  1.05e+08, 7.46e+07, 1.57e+07, 1.01e+08, # C>A @ CC[ACGT]
+                  8.17e+07, 6.76e+07, 1.35e+07, 7.93e+07, # C>A @ GC[ACGT]
+                  1.11e+08, 8.75e+07, 1.25e+07, 1.25e+08, # C>A @ TC[ACGT]
+                  1.14e+08, 6.60e+07, 1.43e+07, 9.12e+07, # C>G @ AC[ACGT]
+                  1.05e+08, 7.46e+07, 1.57e+07, 1.01e+08, # C>G @ CC[ACGT]
+                  8.17e+07, 6.76e+07, 1.35e+07, 7.93e+07, # C>G @ GC[ACGT]
+                  1.11e+08, 8.75e+07, 1.25e+07, 1.25e+08, # C>G @ TC[ACGT]
+                  1.14e+08, 6.60e+07, 1.43e+07, 9.12e+07, # C>T @ AC[ACGT]
+                  1.05e+08, 7.46e+07, 1.57e+07, 1.01e+08, # C>T @ CC[ACGT]
+                  8.17e+07, 6.76e+07, 1.35e+07, 7.93e+07, # C>T @ GC[ACGT]
+                  1.11e+08, 8.75e+07, 1.25e+07, 1.25e+08, # C>T @ TC[ACGT]
+                  1.17e+08, 7.57e+07, 1.04e+08, 1.41e+08, # T>A @ AC[ACGT]
+                  7.31e+07, 9.55e+07, 1.15e+08, 1.13e+08, # T>A @ CC[ACGT]
+                  6.43e+07, 5.36e+07, 8.52e+07, 8.27e+07, # T>A @ GC[ACGT]
+                  1.18e+08, 1.12e+08, 1.07e+08, 2.18e+08, # T>A @ TC[ACGT]
+                  1.17e+08, 7.57e+07, 1.04e+08, 1.41e+08, # T>C @ AC[ACGT]
+                  7.31e+07, 9.55e+07, 1.15e+08, 1.13e+08, # T>C @ CC[ACGT]
+                  6.43e+07, 5.36e+07, 8.52e+07, 8.27e+07, # T>C @ GC[ACGT]
+                  1.18e+08, 1.12e+08, 1.07e+08, 2.18e+08, # T>C @ TC[ACGT]
+                  1.17e+08, 7.57e+07, 1.04e+08, 1.41e+08, # T>G @ AC[ACGT]
+                  7.31e+07, 9.55e+07, 1.15e+08, 1.13e+08, # T>G @ AC[ACGT]
+                  6.43e+07, 5.36e+07, 8.52e+07, 8.27e+07, # T>G @ AG[ACGT]
+                  1.18e+08, 1.12e+08, 1.07e+08, 2.18e+08) # T>G @ AT[ACGT]
     }
     else if (type == "exome") {
         # Human exome trinucleotide frequencies (from EMu)
-        c(1940794, 1442408, 514826, 1403756,
-          2277398, 2318284, 774498, 2269674,
-          1740752, 1968596, 631872, 1734468,
-          1799540, 1910984, 398440, 2024770,
-          1940794, 1442408, 514826, 1403756,
-          2277398, 2318284, 774498, 2269674,
-          1740752, 1968596, 631872, 1734468,
-          1799540, 1910984, 398440, 2024770,
-          1940794, 1442408, 514826, 1403756,
-          2277398, 2318284, 774498, 2269674,
-          1740752, 1968596, 631872, 1734468,
-          1799540, 1910984, 398440, 2024770,
-          1299256, 1166912, 1555012, 1689928,
-          978400,  2119248, 2650754, 1684488,
-          884052,  1173252, 1993110, 1251508,
-          1391660, 1674368, 1559846, 2850934,
-          1299256, 1166912, 1555012, 1689928,
-          978400,  2119248, 2650754, 1684488,
-          884052,  1173252, 1993110, 1251508,
-          1391660, 1674368, 1559846, 2850934,
-          1299256, 1166912, 1555012, 1689928,
-          978400,  2119248, 2650754, 1684488,
-          884052,  1173252, 1993110, 1251508,
-          1391660, 1674368, 1559846, 2850934)
+        freq <- c(1940794, 1442408, 514826, 1403756,
+                  2277398, 2318284, 774498, 2269674,
+                  1740752, 1968596, 631872, 1734468,
+                  1799540, 1910984, 398440, 2024770,
+                  1940794, 1442408, 514826, 1403756,
+                  2277398, 2318284, 774498, 2269674,
+                  1740752, 1968596, 631872, 1734468,
+                  1799540, 1910984, 398440, 2024770,
+                  1940794, 1442408, 514826, 1403756,
+                  2277398, 2318284, 774498, 2269674,
+                  1740752, 1968596, 631872, 1734468,
+                  1799540, 1910984, 398440, 2024770,
+                  1299256, 1166912, 1555012, 1689928,
+                  978400,  2119248, 2650754, 1684488,
+                  884052,  1173252, 1993110, 1251508,
+                  1391660, 1674368, 1559846, 2850934,
+                  1299256, 1166912, 1555012, 1689928,
+                  978400,  2119248, 2650754, 1684488,
+                  884052,  1173252, 1993110, 1251508,
+                  1391660, 1674368, 1559846, 2850934,
+                  1299256, 1166912, 1555012, 1689928,
+                  978400,  2119248, 2650754, 1684488,
+                  884052,  1173252, 1993110, 1251508,
+                  1391660, 1674368, 1559846, 2850934)
     }
     else {
-        stop("`type` must be either \"genome\" or \"exome\"")
+        stop("'type' must be either \"genome\" or \"exome\"")
+    }
+    
+    if (strand) {
+        rep(freq / 2, 2)
+    }
+    else {
+        freq
     }
 }
 
@@ -151,13 +169,16 @@ human_trinuc_freqs <- function(type = "genome") {
 #' 
 #' \{build_catalogues} generates a set of mutational catalogues from a table containing 
 #' the base change and trinucleotide context of each single-nucleotide variant in every sample.
-#' @param variants Matrix with one row per single-nucleotide variant, and four columns:
+#' @param variants Matrix with one row per single-nucleotide variant, and four or five columns:
 #' \itemizer{
-#'  \item{Sample ID (character, e.g. "Sample 1")}
-#'  \item{Reference allele (character: "A", "C", "G", or "T")}
-#'  \item{Alternate allele (character: "A", "C", "G", or "T")}
+#'  \item{Sample ID (character, e.g. "Sample 1").}
+#'  \item{Reference allele (character: "A", "C", "G", or "T").}
+#'  \item{Alternate allele (character: "A", "C", "G", or "T").}
 #'  \item{Trinucleotide context of the variant (the reference sequence between the positions 
-#'  immediately before and after the variant; character, e.g. "TCA")}
+#'  immediately before and after the variant; character, e.g. "TCA").}
+#'  \item{Optional: transcriptional strand of the variant (character: "T" for transcribed,
+#'  or "U" for untranscribed). If this column is included, a strand-bias representation of
+#'  catalogues will be used.}
 #' }
 #' @return A matrix of mutation counts, where each row corresponds to a sample and each column
 #' corresponds to one of the 96 trinucleotide mutation types.
@@ -171,8 +192,18 @@ human_trinuc_freqs <- function(type = "genome") {
 #' counts
 #' @export
 build_catalogues <- function(variants) {
-    if (ncol(variants) != 4) {
-        stop("`variants` must be a matrix with 4 columns and one row per variant.\nType `?build_catalogues` to see the documentation.")
+    if (!(ncol(variants) %in% c(4, 5))) {
+        stop("'variants' must be a matrix with 4 or 5 columns and one row per variant.\nType ?build_catalogues to see the documentation.")
+    }
+    if (ncol(variants) == 5) {
+        if (!all(unique(variants[, 5] %in% c("T", "U")))) {
+            stop("The fifth column of 'variants' (transcriptional strand) can only contain \"T\" or \"U\" values.\nType ?build_catalogues to see the documentation.")
+        }
+        cat("'variants' has 5 columns: strand-bias catalogues will be generated\n")
+        strand <- TRUE
+    }
+    else {
+        strand <- FALSE
     }
     
     # Check that REF base coincides with middle base in trinucleotide
@@ -191,16 +222,28 @@ build_catalogues <- function(variants) {
             if (var[2] %in% c("C", "T")) {
                 trinuc <- strsplit(var[4], "")[[1]]
                 alt <- var[3]
+                if (strand) {
+                    strd <- var[5]
+                }
             }
             else {
                 trinuc <- rev_comp(var[4])
                 alt <- rev_comp(var[3])
+                if (strand) {
+                    strd <- ifelse(var[5] == "U", "T", "U")
+                }
             }
-            paste0(paste(trinuc, collapse=""), ">", trinuc[1], alt, trinuc[3])
+            if (strand) {
+                paste0(strd, ":", paste(trinuc, collapse=""), ">", trinuc[1], alt, trinuc[3])
+            }
+            else {
+                paste0(paste(trinuc, collapse=""), ">", trinuc[1], alt, trinuc[3])
+            }
         })
         
         # Count number of occurrences of each mutation type
-        sapply(mut_types(), function(type) {
+        stopifnot(all(vars_collapsed %in% mut_types(strand)))
+        sapply(mut_types(strand), function(type) {
             sum(grepl(type, vars_collapsed, fixed = TRUE))
         })
     }))
@@ -239,15 +282,15 @@ fetch_cosmic_data <- function(reorder = TRUE, remove_zeros = TRUE) {
 #' This is done by multiplying or dividing each signature by the average mutational opportunities
 #' of the samples, or by the human genome/exome reference trinucleotide frequencies.
 #' @param signatures Either a matrix of mutational signatures, with one row per signature and one
-#' column for each of the 96 mutation types, or a list of signatures generated via
+#' column for each of the 96 (or 192) mutation types, or a list of signatures generated via
 #' \code{\link{retrieve_pars}}.
 #' @param ref_opportunities Numeric vector of reference or average mutational opportunities, with 
-#' one element for each of the 96 mutation types. If equal to \code{"human-genome"} or \code{"human-exome"}, 
-#' the reference human genome/exome mutational opportunities will be used.
+#' one element for each of the 96 (or 192) mutation types. If equal to \code{"human-genome"} or 
+#' \code{"human-exome"}, the reference human genome/exome mutational opportunities will be used.
 #' @param model_to The model to convert to: either \code{"nmf"} (in which case the signatures will
 #' be multiplied by the opportunities) or \code{"emu"} (in which case the signatures will be divided
 #' by the opportunities).
-#' @return A matrix of signatures with the same dimensions as \code{signatures}.
+#' @return A matrix of transformed signatures with the same dimensions as \code{signatures}.
 #' @examples
 #' # Fetch COSMIC signatures 
 #' # These are in "NMF" format, i.e. they are relative
@@ -267,16 +310,23 @@ fetch_cosmic_data <- function(reorder = TRUE, remove_zeros = TRUE) {
 #' barplot(converted_signatures[1,])
 #' @export
 convert_signatures <- function(signatures, ref_opportunities, model_to) {
+    signatures <- to_matrix(signatures)
+    stopifnot(ncol(signatures) %in% c(96, 192))
+    strand <- ncol(signatures) == 192
+    if (strand) {
+        cat("'signatures' contains 192 mutations types: using strand-bias opportunities.\n")
+    }
+    
     if (ref_opportunities == "human-genome") {
-        ref_opportunities <- human_trinuc_freqs("genome")
+        ref_opportunities <- human_trinuc_freqs(type = "genome", strand = strand)
     }
     else if (ref_opportunities == "human-exome") {
-        ref_opportunities <- human_trinuc_freqs("exome")
+        ref_opportunities <- human_trinuc_freqs(type = "exome", strand = strand)
     }
     ref_opportunities <- as.numeric(ref_opportunities)
-    
-    signatures <- to_matrix(signatures)
-    stopifnot(length(ref_opportunities) == ncol(signatures))
+    if (length(ref_opportunities) != ncol(signatures)) {
+        stop("'ref_opportunities' must have one element for each column in 'signatures'.")
+    }
     
     if (model_to == "nmf") {
         t(apply(signatures, 1, function(row) {
@@ -291,8 +341,120 @@ convert_signatures <- function(signatures, ref_opportunities, model_to) {
         }))
     }
     else {
-        stop("`model_to` must be either \"nmf\" or \"emu\".")
+        stop("'model_to' must be either \"nmf\" or \"emu\".")
     }
+}
+
+#' Retrieve model parameters
+#' 
+#' Obtains summary values for a set of model parameters (signatures or exposures) from a stanfit object.
+#' @param mcmc_samples Object of class stanfit, generated via either \code{\link{fit_signatures}}
+#' or \code{\link{extract_signatures}}.
+#' @param feature Name of the parameter set to extract; either \code{"signatures"} or \code{"exposures"}.
+#' @param strand Logical; if \code{TRUE}, a strand-bias representation of catalogues
+#' and signatures will be used. Only needed when retrieving signatures (\code{feature = "signatures"}).
+#' @param hpd_prob A value in the interval (0, 1), giving the target probability content of 
+#' the HPD intervals.
+#' @param signature_names Vector containing the names of the signatures used for fitting. Used only when 
+#' retrieving exposures from fitted signatures.
+#' @returns A list of three matrices, which respectively contain the values corresponding to the
+#' mean of the model parameter of interest, and to the lower and upper ends of its HPD interval.
+#' @examples
+#' # Load example mutational catalogues
+#' data("counts_21breast")
+#' 
+#' # Extract signatures using the EMu (Poisson) model
+#' samples <- extract_signatures(counts_21breast, nsignatures = 2, method = "emu",
+#'                               opportunities = "human-genome", iter = 800)
+#' 
+#' # Retrieve signatures and exposures
+#' signatures <- retrieve_pars(samples, "signatures")
+#' 
+#' # Retrieve array of exposures using 90% HPD intervals
+#' exposures <- retrieve_pars(samples, "exposures", hpd_prob = 0.9)
+#' 
+#' # Plot signatures
+#' plot_spectrum(signatures)
+#' 
+#' # Plot mean exposures
+#' barplot(exposures$mean)   ## or: barplot(exposures[[1]])
+#' @importFrom "rstan" extract
+#' @importFrom "coda" HPDinterval
+#' @importFrom "coda" as.mcmc
+#' @export
+retrieve_pars <- function(mcmc_samples, feature, strand = FALSE, 
+                          hpd_prob = 0.95, signature_names = NULL) {
+    
+    feat <- extract(mcmc_samples, pars = feature)[[feature]]
+    
+    # Multi-sample case
+    if (length(dim(feat)) > 2) {
+        # Assign dimension names
+        if (feature == "signatures") {
+            names2 <- mut_types(strand)
+            if (is.null(signature_names)) {
+                LETTERLABELS <- letterwrap(dim(feat)[2])
+                names1 <- paste("Signature", LETTERLABELS[1:dim(feat)[2]])
+            }
+            else {
+                if (dim(feat)[2] != length(signature_names)) {
+                    stop("'signature_names' must have length equal to the number of signatures.")
+                }
+                names1 <- signature_names
+            }
+        }
+        else if (feature == "exposures") {
+            names1 <- NULL
+            if (is.null(signature_names)) {
+                LETTERLABELS <- letterwrap(dim(feat)[3])
+                names2 <- paste("Signature", LETTERLABELS[1:dim(feat)[3]])
+            }
+            else {
+                if (dim(feat)[3] != length(signature_names))  {
+                    stop("'signature_names' must have length equal to the number of signatures")
+                }
+                names2 <- signature_names
+            }
+        }
+        # for signatures: Signatures x Categories matrix
+        # for exposures: Samples x Signatures matrix
+        feat_summ <- list(matrix(NA, nrow = dim(feat)[2], ncol = dim(feat)[3], dimnames = list(names1, names2)),
+                          matrix(NA, nrow = dim(feat)[2], ncol = dim(feat)[3], dimnames = list(names1, names2)),
+                          matrix(NA, nrow = dim(feat)[2], ncol = dim(feat)[3], dimnames = list(names1, names2)))
+        names(feat_summ) <- c("mean", paste0(c("lower_", "upper_"), hpd_prob * 100))
+        for (i in 1:nrow(feat_summ[[1]])) {
+            hpd <- HPDinterval(as.mcmc(feat[,i,]), prob = hpd_prob)
+            feat_summ[[1]][i,] <- colMeans(feat[,i,])
+            feat_summ[[2]][i,] <- hpd[,1]
+            feat_summ[[3]][i,] <- hpd[,2]
+        }
+    }
+    
+    # Single-sample case (only possible when fitting)
+    else {
+        names1 <- NULL
+        if (is.null(signature_names)) {
+            LETTERLABELS <- letterwrap(dim(feat)[3])
+            names2 <- paste("Signature", LETTERLABELS[1:dim(feat)[3]])
+        }
+        else {
+            if (dim(feat)[3] != length(signature_names)) {
+                stop("'signature_names' must have length equal to the number of signatures.")
+            }
+            names2 <- signature_names
+        }
+        feat_summ <- list(matrix(NA, nrow = 1, ncol = dim(feat)[2], dimnames = list(names1, names2)),
+                          matrix(NA, nrow = 1, ncol = dim(feat)[2], dimnames = list(names1, names2)),
+                          matrix(NA, nrow = 1, ncol = dim(feat)[2], dimnames = list(names1, names2)))
+        names(feat_summ) <- c("mean", paste0(c("lower_", "upper_"), hpd_prob * 100))
+        for (i in 1:nrow(feat_summ[[1]])) {
+            hpd <- HPDinterval(as.mcmc(feat), prob = hpd_prob)
+            feat_summ[[1]][1,] <- colMeans(feat)
+            feat_summ[[2]][1,] <- hpd[,1]
+            feat_summ[[3]][1,] <- hpd[,2]
+        }
+    }
+    feat_summ
 }
 
 #' Plot mutational spectra
@@ -327,7 +489,6 @@ convert_signatures <- function(signatures, ref_opportunities, model_to) {
 #' plot_spectrum(sigs, pdf_path = "Signatures.pdf")
 #' @export
 plot_spectrum <- function(spectra, counts = FALSE, name = NULL, pdf_path = NULL, max_y = NULL) {
-    NCAT <- 96  # number of categories
     # Fetch HPD interval values, if present
     if (is.list(spectra) & "mean" %in% names(spectra)) {
         spec <- spectra$mean
@@ -341,7 +502,10 @@ plot_spectrum <- function(spectra, counts = FALSE, name = NULL, pdf_path = NULL,
     }
     # Force spectrum to matrix (96 columns)
     spec <- to_matrix(spec)
-    stopifnot(ncol(spec) == NCAT)
+    stopifnot(ncol(spec) %in% c(96, 192))
+    
+    NCAT <- ncol(spec)     # number of categories
+    strand <- NCAT == 192  # strand bias indicator (logical)
     
     # Plot each spectrum
     COLORS <- c("deepskyblue", "black", "firebrick2", "gray76", "darkolivegreen3", "rosybrown2")
@@ -444,7 +608,7 @@ plot_exposures <- function(counts, exposures = NULL, mcmc_samples = NULL, pdf_pa
                            signature_names = NULL, thresh = 0.01, hpd_prob = 0.95,
                            horiz_labels = FALSE, legend_pos = "topright", sig_color_palette = NULL) {
     if (is.null(exposures) & is.null(mcmc_samples)) {
-        stop("Either `exposures` (matrix or list) or `mcmc_samples` (stanfit object) must be provided.")
+        stop("Either 'exposures' (matrix or list) or 'mcmc_samples' (stanfit object) must be provided.")
     }
     if (!is.null(mcmc_samples)) {
         exposures <- retrieve_pars(mcmc_samples, "exposures", signature_names = signature_names,
@@ -467,12 +631,13 @@ plot_exposures <- function(counts, exposures = NULL, mcmc_samples = NULL, pdf_pa
     }
     exposures <- to_matrix(exposures)
     stopifnot(nrow(counts) == nrow(exposures))
+    
     NSAMP <- nrow(counts)
     NSIG <- ncol(exposures)
     LETTERLABELS <- letterwrap(NSIG)
     
     if (is.null(rownames(counts))) {
-        rownames(exposures) <- paste("Sample", 1:nrow(exposures))
+        rownames(exposures) <- paste("Sample", 1:NSAMP)
     }
     else {
         rownames(exposures) <- rownames(counts)
@@ -545,9 +710,9 @@ plot_exposures <- function(counts, exposures = NULL, mcmc_samples = NULL, pdf_pa
         
         # Legend
         # expand legend box horizontally if there are lots of signatures
-        LEGENDCOLS <- max(2, ceiling(ncol(exposures) / 10))
+        LEGENDCOLS <- max(2, ceiling(NSIG / 10))
         legend(legend_pos, bty = "n", ncol = LEGENDCOLS, xpd = TRUE, inset = c(0.035, 0),
-               fill = sigcols, border = "white", legend = colnames(exposures))
+               fill = sigcols, border = sigcols, legend = colnames(exposures))
         
         # Plot relative exposures
         bars <- barplot(t(exposures), col = sigcols, las = las, lwd = 0.25,
@@ -614,25 +779,25 @@ plot_exposures <- function(counts, exposures = NULL, mcmc_samples = NULL, pdf_pa
 #' @importFrom "rstan" extract
 #' @importFrom "coda" as.mcmc HPDinterval
 #' @export
-plot_reconstruction <- function(counts, mcmc_samples = NULL, signatures = NULL, exposures = NULL, 
-                                opportunities = NULL, pdf_path = NULL, legend_pos = "topright", 
-                                sig_color_palette = NULL) {
-    
-    NCAT <- 96             # number of categories (enforcing trinucleotides)
-    NSAMP <- nrow(counts)  # number of samples
-    
+plot_reconstruction <- function(counts, mcmc_samples = NULL, signatures = NULL, 
+                                exposures = NULL, opportunities = NULL, pdf_path = NULL,
+                                legend_pos = "topright", sig_color_palette = NULL) {
     # Force counts to matrix
     counts <- to_matrix(counts)
-    stopifnot(ncol(counts) == NCAT)
+    stopifnot(ncol(counts) %in% c(96, 192))
+    
+    NCAT <- ncol(counts)   # number of categories
+    NSAMP <- nrow(counts)  # number of samples
+    strand <- NCAT == 192  # strand bias indicator (logical)
     
     if (is.null(opportunities)) {
         opportunities <- matrix(1, nrow = NSAMP, ncol = NCAT)
     }
     else if (is.character(opportunities) & opportunities == "human-genome") {
-        opportunities <- build_opps_matrix(NSAMP, "genome")
+        opportunities <- build_opps_matrix(NSAMP, "genome", strand)
     }
     else if (is.character(opportunities) & opportunities == "human-exome") {
-        opportunities <- build_opps_matrix(NSAMP, "exome")
+        opportunities <- build_opps_matrix(NSAMP, "exome", strand)
     }
     else if (!is.matrix(opportunities)) {
         opportunities <- as.matrix(opportunities)
@@ -640,7 +805,7 @@ plot_reconstruction <- function(counts, mcmc_samples = NULL, signatures = NULL, 
     stopifnot(all(dim(opportunities) == dim(counts)))
     
     if (is.null(mcmc_samples) & (is.null(exposures) | is.null(signatures))) {
-        stop("Either `mcmc_samples` (stanfit object), or both `signatures` and `exposures` (matrices or lists), must be provided.")
+        stop("Either 'mcmc_samples' (stanfit object), or both 'signatures' and 'exposures' (matrices or lists), must be provided.")
     }
     
     cat("Building reconstructed catalogues...\n")
@@ -650,10 +815,11 @@ plot_reconstruction <- function(counts, mcmc_samples = NULL, signatures = NULL, 
         # Force signatures and exposures to matrices
         signatures <- to_matrix(signatures)
         exposures <- to_matrix(exposures)
+        NSIG <- nrow(signatures)
+        
         stopifnot(ncol(signatures) == NCAT)
         stopifnot(nrow(exposures) == NSAMP)
-        stopifnot(ncol(exposures) == nrow(signatures))
-        NSIG <- nrow(signatures)
+        stopifnot(ncol(exposures) == NSIG)
         
         # Create reconstructed catalogues
         reconstructions <- array(NA, dim = c(NSAMP, NSIG, NCAT))
@@ -674,7 +840,7 @@ plot_reconstruction <- function(counts, mcmc_samples = NULL, signatures = NULL, 
         # For fitting cases, signatures must be provided
         if (!("signatures" %in% names(e))) {
             if (is.null(signatures)) {
-                stop("`mcmc_samples` contains signature fitting results: a signatures matrix must be provided via `signatures`")
+                stop("'mcmc_samples' contains signature fitting results: a signatures matrix must be provided via 'signatures'")
             }
             signatures <- to_matrix(signatures)
             
@@ -754,7 +920,7 @@ plot_reconstruction <- function(counts, mcmc_samples = NULL, signatures = NULL, 
     par(mfrow = c(2, 1))
     
     if (is.null(rownames(counts))) {
-        rownames(counts) <- paste("Sample", 1:nrow(counts))
+        rownames(counts) <- paste("Sample", 1:NSAMP)
     }
     dimnames(reconstructions)[[3]] <- mut_types()
     
@@ -883,11 +1049,11 @@ plot_all <- function(counts, out_path, prefix = NULL, mcmc_samples = NULL, signa
                      sig_color_palette = NULL) {
     
     if (is.null(mcmc_samples) & (is.null(exposures) | is.null(signatures))) {
-        stop("Either `mcmc_samples` (stanfit object), or both `signatures` and `exposures` (matrices or lists), must be provided.")
+        stop("Either 'mcmc_samples' (stanfit object), or both 'signatures' and 'exposures' (matrices or lists), must be provided.")
     }
     if (!is.null(mcmc_samples)) {
         if (is.null(signatures) & !("signatures" %in% mcmc_samples@model_pars)) { 
-            stop("`mcmc_samples` contains signature fitting results: a signatures matrix must be provided via `signatures`")
+            stop("'mcmc_samples' contains signature fitting results: a signatures matrix must be provided via 'signatures'")
         }
     }
     
@@ -896,28 +1062,27 @@ plot_all <- function(counts, out_path, prefix = NULL, mcmc_samples = NULL, signa
     if (!is.null(prefix)) {
         prefix <- paste0(prefix, "_")
     }
-    #time_str <- gsub("-|:| |BST", "", Sys.time())
-    
+
     cat("Plotting original catalogues...\n")
-    plot_spectrum(counts, counts = TRUE, 
-                  pdf_path = paste0(out_path, "/", prefix, "Catalogues_", Sys.Date(), ".pdf"))
+    plot_spectrum(counts, counts = TRUE,
+                  pdf_path = file.path(out_path, paste0(prefix, "Catalogues_", Sys.Date(), ".pdf")))
     
     # Case A: matrices provided instead of MCMC samples
     if (is.null(mcmc_samples)) {
         cat("Plotting mutational signatures...\n")
         plot_spectrum(signatures, 
-                      pdf_path = paste0(out_path, "/", prefix, "Signatures_", Sys.Date(), ".pdf"))
+                      pdf_path = file.path(out_path, paste0(prefix, "Signatures_", Sys.Date(), ".pdf")))
         
         cat("Plotting signature exposures...\n")
         plot_exposures(counts, exposures = exposures, signature_names = signature_names, 
                        thresh = thresh, sig_color_palette = sig_color_palette, 
                        horiz_labels = horiz_labels, legend_pos = exp_legend_pos,
-                       pdf_path = paste0(out_path, "/", prefix, "Exposures_", Sys.Date(), ".pdf"))
+                       pdf_path = file.path(out_path, paste0(prefix, "Exposures_", Sys.Date(), ".pdf")))
         
         plot_reconstruction(counts, signatures = signatures, exposures = exposures, 
                             opportunities = opportunities, legend_pos = rec_legend_pos, 
                             sig_color_palette = sig_color_palette,
-                            pdf_path = paste0(out_path, "/", prefix, "Reconstructions_", Sys.Date(), ".pdf"))
+                            pdf_path = file.path(out_path, paste0(prefix, "Reconstructions_", Sys.Date(), ".pdf")))
     }
     
     # Case B: MCMC samples provided instead of matrices
@@ -927,18 +1092,18 @@ plot_all <- function(counts, out_path, prefix = NULL, mcmc_samples = NULL, signa
             signatures <- retrieve_pars(mcmc_samples, feature = "signatures")
         }
         plot_spectrum(signatures, 
-                      pdf_path = paste0(out_path, "/", prefix, "Signatures_", Sys.Date(), ".pdf"))
+                      pdf_path = file.path(out_path, paste0(prefix, "Signatures_", Sys.Date(), ".pdf")))
         
         cat("Plotting signature exposures...\n")
         plot_exposures(counts, mcmc_samples = mcmc_samples, signature_names = signature_names, 
                        thresh = thresh, hpd_prob = hpd_prob, horiz_labels = horiz_labels, 
                        legend_pos = exp_legend_pos, sig_color_palette = sig_color_palette,
-                       pdf_path = paste0(out_path, "/", prefix, "Exposures_", Sys.Date(), ".pdf"))
+                       pdf_path = file.path(out_path, paste0(prefix, "Exposures_", Sys.Date(), ".pdf")))
         
         plot_reconstruction(counts, mcmc_samples = mcmc_samples, signatures = signatures, 
                             opportunities = opportunities, legend_pos = rec_legend_pos, 
                             sig_color_palette = sig_color_palette,
-                            pdf_path = paste0(out_path, "/", prefix, "Reconstructions_", Sys.Date(), ".pdf"))
+                            pdf_path = file.path(out_path, paste0(prefix, "Reconstructions_", Sys.Date(), ".pdf")))
     }
 }
 
@@ -959,7 +1124,7 @@ plot_gof <- function(sample_list, counts, stat = "cosine") {
                            "cosine" = cosine_sim,
                            "L2" = l2_norm)
     if (is.null(gof_function)) {
-        stop("Enter a valid option for `stat` -> \"cosine\", \"L2\"")
+        stop("'stat' only admits values \"cosine\" and \"L2\".\nType ?plot_gof to see the documentation.")
     }
     
     nS <- NULL
@@ -1000,112 +1165,6 @@ plot_gof <- function(sample_list, counts, stat = "cosine") {
     
     cat("Estimated best number of signatures:", nS[best], "\n")
     nS[best]
-}
-
-#' Retrieve model parameters
-#' 
-#' Obtains summary values for a set of model parameters (signatures or exposures) from a stanfit object.
-#' @param mcmc_samples Object of class stanfit, generated via either \code{\link{fit_signatures}}
-#' or \code{\link{extract_signatures}}.
-#' @param feature Name of the parameter set to extract; either \code{"signatures"} or \code{"exposures"}.
-#' @param hpd_prob A value in the interval (0, 1), giving the target probability content of 
-#' the HPD intervals.
-#' @param signature_names Vector containing the names of the signatures used for fitting. Used only when 
-#' retrieving exposures from fitted signatures.
-#' @returns A list of three matrices, which respectively contain the values corresponding to the
-#' mean of the model parameter of interest, and to the lower and upper ends of its HPD interval.
-#' @examples
-#' # Load example mutational catalogues
-#' data("counts_21breast")
-#' 
-#' # Extract signatures using the EMu (Poisson) model
-#' samples <- extract_signatures(counts_21breast, nsignatures = 2, method = "emu",
-#'                               opportunities = "human-genome", iter = 800)
-#' 
-#' # Retrieve signatures and exposures
-#' signatures <- retrieve_pars(samples, "signatures")
-#' 
-#' # Retrieve array of exposures using 90% HPD intervals
-#' exposures <- retrieve_pars(samples, "exposures", hpd_prob = 0.9)
-#' 
-#' # Plot signatures
-#' plot_spectrum(signatures)
-#' 
-#' # Plot mean exposures
-#' barplot(exposures$mean)   ## or: barplot(exposures[[1]])
-#' @importFrom "rstan" extract
-#' @importFrom "coda" HPDinterval
-#' @importFrom "coda" as.mcmc
-#' @export
-retrieve_pars <- function(mcmc_samples, feature, hpd_prob = 0.95, signature_names = NULL) {
-    feat <- extract(mcmc_samples, pars = feature)[[feature]]
-    # Multi-sample case
-    if (length(dim(feat)) > 2) {
-        # Assign dimension names
-        if (feature == "signatures") {
-            names2 <- mut_types()
-            if (is.null(signature_names)) {
-                LETTERLABELS <- letterwrap(dim(feat)[2])
-                names1 <- paste("Signature", LETTERLABELS[1:dim(feat)[2]])
-            }
-            else {
-                if (dim(feat)[2] != length(signature_names)) {
-                    stop("`signature_names` must have length equal to the number of signatures")
-                }
-                names1 <- signature_names
-            }
-        }
-        else if (feature == "exposures") {
-            names1 <- NULL
-            if (is.null(signature_names)) {
-                LETTERLABELS <- letterwrap(dim(feat)[3])
-                names2 <- paste("Signature", LETTERLABELS[1:dim(feat)[3]])
-            }
-            else {
-                if (dim(feat)[3] != length(signature_names))  {
-                    stop("`signature_names` must have length equal to the number of signatures")
-                }
-                names2 <- signature_names
-            }
-        }
-        # for signatures: Signatures x Categories matrix
-        # for exposures: Samples x Signatures matrix
-        feat_summ <- list(matrix(NA, nrow = dim(feat)[2], ncol = dim(feat)[3], dimnames = list(names1, names2)),
-                          matrix(NA, nrow = dim(feat)[2], ncol = dim(feat)[3], dimnames = list(names1, names2)),
-                          matrix(NA, nrow = dim(feat)[2], ncol = dim(feat)[3], dimnames = list(names1, names2)))
-        names(feat_summ) <- c("mean", paste0(c("lower_", "upper_"), hpd_prob * 100))
-        for (i in 1:nrow(feat_summ[[1]])) {
-            hpd <- HPDinterval(as.mcmc(feat[,i,]), prob = hpd_prob)
-            feat_summ[[1]][i,] <- colMeans(feat[,i,])
-            feat_summ[[2]][i,] <- hpd[,1]
-            feat_summ[[3]][i,] <- hpd[,2]
-        }
-    } 
-    # Single-sample case (only possible when fitting)
-    else {
-        names1 <- NULL
-        if (is.null(signature_names)) {
-            LETTERLABELS <- letterwrap(dim(feat)[3])
-            names2 <- paste("Signature", LETTERLABELS[1:dim(feat)[3]])
-        }
-        else {
-            if (dim(feat)[3] != length(signature_names)) {
-                stop("`signature_names` must have length equal to the number of signatures")
-            }
-            names2 <- signature_names
-        }
-        feat_summ <- list(matrix(NA, nrow = 1, ncol = dim(feat)[2], dimnames = list(names1, names2)),
-                          matrix(NA, nrow = 1, ncol = dim(feat)[2], dimnames = list(names1, names2)),
-                          matrix(NA, nrow = 1, ncol = dim(feat)[2], dimnames = list(names1, names2)))
-        names(feat_summ) <- c("mean", paste0(c("lower_", "upper_"), hpd_prob * 100))
-        for (i in 1:nrow(feat_summ[[1]])) {
-            hpd <- HPDinterval(as.mcmc(feat), prob = hpd_prob)
-            feat_summ[[1]][1,] <- colMeans(feat)
-            feat_summ[[2]][1,] <- hpd[,1]
-            feat_summ[[3]][1,] <- hpd[,2]
-        }
-    }
-    feat_summ
 }
 
 #' Fit mutational signatures
@@ -1150,12 +1209,6 @@ retrieve_pars <- function(mcmc_samples, feature, hpd_prob = 0.95, signature_name
 #' @export
 fit_signatures <- function(counts, signatures, exp_prior = NULL,
                            method = "nmf", opportunities = NULL, ...) {
-    # Check exposure priors
-    if (is.null(exp_prior)) {
-        exp_prior = rep(1, nrow(signatures))
-    }
-    exp_prior <- as.numeric(exp_prior)
-    stopifnot(length(exp_prior) == nrow(signatures))
     
     # Force counts and signatures to matrix
     counts <- to_matrix(counts)
@@ -1164,31 +1217,42 @@ fit_signatures <- function(counts, signatures, exp_prior = NULL,
     # Add pseudocounts to signatures
     signatures <- remove_zeros_(signatures)
     
+    NSAMP <- nrow(counts)
+    NCAT <- ncol(counts)
+    NSIG <- nrow(signatures)
+    strand <- NCAT == 192  # strand bias indicator
+    
     # Check dimensions are correct. Should be:
     # counts[NSAMPLES, NCAT], signatures[NSIG, NCAT]
-    stopifnot(ncol(counts) == ncol(signatures))
-    stopifnot(length(exp_prior) == nrow(signatures))
+    stopifnot(ncol(signatures) == NCAT)
+    stopifnot(length(exp_prior) == NSIG)
+    
+    # Check exposure priors
+    if (is.null(exp_prior)) {
+        exp_prior = rep(1, NSIG)
+    }
+    exp_prior <- as.numeric(exp_prior)
+    stopifnot(length(exp_prior) == NSIG)
     
     if (method == "emu") {
         if (is.null(opportunities)) {
-            opportunities <- matrix(1, nrow = nrow(counts), ncol = ncol(counts))
+            opportunities <- matrix(1, nrow = NSAMP, ncol = NCAT)
         }
-        else if (is.character(opportunities) & opportunities == "human-genome") {
-            opportunities <- build_opps_matrix(nrow(counts), "genome")
+        else if (opportunities[1] == "human-genome") {
+            opportunities <- build_opps_matrix(NSAMP, "genome", strand)
         }
-        else if (is.character(opportunities) & opportunities == "human-exome") {
-            opportunities <- build_opps_matrix(nrow(counts), "exome")
+        else if (opportunities[1] == "human-exome") {
+            opportunities <- build_opps_matrix(NSAMP, "exome", strand)
         }
         if (!is.matrix(opportunities)) {
             opportunities <- as.matrix(opportunities)
         }
         stopifnot(all(dim(opportunities) == dim(counts)))
         
-        # NEED TO IMPLEMENT alpha
         dat <- list(
-            C = ncol(counts),
-            S = nrow(signatures),
-            G = nrow(counts),
+            C = NCAT,
+            S = NSIG,
+            G = NSAMP,
             signatures = signatures,
             counts = counts,
             opps = opportunities,
@@ -1199,9 +1263,9 @@ fit_signatures <- function(counts, signatures, exp_prior = NULL,
     
     else {
         dat <- list(
-            C = ncol(counts),
-            S = nrow(signatures),
-            G = nrow(counts),
+            C = NCAT,
+            S = NSIG,
+            G = NSAMP,
             signatures = signatures,
             counts = counts,
             alpha = exp_prior
@@ -1253,27 +1317,31 @@ fit_signatures <- function(counts, signatures, exp_prior = NULL,
 #' @importFrom "rstan" vb
 #' @importFrom "rstan" extract
 #' @export
-extract_signatures <- function(counts, nsignatures, method = "emu", 
-                               opportunities = NULL, sig_prior = NULL,
-                               stanfunc = "sampling", ...) {
+extract_signatures <- function(counts, nsignatures, method = "emu", opportunities = NULL, 
+                               sig_prior = NULL, stanfunc = "sampling", ...) {
+    
     if (!is.null(sig_prior) & length(nsignatures) > 1) {
-        stop("`sig_prior` is only admitted when `nsignatures` is a scalar (single value).")
+        stop("'sig_prior' is only admitted when 'nsignatures' is a scalar (single value).")
     }
     
     # Force counts to matrix
     counts <- to_matrix(counts)
     
+    NSAMP <- nrow(counts)
+    NCAT <- ncol(counts)
+    strand <- NCAT == 192  # strand bias indicator
+    
     # EMu model
     if (method == "emu") {
         # Build opportunities matrix
         if (is.null(opportunities)) {
-            opportunities <- matrix(1, nrow = nrow(counts), ncol = ncol(counts))
+            opportunities <- matrix(1, nrow = NSAMP, ncol = NCAT)
         }
-        else if (is.character(opportunities) & opportunities == "human-genome") {
-            opportunities <- build_opps_matrix(nrow(counts), "genome")
+        else if (opportunities[1] == "human-genome") {
+            opportunities <- build_opps_matrix(NSAMP, "genome", strand)
         }
-        else if (is.character(opportunities) & opportunities == "human-exome") {
-            opportunities <- build_opps_matrix(nrow(counts), "exome")
+        else if (opportunities[1] == "human-exome") {
+            opportunities <- build_opps_matrix(NSAMP, "exome", strand)
         }
         if (!is.matrix(opportunities)) {
             opportunities <- as.matrix(opportunities)
@@ -1282,8 +1350,8 @@ extract_signatures <- function(counts, nsignatures, method = "emu",
         
         model <- stanmodels$sigfit_ext_emu
         dat <- list(
-            C = ncol(counts),
-            G = nrow(counts),
+            C = NCAT,
+            G = NSAMP,
             S = as.integer(nsignatures[1]),
             counts = counts,
             opps = opportunities,
@@ -1294,20 +1362,20 @@ extract_signatures <- function(counts, nsignatures, method = "emu",
     # NMF model
     else if (method == "nmf") {
         if (!is.null(opportunities)) {
-            warning("Using \"nmf\" model: `opportunities` will be ignored.")
+            warning("Using \"nmf\" model: 'opportunities' will be ignored.")
         }
         
         model <- stanmodels$sigfit_ext_nmf
         dat <- list(
-            C = ncol(counts),
-            G = nrow(counts),
+            C = NCAT,
+            G = NSAMP,
             S = as.integer(nsignatures[1]),
             counts = counts,
             alpha = sig_prior
         )
     }
     else {
-        stop("`method` must be either \"emu\" or \"nmf\".")
+        stop("'method' must be either \"emu\" or \"nmf\".")
     }
     
     # Extract signatures for each nsignatures value
@@ -1315,7 +1383,7 @@ extract_signatures <- function(counts, nsignatures, method = "emu",
         out <- vector(mode = "list", length = max(nsignatures))
         for (n in nsignatures) {
             # Complete model data
-            dat$alpha <- matrix(1, nrow = n, ncol = ncol(counts))
+            dat$alpha <- matrix(1, nrow = n, ncol = NCAT)
             dat$S <- as.integer(n)
             
             cat("Extracting", n, "signatures\n")
@@ -1343,11 +1411,11 @@ extract_signatures <- function(counts, nsignatures, method = "emu",
     else {
         # Check signature priors
         if (is.null(sig_prior)) {
-            sig_prior <- matrix(1, nrow = nsignatures, ncol = ncol(counts))
+            sig_prior <- matrix(1, nrow = nsignatures, ncol = NCAT)
         }
         sig_prior <- as.matrix(sig_prior)
         stopifnot(nrow(sig_prior) == nsignatures)
-        stopifnot(ncol(sig_prior) == ncol(counts))
+        stopifnot(ncol(sig_prior) == NCAT)
         dat$alpha <- sig_prior
 
         cat("Extracting", nsignatures, "signatures\n")
@@ -1420,16 +1488,9 @@ fit_extract_signatures <- function(counts, signatures, num_extra_sigs,
                                    stanfunc = "sampling", ...) {
     # Check that num_extra_sigs is scalar
     if (length(num_extra_sigs) > 1) {
-        stop("`num_extra_sigs` must be a scalar (single value).")
+        stop("'num_extra_sigs' must be an integer scalar.")
     }
     
-    # Check signature priors
-    if (is.null(sig_prior)) {
-        sig_prior <- matrix(1, nrow = num_extra_sigs, ncol = ncol(counts))
-    }
-    sig_prior <- as.matrix(sig_prior)
-    stopifnot(nrow(sig_prior) == num_extra_sigs)
-    stopifnot(ncol(sig_prior) == ncol(counts))
     
     # Force counts and signatures to matrix
     counts <- to_matrix(counts)
@@ -1438,21 +1499,34 @@ fit_extract_signatures <- function(counts, signatures, num_extra_sigs,
     # Add pseudocounts to signatures
     signatures <- remove_zeros_(signatures)
     
+    NSAMP <- nrow(counts)
+    NCAT <- ncol(counts)
+    NSIG <- nrow(signatures)
+    strand <- NCAT == 192  # strand bias indicator
+    
     # Check dimensions are correct. Should be:
     # counts[NSAMPLES, NCAT], signatures[NSIG, NCAT]
-    stopifnot(ncol(counts) == ncol(signatures))
+    stopifnot(ncol(signatures) == NCAT)
+    
+    # Check signature priors
+    if (is.null(sig_prior)) {
+        sig_prior <- matrix(1, nrow = num_extra_sigs, ncol = NCAT)
+    }
+    sig_prior <- as.matrix(sig_prior)
+    stopifnot(nrow(sig_prior) == num_extra_sigs)
+    stopifnot(ncol(sig_prior) == NCAT)
     
     # EMu model
     if (method == "emu") {
         # Build opportunities matrix
         if (is.null(opportunities)) {
-            opportunities <- matrix(1, nrow = nrow(counts), ncol = ncol(counts))
+            opportunities <- matrix(1, nrow = NSAMP, ncol = NCAT)
         }
         else if (is.character(opportunities) & opportunities == "human-genome") {
-            opportunities <- build_opps_matrix(nrow(counts), "genome")
+            opportunities <- build_opps_matrix(NSAMP, "genome", strand)
         }
         else if (is.character(opportunities) & opportunities == "human-exome") {
-            opportunities <- build_opps_matrix(nrow(counts), "exome")
+            opportunities <- build_opps_matrix(NSAMP, "exome", strand)
         }
         if (!is.matrix(opportunities)) {
             opportunities <- as.matrix(opportunities)
@@ -1461,9 +1535,9 @@ fit_extract_signatures <- function(counts, signatures, num_extra_sigs,
         
         model <- stanmodels$sigfit_fitex_emu
         dat <- list(
-            C = ncol(counts),
-            S = nrow(signatures),
-            G = nrow(counts),
+            C = NCAT,
+            S = NSIG,
+            G = NSAMP,
             N = as.integer(num_extra_sigs),
             fixed_sigs = signatures,
             counts = counts,
@@ -1475,9 +1549,9 @@ fit_extract_signatures <- function(counts, signatures, num_extra_sigs,
     else if (method == "nmf") {
         model <- stanmodels$sigfit_fitex_nmf
         dat <- list(
-            C = ncol(counts),
-            S = nrow(signatures),
-            G = nrow(counts),
+            C = NCAT,
+            S = NSIG,
+            G = NSAMP,
             N = as.integer(num_extra_sigs),
             fixed_sigs = signatures,
             counts = counts,
