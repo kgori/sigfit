@@ -1300,16 +1300,15 @@ fit_signatures <- function(counts, signatures, exp_prior = NULL,
     NSIG <- nrow(signatures)
     strand <- NCAT == 192  # strand bias indicator
     
-    # Check dimensions are correct. Should be:
-    # counts[NSAMPLES, NCAT], signatures[NSIG, NCAT]
-    stopifnot(ncol(signatures) == NCAT)
-    stopifnot(length(exp_prior) == NSIG)
-    
     # Check exposure priors
     if (is.null(exp_prior)) {
         exp_prior = rep(1, NSIG)
     }
     exp_prior <- as.numeric(exp_prior)
+
+    # Check dimensions are correct. Should be:
+    # counts[NSAMPLES, NCAT], signatures[NSIG, NCAT]
+    stopifnot(ncol(signatures) == NCAT)
     stopifnot(length(exp_prior) == NSIG)
     
     if (method == "emu") {
