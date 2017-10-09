@@ -14,7 +14,7 @@ License: GPL (>=3)
 Depends: R (>= 3.0.2), Rcpp (>= 0.12.9), methods
 Imports: rstan (>= 2.14.1), coda (>= 0.19.1), ggplot2 (>= 2.2.1), clue (>= 0.3.54)
 LinkingTo: StanHeaders (>= 2.14.0.1), rstan (>= 2.14.1), BH (>= 1.62.0.1), 
-        Rcpp (>= 0.12.9), RcppEigen (>= 0.3.2.9.0)
+           Rcpp (>= 0.12.9), RcppEigen (>= 0.3.2.9.0)
 RcppModules: stan_fit4sigfit_mod
 RoxygenNote: 6.0.1
 NeedsCompilation: yes
