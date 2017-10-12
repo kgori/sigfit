@@ -8,15 +8,17 @@ data {
     int<lower=0> counts[G, C];  // matrix of counts per category (columns) per genome sample (rows)
     matrix[S, C] alpha;         // prior for signatures
 }
+transformed data {
+    // Not put much thought into this prior - just used the Jeffreys prior.
+    // One thing to try would be breaking the symmetry somehow by using random
+    // perturbation of a weak prior on exposures to try to improve mixing.
+    vector[S] kappa = rep_vector(0.5, S);
+}
 parameters {
     simplex[S] exposures[G];
     simplex[C] signatures[S];
 }
 transformed parameters {
-    // Not put much thought into this prior - just used the Jeffreys prior.
-    // One thing to try would be breaking the symmetry somehow by using random
-    // perturbation of a weak prior on exposures to try to improve mixing.
-    vector[S] kappa = rep_vector(0.5, S);
     // array_to_matrix is defined in common_functions.stan and is not in base Stan
     matrix<lower=0>[G, C] probs = array_to_matrix(exposures) * array_to_matrix(signatures); 
 }
@@ -45,11 +47,11 @@ generated quantities {
     vector[G] log_lik;
     real bic;
     
-    // Compute log_lik
+    // Compute log likelihood
     for (g in 1:G) {
         log_lik[g] = multinomial_lpmf(counts[g] | probs[g]');
     }
     
-    // Compute bic
+    // Compute BIC with G*(S-1) + S*(C-1) parameters
     bic = 2 * sum(log_lik) - log(G) * (G*(S-1) + S*(C-1));
 }

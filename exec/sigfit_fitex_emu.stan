@@ -49,11 +49,11 @@ generated quantities {
     vector[G] log_lik;
     real bic;
     
-    // Compute log_lik
+    // Compute log likelihood
     for (g in 1:G) {
         log_lik[g] = poisson_lpmf(counts[g] | lambda[g]);
     }
     
-    // Compute bic with (G*N + N*(C-1)) free parameters
+    // Compute BIC with (G*T + N*(C-1)) free parameters
     bic = 2 * sum(log_lik) - log(G) * (G*T + N*(C-1));
 }

@@ -42,9 +42,11 @@ generated quantities {
     vector[G] log_lik;
     real bic;
     
+    // Compute log likelihood
     for (g in 1:G) {
         log_lik[g] = multinomial_lpmf(counts[g] | to_vector(probs[g]));
     }
     
+    // Compute BIC with (G*(T-1) + N*(C-1)) free parameters
     bic = 2 * sum(log_lik) - log(G) * (G*(T-1) + N*(C-1));
 }
