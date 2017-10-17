@@ -351,8 +351,6 @@ convert_signatures <- function(signatures, ref_opportunities, model_to) {
 #' @param mcmc_samples Object of class stanfit, generated via either \code{\link{fit_signatures}}
 #' or \code{\link{extract_signatures}}.
 #' @param feature Name of the parameter set to extract; either \code{"signatures"} or \code{"exposures"}.
-#' @param strand Logical; if \code{TRUE}, a strand-bias representation of catalogues
-#' and signatures will be used. Only needed when retrieving signatures (\code{feature = "signatures"}).
 #' @param hpd_prob A value in the interval (0, 1), giving the target probability content of 
 #' the HPD intervals.
 #' @param signature_names Vector containing the names of the signatures used for fitting. Used only when 
@@ -382,10 +380,10 @@ convert_signatures <- function(signatures, ref_opportunities, model_to) {
 #' @importFrom "coda" HPDinterval
 #' @importFrom "coda" as.mcmc
 #' @export
-retrieve_pars <- function(mcmc_samples, feature, strand = FALSE, 
-                          hpd_prob = 0.95, signature_names = NULL) {
+retrieve_pars <- function(mcmc_samples, feature, hpd_prob = 0.95, signature_names = NULL) {
     
     feat <- extract(mcmc_samples, pars = feature)[[feature]]
+    strand <- dim(feat)[3] == 192  # strand bias indicator
     
     # Multi-sample case
     if (length(dim(feat)) > 2) {
@@ -524,8 +522,66 @@ plot_spectrum <- function(spectra, name = NULL, pdf_path = NULL, max_y = NULL) {
         par(mar = c(9, 8, 6, 2.75))
     }
     
+    # Standard spectrum (NCAT=96)
+    if (!strand) {
+        for (i in 1:NSAMP) {
+            if (is.null(max_y)) {
+                FACTOR <- 1.2
+                samp_max_y <- max(0.05,
+                                  ifelse(is.null(upr), max(spec[i,]) * FACTOR, max(upr[i,]) * FACTOR))
+            }
+            else {
+                samp_max_y <- max_y
+            }
+            # Plot spectrum bars
+            bars <- barplot(spec[i,], 
+                            names.arg = mut_types(),
+                            col = rep(COLORS, each = 16), border = "white",
+                            yaxt = "n", ylim = c(0, samp_max_y), xlim = c(-1, 116),
+                            cex = 1.3, cex.axis = 1.5, cex.lab = 1.7, 
+                            las = 2, xaxs = "i", family = "mono")
+            # Plot axis
+            if (counts) {
+                axis(side = 2, las = 2, cex.axis = 1.25)
+                label <- "Mutations"
+                n_text <- paste0(" (", sum(spec[i,]), " mutations)")
+            }
+            else {
+                axis(side = 2, at = seq(0, samp_max_y, 0.05), las = 2, cex.axis = 1.25)
+                label <- "Mutation probability"
+                n_text <- ""
+            }
+            if (is.null(name)) {
+                nme <- rownames(spec)[i]
+            }
+            else {
+                nme <- name
+            }
+            if (NSAMP > 1) {
+                num <- paste0(" #", i)
+            }
+            else {
+                num <- ""
+            }
+            mtext(label, side = 2, cex = 1.7, line = 4.5)
+            title(paste0("Mutational spectrum", num, "\n", nme, n_text), 
+                  line = 1.5, cex.main = 2)
+            # Plot HPD intervals
+            if (!is.null(lwr)) {
+                arrows(bars, spec[i,], bars, lwr[i,], angle = 90, 
+                       length = 0.03, lwd = 1.5, col = "gray35")
+                arrows(bars, spec[i,], bars, upr[i,], angle = 90, 
+                       length = 0.03, lwd = 1.5, col = "gray35")
+            }
+            # Plot mutation type labels
+            rect(xleft = XL, xright = XR, ybottom = 0.95 * samp_max_y, ytop = samp_max_y, 
+                 col = COLORS, border = "white")
+            text(x = (XL + XR) / 2, y = 0.91 * samp_max_y, labels = TYPES, cex = 2.25)
+        }
+    }
+    
     # Strand-wise spectrum (NCAT=192)
-    if (strand) {
+    else {
         for (i in 1:NSAMP) {
             if (is.null(max_y)) {
                 FACTOR <- 1.25
@@ -585,69 +641,12 @@ plot_spectrum <- function(spectra, name = NULL, pdf_path = NULL, max_y = NULL) {
                   line = 1.5, cex.main = 2)
             # Plot HPD intervals
             if (!is.null(lwr)) {
+                bars <- as.numeric(t(bars))
                 arrows(bars, spec[i,], bars, lwr[i,], angle = 90, 
                        length = 0.03, lwd = 1.5, col = "gray35")
                 arrows(bars, spec[i,], bars, upr[i,], angle = 90, 
                        length = 0.03, lwd = 1.5, col = "gray35")
             }
-        }
-    }
-    
-    # Standard spectrum (NCAT=96)
-    else {
-        for (i in 1:NSAMP) {
-            if (is.null(max_y)) {
-                FACTOR <- 1.2
-                samp_max_y <- max(0.05,
-                                  ifelse(is.null(upr), max(spec[i,]) * FACTOR, max(upr[i,]) * FACTOR))
-            }
-            else {
-                samp_max_y <- max_y
-            }
-            # Plot spectrum bars
-            bars <- barplot(spec[i,], 
-                            names.arg = mut_types(),
-                            col = rep(COLORS, each = 16), border = "white",
-                            yaxt = "n", ylim = c(0, samp_max_y), xlim = c(-1, 116),
-                            cex = 1.3, cex.axis = 1.5, cex.lab = 1.7, 
-                            las = 2, xaxs = "i", family = "mono")
-            # Plot axis
-            if (counts) {
-                axis(side = 2, las = 2, cex.axis = 1.25)
-                label <- "Mutations"
-                n_text <- paste0(" (", sum(spec[i,]), " mutations)")
-            }
-            else {
-                axis(side = 2, at = seq(0, samp_max_y, 0.05), las = 2, cex.axis = 1.25)
-                label <- "Mutation probability"
-                n_text <- ""
-            }
-            if (is.null(name)) {
-                nme <- rownames(spec)[i]
-            }
-            else {
-                nme <- name
-            }
-            if (NSAMP > 1) {
-                num <- paste0(" #", i)
-            }
-            else {
-                num <- ""
-            }
-            mtext(label, side = 2, cex = 1.7, line = 4.5)
-            title(paste0("Mutational spectrum", num, "\n", nme, n_text), 
-                  line = 1.5, cex.main = 2)
-            # Plot HPD intervals
-            if (!is.null(lwr)) {
-                arrows(bars, spec[i,], bars, lwr[i,], angle = 90, 
-                       length = 0.03, lwd = 1.5, col = "gray35")
-                arrows(bars, spec[i,], bars, upr[i,], angle = 90, 
-                       length = 0.03, lwd = 1.5, col = "gray35")
-            }
-            # Plot mutation type labels
-            rect(xleft = XL, xright = XR, ybottom = 0.95 * samp_max_y, ytop = samp_max_y, 
-                 col = COLORS, border = "white")
-            text(x = (XL + XR) / 2, y = 0.91 * samp_max_y, labels = TYPES, cex = 2.25)
         }
     }
     
@@ -978,16 +977,32 @@ plot_reconstruction <- function(counts, mcmc_samples = NULL, signatures = NULL,
     cat("Plotting reconstructions for each sample...\n")
     
     # Plotting
-    COLORS <- c("deepskyblue", "black", "firebrick2", "gray76", "darkolivegreen3", "rosybrown2")
     TYPES <- c("C>A", "C>G", "C>T", "T>A", "T>C", "T>G")
+    COLORS <- c("deepskyblue", "black", "firebrick2", "gray76", "darkolivegreen3", "rosybrown2")
+    STRANDCOL <- c("deepskyblue3", "red3")
+    BACKCOL <- c("#00BFFF33", "#00000033", "#EE2C2C33", "#C2C2C24D", "#A2CD5A4D", "#EEB4B44D")
     XL <- c(0.2, 19.4, 38.6, 57.8, 77, 96.2)
     XR <- c(19.2, 38.4, 57.6, 76.8, 96, 115.2)
+    BACKLIM <- c(0, 46.5, 93, 139.5, 186, 232.5, 279)
     
     if (is.null(sig_color_palette)) {
         sigcols <- default_sig_palette(NSIG)
     }
     else {
         sigcols <- sig_color_palette[1:NSIG]
+    }
+    
+    if (is.null(rownames(counts))) {
+        rownames(counts) <- paste("Sample", 1:NSAMP)
+    }
+    dimnames(reconstructions)[[3]] <- mut_types(strand)
+    
+    if (is.null(rownames(signatures))) {
+        LETTERLABELS <- letterwrap(NSIG)
+        sig_names <- paste("Signature", LETTERLABELS[1:NSIG])
+    }
+    else {
+        sig_names <- rownames(signatures)
     }
     
     if (!is.null(pdf_path)) {
@@ -997,57 +1012,108 @@ plot_reconstruction <- function(counts, mcmc_samples = NULL, signatures = NULL,
     }
     par(mfrow = c(2, 1))
     
-    if (is.null(rownames(counts))) {
-        rownames(counts) <- paste("Sample", 1:NSAMP)
+    # Default spectrum (NCAT=96)
+    if (!strand) {
+        for (i in 1:NSAMP) {
+            if (is.null(mcmc_samples)) {
+                max_y <- max(c(counts[i, ], colSums(reconstructions[i, , ]))) * 1.1
+            }
+            else {
+                max_y <- max(c(counts[i, ], hpds[i, , ])) * 1.1
+            }
+            
+            # Plot original catalogue
+            plot_spectrum(counts[i, ], name = rownames(counts)[i], max_y = max_y)
+            
+            # Plot catalogue reconstruction
+            bars <- barplot(reconstructions[i, , ], 
+                            col = sigcols, border = "white",
+                            yaxt = "n", ylim = c(0, max_y), xlim = c(-1, 116),
+                            cex = 1.3, cex.axis = 1.5, cex.lab = 1, las = 2, 
+                            xaxs = "i", family = "mono")
+            axis(side = 2, las = 2, cex.axis = 1.25)
+            mtext("Mutations", side = 2, cex = 1.5, line = 4.5)
+            title(paste0("Reconstructed mutational spectrum\nCosine similarity = ", 
+                         round(cosine_sim(counts[i,], colSums(reconstructions[i, , ])), 3)),
+                  line = 1, cex.main = 2)
+            # HPD intervals
+            if (!is.null(mcmc_samples)) {
+                arrows(bars, colSums(reconstructions[i, , ]), 
+                       bars, hpds[i, 1, ], 
+                       angle = 90, length = 0.03, lwd = 1.5, col = "gray35")
+                arrows(bars, colSums(reconstructions[i, , ]), 
+                       bars, hpds[i, 2, ], 
+                       angle = 90, length = 0.03, lwd = 1.5, col = "gray35")
+            }
+            # Mutation type labels
+            rect(xleft = XL, xright = XR, ybottom = max_y * 0.95, ytop = max_y, 
+                 col = COLORS, border = "white")
+            text(x = (XL + XR) / 2, y = max_y * 0.9, labels = TYPES, cex = 2.25)
+            # Legend
+            legend(legend_pos, inset = c(0, 0.13), ncol = 2,
+                   legend = paste0(sig_names, " (", round(exposures[i, ], 3), ")"), 
+                   fill = sigcols, border = "white", cex = 1.5, bty = "n")
+        }
     }
-    dimnames(reconstructions)[[3]] <- mut_types()
     
-    for (i in 1:NSAMP) {
-        if (is.null(mcmc_samples)) {
-            max_y <- max(c(counts[i,], colSums(reconstructions[i, , ]))) * 1.1
+    # Strand-wise spectrum (NCAT=192)
+    else {
+        for (i in 1:NSAMP) {
+            if (is.null(mcmc_samples)) {
+                max_y <- max(c(counts[i, ], colSums(reconstructions[i, , ]))) * 1.1
+            }
+            else {
+                max_y <- max(c(counts[i, ], hpds[i, , ])) * 1.1
+            }
+            
+            # Plot original catalogue
+            plot_spectrum(counts[i, ], name = rownames(counts)[i], max_y = max_y)
+            
+            # Plot catalogue reconstruction
+            # Background panes and mutation type labels
+            bars <- barplot(rbind(reconstructions[i, 1, 1:(NCAT/2)], 
+                                  reconstructions[i, 1, (NCAT/2+1):NCAT]), 
+                            names.arg = mut_types(), beside = TRUE, col = NA, border = NA, 
+                            space = c(0.1, 0.8), xaxs = "i", yaxt = "n", ylim = c(0, max_y), 
+                            xlim = c(-3, 280), family = "mono", cex = 1.3, cex.axis = 1.5, 
+                            cex.lab = 1.7, las = 2)
+            for (j in 1:length(COLORS)) {
+                rect(xleft = BACKLIM[j], xright = BACKLIM[j+1], ybottom = 0, 
+                     ytop = max_y, col = BACKCOL[j], border = "white")
+                rect(xleft = BACKLIM[j], xright = BACKLIM[j+1], ybottom = 0.95 * max_y, 
+                     ytop = max_y, col = COLORS[j], border = "white")
+                text(x = (BACKLIM[j] + BACKLIM[j+1]) / 2, y = 0.91 * max_y, 
+                     labels = TYPES[j], cex = 2.25, col = "black")
+            }
+            # Spectrum bars
+            for (j in NSIG:1) {
+                rec = colSums(to_matrix(reconstructions[i, 1:j, ]))
+                barplot(rbind(rec[1:(NCAT/2)], rec[(NCAT/2+1):NCAT]), 
+                        col = sigcols[j], border = "white", beside = TRUE,
+                        space = c(0.1, 0.8), yaxt = "n", xaxt = "n",
+                        ylim = c(0, max_y), xlim = c(-3, 270),
+                        xaxs = "i", add = TRUE)
+            }
+            axis(side = 2, las = 2, cex.axis = 1.25)
+            mtext("Mutations", side = 2, cex = 1.5, line = 4.5)
+            title(paste0("Reconstructed mutational spectrum\nCosine similarity = ", 
+                         round(cosine_sim(counts[i,], colSums(reconstructions[i, , ])), 3)),
+                  line = 1, cex.main = 2)
+            # HPD intervals
+            if (!is.null(mcmc_samples)) {
+                bars <- as.numeric(t(bars))
+                arrows(bars, colSums(reconstructions[i, , ]), 
+                       bars, hpds[i, 1, ], 
+                       angle = 90, length = 0.03, lwd = 1.5, col = "gray35")
+                arrows(bars, colSums(reconstructions[i, , ]), 
+                       bars, hpds[i, 2, ], 
+                       angle = 90, length = 0.03, lwd = 1.5, col = "gray35")
+            }
+            # Legend
+            legend(legend_pos, inset = c(0.01, 0.105), ncol = 2,
+                   legend = paste0(sig_names, " (", round(exposures[i, ], 3), ")"), 
+                   fill = sigcols, border = sigcols, cex = 1.5, bty = "n")
         }
-        else {
-            max_y <- max(c(counts[i,], hpds[i, , ])) * 1.1
-        }
-        
-        # Plot original catalogue
-        plot_spectrum(counts[i,], name = rownames(counts)[i], max_y = max_y)
-        
-        # Plot catalogue reconstruction
-        bars <- barplot(reconstructions[i, , ], 
-                        col = sigcols, border = "white",
-                        yaxt = "n", ylim = c(0, max_y), xlim = c(-1, 116),
-                        cex = 1.3, cex.axis = 1.5, cex.lab = 1, las = 2, 
-                        xaxs = "i", family = "mono")
-        axis(side = 2, las = 2, cex.axis = 1.25)
-        mtext("Mutations", side = 2, cex = 1.5, line = 4.5)
-        title(paste0("Reconstructed mutational spectrum\nCosine similarity = ", 
-                     round(cosine_sim(counts[i,], colSums(reconstructions[i, , ])), 3)),
-              line = 1, cex.main = 2)
-        # HPD intervals
-        if (!is.null(mcmc_samples)) {
-            arrows(bars, colSums(reconstructions[i, , ]), 
-                   bars, hpds[i, 1, ], 
-                   angle = 90, length = 0.03, lwd = 1.5, col = "gray35")
-            arrows(bars, colSums(reconstructions[i, , ]), 
-                   bars, hpds[i, 2, ], 
-                   angle = 90, length = 0.03, lwd = 1.5, col = "gray35")
-        }
-        # Mutation type labels
-        rect(xleft = XL, xright = XR, ybottom = max_y * 0.95, ytop = max_y, 
-             col = COLORS, border = "white")
-        text(x = (XL + XR) / 2, y = max_y * 0.9, labels = TYPES, cex = 2.25)
-        # Legend
-        if (is.null(rownames(signatures))) {
-            LETTERLABELS <- letterwrap(NSIG)
-            sig_names <- paste("Signature", LETTERLABELS[1:NSIG])
-        }
-        else {
-            sig_names <- rownames(signatures)
-        }
-        legend(legend_pos, inset = c(0, 0.13), ncol = 2,
-               legend = paste0(sig_names, " (", round(exposures[i, ], 3), ")"), 
-               fill = sigcols, border = "white", cex = 1.5, bty = "n")
     }
     
     par(mfrow = c(1, 1))
