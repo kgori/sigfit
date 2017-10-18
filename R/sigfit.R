@@ -1,4 +1,4 @@
-#' Initial coertion to matrix for signatures/exposures/counts
+#' Initial coercion to matrix for signatures/exposures/counts
 to_matrix <- function(x) {
     # If x is coming from retrieve_pars, get mean
     if (is.list(x) & "mean" %in% names(x))  x <- x$mean
@@ -355,7 +355,7 @@ convert_signatures <- function(signatures, ref_opportunities, model_to) {
 #' the HPD intervals.
 #' @param signature_names Vector containing the names of the signatures used for fitting. Used only when 
 #' retrieving exposures from fitted signatures.
-#' @returns A list of three matrices, which respectively contain the values corresponding to the
+#' @return A list of three matrices, which respectively contain the values corresponding to the
 #' mean of the model parameter of interest, and to the lower and upper ends of its HPD interval.
 #' @examples
 #' # Load example mutational catalogues
@@ -1329,7 +1329,7 @@ plot_gof <- function(sample_list, counts, stat = "cosine") {
 #' If equal to \code{"human-genome"} or \code{"human-exome"}, the reference human genome/exome 
 #' opportunities will be used for every sample.
 #' @param ... Arguments to pass to \code{rstan::sampling}.
-#' @returns A stanfit object containing the Monte Carlo samples from MCMC (from which the model
+#' @return A stanfit object containing the Monte Carlo samples from MCMC (from which the model
 #' parameters can be extracted using \code{\link{retrieve_parameters}}), as well as information about
 #' the model and sampling process.
 #' @examples
@@ -1437,7 +1437,7 @@ fit_signatures <- function(counts, signatures, exp_prior = NULL,
 #' \code{"vb"} uses Variational Bayes to approximate the full posterior.
 #' @param ... Any other parameters to pass to the sampling function (by default, \code{\link{rstan::sampling}}).
 #' (The number of chains is set to 1 and cannot be changed, to prevent 'label switching' problems.)
-#' @returns A stanfit object containing the Monte Carlo samples from MCMC (from which the model
+#' @return A stanfit object containing the Monte Carlo samples from MCMC (from which the model
 #' parameters can be extracted using \code{\link{retrieve_parameters}}), as well as information about
 #' the model and sampling process.
 #' @examples
@@ -1597,7 +1597,7 @@ extract_signatures <- function(counts, nsignatures, method = "emu", opportunitie
 #' full posterior.
 #' @param ... Any other parameters to pass to the sampling function (by default, \code{\link{rstan::sampling}}).
 #' (The number of chains is set to 1 and cannot be changed, to prevent 'label switching' problems.)
-#' @returns A stanfit object containing the Monte Carlo samples from MCMC (from which the model
+#' @return A stanfit object containing the Monte Carlo samples from MCMC (from which the model
 #' parameters can be extracted using \code{\link{retrieve_parameters}}), as well as information about
 #' the model and sampling process.
 #' @examples
@@ -1724,7 +1724,7 @@ fit_extract_signatures <- function(counts, signatures, num_extra_sigs,
 #' \code{\link{retrieve_pars}}, with a \code{$mean} entry, or a matrix with one 
 #' row per signature and one column for each of the 96 mutation types.
 #' @param sigs_b Signatures estimate as for \code{sigs_a}.
-#' @returns A vector containing, for each signature in \code{sigs_a}, the index 
+#' @return A vector containing, for each signature in \code{sigs_a}, the index 
 #' of the closest match in \code{sigs_b}.
 #' @importFrom "clue" solve_LSAP
 #' @export
