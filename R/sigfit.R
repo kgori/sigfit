@@ -1435,6 +1435,9 @@ fit_signatures <- function(counts, signatures, exp_prior = NULL,
 #' and \code{"vb"}. \code{"sampling"} is the full Bayesian MCMC approach, and is the default. 
 #' \code{"optimizing"} returns the Maximum a Posteriori (MAP) point estimates via numerical optimization.
 #' \code{"vb"} uses Variational Bayes to approximate the full posterior.
+#' @param nce NMF model specific: Use "normal-centred exposures" model (nce = TRUE). This parameterisation generally 
+#' produces a higher ratio of effective sample size : chain length than the alternative, sampling exposures using a 
+#' stick-breaking Dirichlet (used when nce = FALSE). Defaults to TRUE.
 #' @param ... Any other parameters to pass to the sampling function (by default, \code{\link{rstan::sampling}}).
 #' (The number of chains is set to 1 and cannot be changed, to prevent 'label switching' problems.)
 #' @return A stanfit object containing the Monte Carlo samples from MCMC (from which the model
@@ -1461,7 +1464,7 @@ fit_signatures <- function(counts, signatures, exp_prior = NULL,
 #' @importFrom "rstan" extract
 #' @export
 extract_signatures <- function(counts, nsignatures, method = "emu", opportunities = NULL, 
-                               sig_prior = NULL, stanfunc = "sampling", ...) {
+                               sig_prior = NULL, stanfunc = "sampling", nce = TRUE, ...) {
     
     if (!is.null(sig_prior) & length(nsignatures) > 1) {
         stop("'sig_prior' is only admitted when 'nsignatures' is a scalar (single value).")
@@ -1508,7 +1511,13 @@ extract_signatures <- function(counts, nsignatures, method = "emu", opportunitie
             warning("Using \"nmf\" model: 'opportunities' will be ignored.")
         }
         
-        model <- stanmodels$sigfit_ext_nmf
+        if (nce) {
+            model <- stanmodels$sigfit_ext_nmf_nce
+        }
+        else {
+            model <- stanmodels$sigfit_ext_nmf
+        }
+        
         dat <- list(
             C = NCAT,
             G = NSAMP,
