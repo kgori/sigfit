@@ -40,13 +40,13 @@ model {
 }
 generated quantities {
     vector[G] log_lik;
-    real bic;
+    matrix[G, C] counts_ppc;
+    matrix[G, C] expected_counts;
     
     // Compute log likelihood
     for (g in 1:G) {
         log_lik[g] = multinomial_lpmf(counts[g] | to_vector(probs[g]));
+        counts_ppc[g] = to_row_vector(multinomial_rng(probs[g]', sum(counts[g])));
+        expected_counts[g] = probs[g] * sum(counts[g]);
     }
-    
-    // Compute BIC with (G*(T-1) + N*(C-1)) free parameters
-    bic = 2 * sum(log_lik) - log(G) * (G*(T-1) + N*(C-1));
 }

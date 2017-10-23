@@ -939,16 +939,15 @@ plot_reconstruction <- function(counts, mcmc_samples = NULL, signatures = NULL,
         for (sample in 1:NSAMP) {
             
             # For EMu results
-            if ("multiplier" %in% names(e)) {
+            if (grepl("emu", mcmc_samples@model_name)) {
                 opp <- matrix(rep(as.matrix(opportunities[sample, ]), NSIG),
                               nrow = NSIG,
                               byrow = TRUE)
                 
                 arr <- aperm(
                     sapply(1:NREP, function(i) {
-                        e$exposures[i, sample, ] * 
+                        e$exposures_raw[i, sample, ] * 
                             e$signatures[i, , ] * 
-                            e$multiplier[i, sample] * 
                             opp
                     }, simplify = "array"),
                     c(3, 1, 2)
@@ -1464,7 +1463,7 @@ fit_signatures <- function(counts, signatures, exp_prior = NULL,
 #' @importFrom "rstan" extract
 #' @export
 extract_signatures <- function(counts, nsignatures, method = "emu", opportunities = NULL, 
-                               sig_prior = NULL, stanfunc = "sampling", nce = TRUE, ...) {
+                               sig_prior = NULL, stanfunc = "sampling", nce = TRUE, revised = FALSE, ...) {
     
     if (!is.null(sig_prior) & length(nsignatures) > 1) {
         stop("'sig_prior' is only admitted when 'nsignatures' is a scalar (single value).")
@@ -1494,7 +1493,13 @@ extract_signatures <- function(counts, nsignatures, method = "emu", opportunitie
         }
         stopifnot(all(dim(opportunities) == dim(counts)))
         
-        model <- stanmodels$sigfit_ext_emu
+        if (revised) {
+            model <- stanmodels$sigfit_ext_emu_revise
+        }
+        else {
+            model <- stanmodels$sigfit_ext_emu
+        }
+        
         dat <- list(
             C = NCAT,
             G = NSAMP,
