@@ -2,9 +2,7 @@
 % Please edit documentation in R/sigfit.R
 \name{plot_spectrum}
 \alias{plot_spectrum}
-\title{Plot mutational spectra
-Plots one or more spectra, which can be either mutational catalogues or mutational
-signatures. If multiple spectra are provided, generates one plot per spectrum.}
+\title{Plot mutational spectra}
 \usage{
 plot_spectrum(spectra, counts = FALSE, name = NULL, max_y = NULL,
   pdf_path = NULL)
@@ -19,7 +17,6 @@ also be plotted. Rownames are interpreted as the sample/signature names.}
 \item{name}{Name to include in the plot title; useful when plotting a single spectrum.}
 }
 \description{
-Plot mutational spectra
 Plots one or more spectra, which can be either mutational catalogues or mutational
 signatures. If multiple spectra are provided, generates one plot per spectrum.
 }

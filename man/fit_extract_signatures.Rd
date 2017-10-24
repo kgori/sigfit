@@ -2,8 +2,7 @@
 % Please edit documentation in R/sigfit.R
 \name{fit_extract_signatures}
 \alias{fit_extract_signatures}
-\title{Fits signatures to estimate exposures in a set of mutation counts
-and extracts additional signatures present in the samples.}
+\title{Fit-and-extract mutational signatures}
 \usage{
 fit_extract_signatures(counts, signatures, num_extra_sigs, method = "nmf",
   opportunities = NULL, sig_prior = NULL, stanfunc = "sampling", ...)
@@ -28,6 +27,6 @@ full posterior.}
 \item{...}{Any other parameters to pass through to rstan.}
 }
 \description{
-Fits signatures to estimate exposures in a set of mutation counts
+\code{fit_extract_signatures} fits signatures to estimate exposures in a set of mutation counts
 and extracts additional signatures present in the samples.
 }

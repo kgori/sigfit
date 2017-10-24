@@ -18,8 +18,8 @@ the signature exposures in the sampling chain. Default prior is uniform (uninfor
 \item{method}{Model to sample from; either \code{"nmf"} or \code{"emu"}.}
 
 \item{opportunities}{Optional matrix of mutational opportunities for \code{"emu"} method; must have same 
-dimension as \code{counts}. If equals to \code{"human-genome"} or \code{"human-exome"}, the reference h
-uman genome/exome opportunities will be used for every sample.}
+dimension as \code{counts}. If equal to \code{"human-genome"} or \code{"human-exome"}, the reference
+human genome/exome opportunities will be used for every sample.}
 
 \item{...}{Arguments to pass to \code{rstan::sampling}.}
 }

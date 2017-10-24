@@ -16,7 +16,7 @@ extract_signatures(counts, nsignatures, method = "emu",
 \item{method}{Either \code{"emu"} (default) or \code{"nmf"}.}
 
 \item{opportunities}{Optional matrix of mutational opportunities for \code{"emu"} method; 
-must have same dimension as \code{counts}. If equals to \code{"human-genome"} or 
+must have same dimension as \code{counts}. If equal to \code{"human-genome"} or 
 \code{"human-exome"}, the reference human genome/exome opportunities will be used for every sample.}
 
 \item{sig_prior}{Matrix with one row per signature and one column per category, to be used as the Dirichlet 

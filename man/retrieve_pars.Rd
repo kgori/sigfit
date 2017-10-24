@@ -4,14 +4,15 @@
 \alias{retrieve_pars}
 \title{Retrieve model parameters}
 \usage{
-retrieve_pars(mcmc_samples, feature, prob = 0.95, signature_names = NULL)
+retrieve_pars(mcmc_samples, feature, hpd_prob = 0.95,
+  signature_names = NULL)
 }
 \arguments{
 \item{mcmc_samples}{An object of class stanfit, resulting from MCMC sampling through either \code{fit_signatures} or \code{extract_signatures}.}
 
 \item{feature}{Name of the parameter set to extract; either \code{"signatures"} or \code{"exposures"}.}
 
-\item{prob}{A numeric scalar in the interval (0,1) giving the target probability content of the HPD intervals.}
+\item{hpd_prob}{A numeric scalar in the interval (0,1) giving the target probability content of the HPD intervals.}
 
 \item{signature_names}{Vector containing the names of the signatures used for fitting. Used only when 
 retrieving exposures from fitted signatures.}
@@ -28,7 +29,7 @@ opportunities = "human-genome")
 signatures <- retrieve_pars(samples, "signatures")
 
 # Retrieve array of exposures using 90\% HPD intervals
-exposures <- retrieve_pars(samples, "exposures", prob = 0.9)
+exposures <- retrieve_pars(samples, "exposures", hpd_prob = 0.9)
 
 # Plot signatures and mean exposures
 plot_spectrum(signatures)

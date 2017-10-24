@@ -2,16 +2,13 @@
 % Please edit documentation in R/sigfit.R
 \name{plot_exposures}
 \alias{plot_exposures}
-\title{Plot signature exposures
-\code{plot_exposures} produces barplots that show the distribution of
-signatures exposures across catalogues.}
+\title{Plot signature exposures}
 \usage{
 plot_exposures(counts, exposures = NULL, mcmc_samples = NULL,
-  pdf_path = NULL, signature_names = NULL, thresh = 0.01, prob = 0.95,
-  sig_color_palette = NULL)
+  pdf_path = NULL, signature_names = NULL, thresh = 0.01,
+  hpd_prob = 0.95, sig_color_palette = NULL)
 }
 \description{
-Plot signature exposures
 \code{plot_exposures} produces barplots that show the distribution of
 signatures exposures across catalogues.
 }
