@@ -9,32 +9,20 @@ data {
     matrix[G, C] opps;          // matrix of opportunities per sample (rows) per category
     matrix[S, C] alpha;         // prior for signatures
 }
-transformed data {
-    // Not put much thought into this prior - just used the Jeffreys prior.
-    // One thing to try would be breaking the symmetry somehow by using random
-    // perturbation of a weak prior on exposures to try to improve mixing.
-    vector[S] kappa = rep_vector(0.5, S);
-}
 parameters {
     simplex[C] signatures[S];   // matrix of signatures, with simplex constraint
-    simplex[S] exposures[G];
-    vector<lower=0>[G] multiplier;
+    matrix<lower=0>[G,S] exposures_raw;
 }
 transformed parameters {
     // Poisson parameters
     // array_to_matrix is defined in common_functions.stan and is not in base Stan
-    matrix[G, C] lambda = array_to_matrix(exposures) * array_to_matrix(signatures) .* opps;
-    for (g in 1:G) {
-        lambda[g] = lambda[g] * multiplier[g];
-    }
+    matrix[G, C] lambda = exposures_raw * array_to_matrix(signatures) .* opps;
 }
 model {
-    // The problem with this model is that the probabilities
+    // Label Switching -  the probabilities
     // are invariant to perturbations of the columns of
-    // exposures and the rows of signatures (the same perturbation)
-    // applied to both. This is the old "label switching" problem.
-    // Currently nothing is being done about it in the model,
-    // and probably avoiding running multiple chains will be fine.
+    // exposures and the rows of signatures (the same perturbation
+    // applied to both). Avoiding running multiple chains.
     
     for (s in 1:S) {
         // Priors for signatures
@@ -42,23 +30,34 @@ model {
     }
 
     for (g in 1:G) {
-        // Priors for exposures (Jeffreys)
-        exposures[g] ~ dirichlet(kappa);
-        multiplier[g] ~ cauchy(0, 1);
-        
+        // Priors for exposures
+        exposures_raw[g] ~ cauchy(0, 1);
+
         // Likelihood
         counts[g] ~ poisson(lambda[g]);
     }
 }
 generated quantities {
+    matrix[G, S] exposures;
     vector[G] log_lik;
-    real bic;
     
-    // Compute log likelihood
+    // reconstructed sample counts - do counts estimated by the model look like the input data?
+    matrix[S, C] reconstruction[G];
+    
+    // posterior predictive check - do counts simulated from the model look like the input data?
+    matrix[G, C] counts_ppc;
+    
     for (g in 1:G) {
+        exposures[g] = scale_row_to_sum_1(exposures_raw[g]);
+        
         log_lik[g] = poisson_lpmf(counts[g] | lambda[g]);
+        
+        for (c in 1:C) {
+            counts_ppc[g, c] = poisson_rng(lambda[g, c]);
+        }
+        
+        for (s in 1:S) {
+            reconstruction[g][s] = (exposures_raw[g, s] * signatures[s])' .* opps[g];
+        }
     }
-    
-    // Compute BIC with (G*S + S*(C-1)) free parameters
-    bic = 2 * sum(log_lik) - log(G) * (G*S + S*(C-1));
 }

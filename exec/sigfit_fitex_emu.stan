@@ -13,22 +13,17 @@ data {
 }
 transformed data {
     int T = S + N;   // total number of signatures, including extra signatures
-    vector[T] kappa = rep_vector(0.5, T);  // Jeffreys prior for exposures
 }
 parameters {
     simplex[C] extra_sigs[N];  // additional signatures to extract
-    simplex[T] exposures[G];   // includes exposures for extra_sigs
-    vector<lower=0>[G] multiplier;
+    matrix<lower=0>[G, T] exposures_raw;   // includes exposures for extra_sigs
 }
 transformed parameters {
     // Full signatures matrix
     matrix[T, C] signatures = append_row(fixed_sigs, array_to_matrix(extra_sigs));
     
     // Poisson parameters
-    matrix[G, C] lambda = array_to_matrix(exposures) * signatures .* opps;
-    for (g in 1:G) {
-        lambda[g] = lambda[g] * multiplier[g];
-    }
+    matrix[G, C] lambda = exposures_raw * signatures .* opps;
 }
 model {
     // Priors for extra signatures
@@ -38,8 +33,7 @@ model {
 
     for (g in 1:G) {
         // Priors for exposures (Jeffreys)
-        exposures[g] ~ dirichlet(kappa);
-        multiplier[g] ~ cauchy(0, 1);
+        exposures_raw[g] ~ cauchy(0, 1);
         
         // Likelihood
         counts[g] ~ poisson(lambda[g]);
@@ -47,13 +41,22 @@ model {
 }
 generated quantities {
     vector[G] log_lik;
-    real bic;
-    
+    matrix[G, C] counts_ppc;
+    matrix[G, T] exposures;
+    matrix[T, C] reconstruction[G];
+
     // Compute log likelihood
     for (g in 1:G) {
         log_lik[g] = poisson_lpmf(counts[g] | lambda[g]);
+        
+        for (c in 1:C) {
+            counts_ppc[g, c] = poisson_rng(lambda[g, c]);
+        }
+        
+        exposures[g] = scale_row_to_sum_1(exposures_raw[g]);
+        
+        for (t in 1:T) {
+            reconstruction[g][t] = (exposures_raw[g, t] * signatures[t]) .* opps[g];
+        }
     }
-    
-    // Compute BIC with (G*T + N*(C-1)) free parameters
-    bic = 2 * sum(log_lik) - log(G) * (G*T + N*(C-1));
 }

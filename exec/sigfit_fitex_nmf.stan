@@ -12,17 +12,22 @@ data {
 }
 transformed data {
     int T = S + N;   // total number of signatures, including extra signatures
-    vector[T] kappa = rep_vector(0.5, T);  // Jeffreys prior for exposures
 }
 parameters {
     simplex[C] extra_sigs[N];  // additional signatures to extract
-    simplex[T] exposures[G];   // includes exposures for extra_sigs
+    vector[T] exposures_raw[G]; // includes exposures for extra_sigs
 }
 transformed parameters {
+    matrix[G, T] exposures;
     matrix[T, C] signatures;
-    matrix<lower=0>[G, C] probs;
+    matrix<lower=0, upper=1>[G, C] probs;
+    
+    for (g in 1:G) {
+        exposures[g] = softmax(exposures_raw[g])';
+    }
+    
     signatures = append_row(fixed_sigs, array_to_matrix(extra_sigs));
-    probs = array_to_matrix(exposures) * signatures;
+    probs = exposures * signatures;
 }
 model {
     // Priors for extra signatures
@@ -31,8 +36,8 @@ model {
     }
     
     for (g in 1:G) {
-        // Priors for exposures (Jeffreys)
-        exposures[g] ~ dirichlet(kappa);
+        // Priors for exposures_raw
+        exposures_raw[g] ~ normal(0, 1);
         
         // Likelihood
         counts[g] ~ multinomial(to_vector(probs[g]));
@@ -40,13 +45,15 @@ model {
 }
 generated quantities {
     vector[G] log_lik;
-    real bic;
+    matrix[G, C] counts_ppc; // posterior predictive check
+    matrix[T, C] reconstruction[G]; // expected number of counts per signature, for plot_reconstruction
     
     // Compute log likelihood
     for (g in 1:G) {
         log_lik[g] = multinomial_lpmf(counts[g] | to_vector(probs[g]));
+        counts_ppc[g] = to_row_vector(multinomial_rng(probs[g]', sum(counts[g])));
+        for (t in 1:T) {
+            reconstruction[g][t] = (exposures[g, t] * sum(counts[g]) * signatures[t]);
+        }
     }
-    
-    // Compute BIC with (G*(T-1) + N*(C-1)) free parameters
-    bic = 2 * sum(log_lik) - log(G) * (G*(T-1) + N*(C-1));
 }
