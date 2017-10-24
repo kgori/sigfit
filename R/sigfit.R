@@ -913,22 +913,7 @@ plot_reconstruction <- function(counts, mcmc_samples = NULL, signatures = NULL,
         e <- extract(mcmc_samples)
         NREP <- dim(e$exposures)[1]
         stopifnot(NSAMP == dim(e$exposures)[2])
-
-        # For fitting cases, signatures must be provided
-        if (!("signatures" %in% names(e))) {
-            if (is.null(signatures)) {
-                stop("'mcmc_samples' contains signature fitting results: a signatures matrix must be provided via 'signatures'")
-            }
-            signatures <- to_matrix(signatures)
-            
-            # Reshape signatures as simulated MCMC samples
-            e$signatures <- aperm(
-                array(signatures, 
-                      dim = c(nrow(signatures), NCAT, NREP)),
-                c(3, 1, 2)
-            )
-        }
-        NSIG <- dim(e$signatures)[2]
+        NSIG <- dim(e$exposures)[3]
         
         # Obtain mean exposures (for legend)
         exposures <- t(apply(e$exposures, 2, colMeans))
@@ -937,35 +922,7 @@ plot_reconstruction <- function(counts, mcmc_samples = NULL, signatures = NULL,
         reconstructions <- array(NA, dim = c(NSAMP, NSIG, NCAT))
         hpds <- array(NA, dim = c(NSAMP, 2, NCAT))
         for (sample in 1:NSAMP) {
-            
-            # For EMu results
-            if (grepl("emu", mcmc_samples@model_name)) {
-                opp <- matrix(rep(as.matrix(opportunities[sample, ]), NSIG),
-                              nrow = NSIG,
-                              byrow = TRUE)
-                
-                arr <- aperm(
-                    sapply(1:NREP, function(i) {
-                        e$exposures_raw[i, sample, ] * 
-                            e$signatures[i, , ] * 
-                            opp
-                    }, simplify = "array"),
-                    c(3, 1, 2)
-                )
-            }
-            
-            # For NMF results
-            else { 
-                arr <- aperm(
-                    sapply(1:NREP, function(i) {
-                        e$exposures[i, sample, ] * 
-                            e$signatures[i, , ] * 
-                            sum(counts[sample, ])
-                    }, simplify = "array"),
-                    c(3, 1, 2)
-                )
-            }
-
+            arr <- e$reconstruction[, sample, ,]
             reconstructions[sample, , ] <- apply(arr, c(2, 3), mean)
             hpds[sample, , ] <- t(HPDinterval(
                 as.mcmc(apply(arr, c(1, 3), sum))
@@ -1275,16 +1232,17 @@ plot_gof <- function(sample_list, counts, stat = "cosine") {
     for (samples in sample_list) {
         if (class(samples) != "stanfit") next
         
-        if ("lambda" %in% samples@model_pars) {
-            e <- extract(samples, pars = c("lambda", "signatures"))
-            reconstructed <- apply(e$lambda, c(2, 3), mean)
+        if (grepl("emu", samples@model_name)) {
             method <- "EMu"
         }
+        
         else {
-            e <- extract(samples, pars = c("probs", "signatures"))
-            reconstructed <- apply(e$probs, c(2, 3), mean) * rowSums(counts)
-            method = "NMF"
+            method <- "NMF"
         }
+
+        e <- extract(samples, pars = c("expected_counts", "signatures"))
+        reconstructed <- apply(e$expected_counts, c(2, 3), mean)
+
         stopifnot(length(as.vector(reconstructed)) == length(as.vector(counts)))
         
         nS <- c(nS, dim(e$signatures)[2])
@@ -1417,6 +1375,31 @@ fit_signatures <- function(counts, signatures, exp_prior = NULL,
     sampling(model, data = dat, ...)
 }
 
+
+#' Use optimization to generate initial parameter values for MCMC sampling
+#' @export
+extract_signatures_opt_init <- function(counts, nsignatures, method = "emu", opportunities = NULL, 
+                          sig_prior = NULL, ...) {
+    
+    opt <- extract_signatures(counts, nsignatures, method, opportunities, 
+                              sig_prior, "optimizing", FALSE, ...)
+    
+    if (is.null(opt)) {
+        warning("Parameter optimization failed - using random initialization")
+        inits = "random"
+    }
+    
+    else {
+        inits = list(
+            list(
+                signatures = matrix(opt$par[grepl("signatures", names(opt$par))], nrow = nsignatures),
+                exposures_raw = matrix(opt$par[grepl("exposures_raw", names(opt$par))], nrow = nrow(counts))
+            )
+        )
+    }
+    inits
+}
+
 #' Extract signatures from a set of mutation counts
 #' 
 #' @param counts Matrix of observed mutation counts (integers), with one row per sample and 
@@ -1463,7 +1446,7 @@ fit_signatures <- function(counts, signatures, exp_prior = NULL,
 #' @importFrom "rstan" extract
 #' @export
 extract_signatures <- function(counts, nsignatures, method = "emu", opportunities = NULL, 
-                               sig_prior = NULL, stanfunc = "sampling", nce = TRUE, revised = FALSE, ...) {
+                               sig_prior = NULL, stanfunc = "sampling", ...) {
     
     if (!is.null(sig_prior) & length(nsignatures) > 1) {
         stop("'sig_prior' is only admitted when 'nsignatures' is a scalar (single value).")
@@ -1493,12 +1476,7 @@ extract_signatures <- function(counts, nsignatures, method = "emu", opportunitie
         }
         stopifnot(all(dim(opportunities) == dim(counts)))
         
-        if (revised) {
-            model <- stanmodels$sigfit_ext_emu_revise
-        }
-        else {
-            model <- stanmodels$sigfit_ext_emu
-        }
+        model <- stanmodels$sigfit_ext_emu
         
         dat <- list(
             C = NCAT,
@@ -1516,12 +1494,7 @@ extract_signatures <- function(counts, nsignatures, method = "emu", opportunitie
             warning("Using \"nmf\" model: 'opportunities' will be ignored.")
         }
         
-        if (nce) {
-            model <- stanmodels$sigfit_ext_nmf_nce
-        }
-        else {
-            model <- stanmodels$sigfit_ext_nmf
-        }
+        model <- stanmodels$sigfit_ext_nmf
         
         dat <- list(
             C = NCAT,
@@ -1547,6 +1520,7 @@ extract_signatures <- function(counts, nsignatures, method = "emu", opportunitie
             if (stanfunc == "sampling") {
                 cat("Stan sampling:")
                 out[[n]] <- sampling(model, data = dat, chains = 1, ...)
+                
             }
             else if (stanfunc == "optimizing") {
                 cat("Stan optimizing:")
@@ -1578,7 +1552,7 @@ extract_signatures <- function(counts, nsignatures, method = "emu", opportunitie
         cat("Extracting", nsignatures, "signatures\n")
         if (stanfunc == "sampling") {
             cat("Stan sampling:")
-            out <- sampling(model, data = dat, chains = 1, ...)
+            out <- sampling(model, data = dat, ...)
         }
         else if (stanfunc == "optimizing") {
             cat("Stan optimizing:")
@@ -1718,7 +1692,9 @@ fit_extract_signatures <- function(counts, signatures, num_extra_sigs,
     
     if (stanfunc == "sampling") {
         cat("Stan sampling:")
-        sampling(model, data = dat, chains = 1, ...)
+        sampling(model, data = dat, chains = 1, 
+                 pars = c("extra_sigs", "probs", "exposures_raw", "lambda"),
+                 include = FALSE, ...)
     }
     else if (stanfunc == "optimizing") {
         cat("Stan optimizing:")
@@ -1760,4 +1736,58 @@ match_signatures <- function(sigs_a, sigs_b) {
         }
     }
     solve_LSAP(m, maximum = TRUE)
+}
+
+#' Colour warnings for posterior predictive checks
+#' yellow = observed value is in top or bottom 2.5% of ppc simulations
+#' red = observed value is outside ppc simulations
+make_colors <- function(c, c_ppc, sample = 1) {
+    n_ppc_sims <- dim(c_ppc)[1]
+    v <- vector("character", ncol(c))
+    for (i in 1:ncol(c)) {
+        prop <- sum(c[sample, i] < c_ppc[, sample, i]) / n_ppc_sims
+        if (prop < 0.001 | prop > 0.999) {
+            v[i] <- "firebrick"
+        }
+        else if (prop < 0.025 | prop > 0.975) {
+            v[i] <- "yellow3"
+        }
+        else {
+            v[i] <- "black"
+        }
+    }
+    v
+}
+
+#' Plot result of posterior predictive check
+#' black = observed value is not extreme compared to the simulated distribution
+#' yellow = observed value is in top or bottom 2.5% of ppc simulations
+#' red = observed value is outside ppc simulations
+#' @param c Matrix of observed counts
+#' @param c_ppc Simulated posterior predictive counts obtained from
+#' MCMC samples using \code{extract(samples)$counts_ppc}
+#' @export
+plot_ppc <- function(c, c_ppc, sample = 1) {
+    plot(c[sample, ], type = "n")
+    n_ppc_sims <- dim(c_ppc)[1]
+    for (i in sample(1:n_ppc_sims, 500)) {
+        lines(c_ppc[i, sample, ], pch=20, cex=0.3,
+              col = rgb(.09, .45, .80, 0.1))
+    }
+    colors <- make_colors(c, c_ppc, sample)
+    lines(c[sample, ], type = 'p', lwd=2, col = colors, pch = 20)
+    lines(c[sample, ], type = 'h', lend=1, lwd=1, col = colors)
+    legend('topright', 
+           legend=c("PPC distribution", 
+                    "Observation (not extreme relative to PPC)", 
+                    "Observation (in 5% tails of PPC)", 
+                    "Observation (outside PPC)"), 
+           col=c(rgb(.09, .45, .80, 1),
+                 "black",
+                 "yellow3",
+                 "firebrick"), 
+           lty=c(1, NA, NA, NA), 
+           pch=c(NA, 20, 20, 20), 
+           lwd=c(3, 2, 2, 2),
+           cex=0.8)
 }
