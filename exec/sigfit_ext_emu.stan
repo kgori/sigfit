@@ -44,17 +44,10 @@ generated quantities {
     // reconstructed sample counts - do counts estimated by the model look like the input data?
     matrix[S, C] reconstruction[G];
     
-    // posterior predictive check - do counts simulated from the model look like the input data?
-    matrix[G, C] counts_ppc;
-    
     for (g in 1:G) {
         exposures[g] = scale_row_to_sum_1(exposures_raw[g]);
         
         log_lik[g] = poisson_lpmf(counts[g] | lambda[g]);
-        
-        for (c in 1:C) {
-            counts_ppc[g, c] = poisson_rng(lambda[g, c]);
-        }
         
         for (s in 1:S) {
             reconstruction[g][s] = (exposures_raw[g, s] * signatures[s])' .* opps[g];

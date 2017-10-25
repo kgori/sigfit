@@ -41,17 +41,12 @@ model {
 }
 generated quantities {
     vector[G] log_lik;
-    matrix[G, C] counts_ppc;
     matrix[G, T] exposures;
     matrix[T, C] reconstruction[G];
 
     // Compute log likelihood
     for (g in 1:G) {
         log_lik[g] = poisson_lpmf(counts[g] | lambda[g]);
-        
-        for (c in 1:C) {
-            counts_ppc[g, c] = poisson_rng(lambda[g, c]);
-        }
         
         exposures[g] = scale_row_to_sum_1(exposures_raw[g]);
         

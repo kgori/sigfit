@@ -27,13 +27,11 @@ model {
 }
 generated quantities {
     vector[G] log_lik;
-    matrix[G, C] counts_ppc; // posterior predictive check
     matrix[S, C] reconstruction[G]; // expected number of counts per signature, for plot_reconstruction
     
     // Compute log likelihood
     for (g in 1:G) {
         log_lik[g] = multinomial_lpmf(counts[g] | probs[g]');
-        counts_ppc[g] = to_row_vector(multinomial_rng(probs[g]', sum(counts[g])));
         for (s in 1:S) {
             reconstruction[g][s] = (exposures[g, s] * sum(counts[g]) * signatures[s]);
         }

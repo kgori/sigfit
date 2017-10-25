@@ -1378,24 +1378,24 @@ fit_signatures <- function(counts, signatures, exp_prior = NULL,
 
 #' Use optimization to generate initial parameter values for MCMC sampling
 #' @export
-extract_signatures_opt_init <- function(counts, nsignatures, method = "emu", opportunities = NULL, 
-                          sig_prior = NULL, ...) {
+extract_signatures_initialiser <- function(counts, nsignatures, method = "emu", opportunities = NULL, 
+                          sig_prior = NULL, chains = 1, ...) {
     
     opt <- extract_signatures(counts, nsignatures, method, opportunities, 
                               sig_prior, "optimizing", FALSE, ...)
     
     if (is.null(opt)) {
         warning("Parameter optimization failed - using random initialization")
-        inits = "random"
+        inits <- "random"
     }
     
     else {
-        inits = list(
-            list(
-                signatures = matrix(opt$par[grepl("signatures", names(opt$par))], nrow = nsignatures),
-                exposures_raw = matrix(opt$par[grepl("exposures_raw", names(opt$par))], nrow = nrow(counts))
-            )
+        params <- list(
+            signatures = matrix(opt$par[grepl("signatures", names(opt$par))], nrow = nsignatures),
+            exposures_raw = matrix(opt$par[grepl("exposures_raw", names(opt$par))], nrow = nrow(counts))
         )
+        inits = list()
+        for (i in 1:chains) inits[[i]] <- p
     }
     inits
 }
@@ -1790,4 +1790,35 @@ plot_ppc <- function(c, c_ppc, sample = 1) {
            pch=c(NA, 20, 20, 20), 
            lwd=c(3, 2, 2, 2),
            cex=0.8)
+}
+
+#' Generate posterior predictive check values from a model
+simulate_ppc <- function(counts, mcmc_samples, size) {
+    if (grepl("nmf", mcmc_samples@model_name)) {
+        e <- extract(mcmc_samples, pars = "probs")
+        ppc <- array(0, dim(e$probs))
+        if (size < dim(e$probs)[1]) index <- sample(1:dim(e$probs)[1], size)
+        else index <- 1:dim(e$probs)[1]
+        for (i in index) {
+            for (j in 1:dim(e$probs)[2]) {
+                ppc[i, j, ] <- t(
+                    rmultinom(1, sum(counts[j, ]), e$probs[i, j, ])
+                )
+            }
+        }
+    }
+    else {
+        e <- extract(mcmc_samples, pars = "lambda")
+        ppc <- array(0, dim(e$lambda))
+        if (size < dim(e$lambda)[1]) index <- sample(1:dim(e$lambda)[1], size)
+        else index <- 1:dim(e$lambda)[1]
+        for (i in index) {
+            for (j in 1:dim(e$lambda)[2]) {
+                for (k in 1:dim(e$lambda)[3]) {
+                    ppc[i, j, k] <- rpois(1, e$lambda[i, j, k])
+                }
+            }
+        }
+    }
+    ppc
 }
