@@ -11,7 +11,7 @@ data {
 }
 parameters {
     simplex[C] signatures[S];   // matrix of signatures, with simplex constraint
-    matrix<lower=0>[G,S] exposures_raw;
+    matrix<lower=0>[G, S] exposures_raw;
 }
 transformed parameters {
     // Poisson parameters
@@ -39,18 +39,7 @@ model {
 }
 generated quantities {
     matrix[G, S] exposures;
-    vector[G] log_lik;
-    
-    // reconstructed sample counts - do counts estimated by the model look like the input data?
-    matrix[S, C] reconstruction[G];
-    
     for (g in 1:G) {
         exposures[g] = scale_row_to_sum_1(exposures_raw[g]);
-        
-        log_lik[g] = poisson_lpmf(counts[g] | lambda[g]);
-        
-        for (s in 1:S) {
-            reconstruction[g][s] = (exposures_raw[g, s] * signatures[s])' .* opps[g];
-        }
     }
 }

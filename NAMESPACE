@@ -3,7 +3,7 @@
 export(build_catalogues)
 export(convert_signatures)
 export(extract_signatures)
-export(extract_signatures_opt_init)
+export(extract_signatures_initialiser)
 export(fetch_cosmic_data)
 export(fit_extract_signatures)
 export(fit_signatures)

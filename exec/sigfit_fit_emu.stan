@@ -1,5 +1,27 @@
 functions {
-    #include "common_functions.stan"
+    vector scale_to_sum_1(vector v) {
+        return (v / sum(v));
+    }
+    
+    row_vector scale_row_to_sum_1(row_vector r) {
+        return (r / sum(r));
+    }
+    
+    /**
+       * Copy an array of equal-length vectors (or simplexes)
+       * into a matrix
+       *
+       * @param x An array of vectors
+       * @return A matrix copy of x
+       */
+    matrix array_to_matrix(vector[] x) {
+        // Assume x doesn't have 0 rows or columns
+        matrix[size(x), rows(x[1])] y;
+        for (m in 1:size(x))
+            y[m] = x[m]';
+        return y;
+    }
+    //#include "common_functions.stan"
 }
 data {
     int<lower=1> C;            // number of mutation categories
@@ -15,11 +37,15 @@ parameters {
     real<lower=0> multiplier[G];
 }
 transformed parameters {
-    // Poisson parameters
-    matrix[G, C] lambda = array_to_matrix(exposures) * signatures .* opps;
+    matrix<lower=0>[G, S] exposures_raw;
+    matrix[G, C] lambda;  // Poisson parameters
+    
     for (g in 1:G) {
-        lambda[g] = lambda[g] * multiplier[g];
+        exposures_raw[g] = exposures[g]' * multiplier[g];
     }
+
+    // Poisson parameters
+    lambda = exposures_raw * signatures .* opps;
 }
 model {
     for (i in 1:G) {
@@ -29,17 +55,5 @@ model {
         
         // Likelihood
         counts[i] ~ poisson(lambda[i]);
-    }
-}
-generated quantities {
-    vector[G] log_lik;
-    matrix[S, C] reconstruction[G];
-    
-    for (g in 1:G) {
-        log_lik[g] = poisson_lpmf(counts[g] | lambda[g]);
-        
-        for (s in 1:S) {
-            reconstruction[g][s] = (exposures[g, s] * multiplier[g] * signatures[s]) .* opps[g];
-        }
     }
 }

@@ -40,18 +40,8 @@ model {
     }
 }
 generated quantities {
-    vector[G] log_lik;
     matrix[G, T] exposures;
-    matrix[T, C] reconstruction[G];
-
-    // Compute log likelihood
     for (g in 1:G) {
-        log_lik[g] = poisson_lpmf(counts[g] | lambda[g]);
-        
         exposures[g] = scale_row_to_sum_1(exposures_raw[g]);
-        
-        for (t in 1:T) {
-            reconstruction[g][t] = (exposures_raw[g, t] * signatures[t]) .* opps[g];
-        }
     }
 }
