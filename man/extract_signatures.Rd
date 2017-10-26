@@ -5,7 +5,8 @@
 \title{Extract signatures from a set of mutation counts}
 \usage{
 extract_signatures(counts, nsignatures, method = "emu",
-  opportunities = NULL, sig_prior = NULL, stanfunc = "sampling", ...)
+  opportunities = NULL, sig_prior = NULL, stanfunc = "sampling",
+  cores = "auto", ...)
 }
 \arguments{
 \item{counts}{Matrix of observed mutation counts (integers), with one row per sample and 
@@ -29,12 +30,11 @@ and \code{"vb"}. \code{"sampling"} is the full Bayesian MCMC approach, and is th
 \code{"optimizing"} returns the Maximum a Posteriori (MAP) point estimates via numerical optimization.
 \code{"vb"} uses Variational Bayes to approximate the full posterior.}
 
+\item{cores}{Positive integer, number of cores to use. The default (\code{cores="auto"}) assigns
+as many cores as detected in the system by \code{\link{parallel::detectCores()}}.}
+
 \item{...}{Any other parameters to pass to the sampling function (by default, \code{\link{rstan::sampling}}).
 (The number of chains is set to 1 and cannot be changed, to prevent 'label switching' problems.)}
-
-\item{nce}{NMF model specific: Use "normal-centred exposures" model (nce = TRUE). This parameterisation generally 
-produces a higher ratio of effective sample size : chain length than the alternative, sampling exposures using a 
-stick-breaking Dirichlet (used when nce = FALSE). Defaults to TRUE.}
 }
 \value{
 A stanfit object containing the Monte Carlo samples from MCMC (from which the model

@@ -199,10 +199,10 @@ human_trinuc_freqs <- function(type = "genome", strand = FALSE) {
 
 #' Build mutational catalogues
 #' 
-#' \{build_catalogues} generates a set of mutational catalogues from a table containing 
+#' \code{build_catalogues} generates a set of mutational catalogues from a table containing 
 #' the base change and trinucleotide context of each single-nucleotide variant in every sample.
 #' @param variants Matrix with one row per single-nucleotide variant, and four or five columns:
-#' \itemizer{
+#' \itemize{
 #'  \item{Sample ID (character, e.g. "Sample 1").}
 #'  \item{Reference allele (character: "A", "C", "G", or "T").}
 #'  \item{Alternate allele (character: "A", "C", "G", or "T").}

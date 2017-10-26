@@ -5,7 +5,8 @@
 \title{Fit-and-extract mutational signatures}
 \usage{
 fit_extract_signatures(counts, signatures, num_extra_sigs, method = "nmf",
-  opportunities = NULL, sig_prior = NULL, stanfunc = "sampling", ...)
+  opportunities = NULL, sig_prior = NULL, stanfunc = "sampling",
+  cores = "auto", ...)
 }
 \arguments{
 \item{counts}{Matrix of observed mutation counts (integers), with one row per sample and 
@@ -25,6 +26,9 @@ inference strategy. \code{"sampling"} is the full Bayesian MCMC approach, and is
 default. \code{"optimizing"} returns the Maximum a Posteriori (MAP) point estimates 
 via numerical optimization. \code{"vb"} uses Variational Bayes to approximate the 
 full posterior.}
+
+\item{cores}{Positive integer, number of cores to use. The default (\code{cores="auto"}) assigns
+as many cores as detected in the system by \code{\link{parallel::detectCores()}}.}
 
 \item{...}{Any other parameters to pass to the sampling function (by default, \code{\link{rstan::sampling}}).
 (The number of chains is set to 1 and cannot be changed, to prevent 'label switching' problems.)}

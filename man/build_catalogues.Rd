@@ -8,7 +8,7 @@ build_catalogues(variants)
 }
 \arguments{
 \item{variants}{Matrix with one row per single-nucleotide variant, and four or five columns:
-\itemizer{
+\itemize{
  \item{Sample ID (character, e.g. "Sample 1").}
  \item{Reference allele (character: "A", "C", "G", or "T").}
  \item{Alternate allele (character: "A", "C", "G", or "T").}
@@ -22,6 +22,10 @@ build_catalogues(variants)
 \value{
 A matrix of mutation counts, where each row corresponds to a sample and each column
 corresponds to one of the 96 trinucleotide mutation types.
+}
+\description{
+\code{build_catalogues} generates a set of mutational catalogues from a table containing 
+the base change and trinucleotide context of each single-nucleotide variant in every sample.
 }
 \examples{
 # Load example mutation data

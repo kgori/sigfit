@@ -5,7 +5,7 @@
 \title{Fit mutational signatures}
 \usage{
 fit_signatures(counts, signatures, exp_prior = NULL, method = "nmf",
-  opportunities = NULL, ...)
+  opportunities = NULL, cores = "auto", ...)
 }
 \arguments{
 \item{counts}{Matrix of observed mutation counts (integers), with one row per sample and 
@@ -24,6 +24,9 @@ the signature exposures in the sampling chain. Default prior is uniform (uninfor
 (\code{method = "emu"}) method. Must be a matrix with same dimension as \code{counts}. 
 If equal to \code{"human-genome"} or \code{"human-exome"}, the reference human genome/exome 
 opportunities will be used for every sample.}
+
+\item{cores}{Positive integer, number of cores to use. The default (\code{cores="auto"}) assigns
+as many cores as detected in the system by \code{\link{parallel::detectCores()}}.}
 
 \item{...}{Arguments to pass to \code{rstan::sampling}.}
 }
