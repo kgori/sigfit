@@ -14,7 +14,7 @@ transformed data {
     int T = S + N;   // total number of signatures, including extra signatures
 }
 parameters {
-    simplex[C] extra_sigs[N];  // additional signatures to extract
+    simplex[C] extra_sigs[N];   // additional signatures to extract
     vector[T] exposures_raw[G]; // includes exposures for extra_sigs
 }
 transformed parameters {
@@ -36,7 +36,7 @@ model {
     }
     
     for (g in 1:G) {
-        // Priors for exposures_raw
+        // Priors for exposures_raw are standard normal
         exposures_raw[g] ~ normal(0, 1);
         
         // Likelihood

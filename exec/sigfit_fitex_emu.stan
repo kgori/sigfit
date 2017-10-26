@@ -15,8 +15,8 @@ transformed data {
     int T = S + N;   // total number of signatures, including extra signatures
 }
 parameters {
-    simplex[C] extra_sigs[N];  // additional signatures to extract
-    matrix<lower=0>[G, T] exposures_raw;   // includes exposures for extra_sigs
+    simplex[C] extra_sigs[N];             // additional signatures to extract
+    matrix<lower=0>[G, T] exposures_raw;  // includes exposures for extra_sigs
 }
 transformed parameters {
     // Full signatures matrix
@@ -32,7 +32,7 @@ model {
     }
 
     for (g in 1:G) {
-        // Priors for exposures (Jeffreys)
+        // Priors for exposures_raw
         exposures_raw[g] ~ cauchy(0, 1);
         
         // Likelihood

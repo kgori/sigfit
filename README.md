@@ -1,5 +1,5 @@
 # sigfit
-#### Discovering mutational signatures through Bayesian inference 
+### Discovering mutational signatures through Bayesian inference 
 
 ## Installation
 sigfit is an R package. It can be installed from inside an R session using the devtools library

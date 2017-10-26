@@ -31,7 +31,7 @@ model {
     }
     
     for (g in 1:G) {
-        // Priors for exposures_raw is standard normal
+        // Priors for exposures_raw are standard normal
         exposures_raw[g] ~ normal(0, 1);
         
         // Likelihood

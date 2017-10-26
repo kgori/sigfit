@@ -30,7 +30,7 @@ model {
     }
 
     for (g in 1:G) {
-        // Priors for exposures
+        // Priors for exposures_raw
         exposures_raw[g] ~ cauchy(0, 1);
 
         // Likelihood
