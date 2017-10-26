@@ -39,6 +39,7 @@
 #'                             iter = 13000, warmup = 3000)
 #' @useDynLib sigfit, .registration = TRUE
 #' @importFrom "rstan" sampling
+#' @importFrom "parallel" detectCores
 #' @export
 fit_signatures <- function(counts, signatures, exp_prior = NULL, method = "nmf",
                            opportunities = NULL, cores = "auto", ...) {
@@ -106,19 +107,13 @@ fit_signatures <- function(counts, signatures, exp_prior = NULL, method = "nmf",
     }
     
     # Set number of cores
-    if (cores == "auto") {
-        rstan_options(auto_write = TRUE)
-        options(mc.cores = parallel::detectCores())
-    }
-    else if (cores %in% 2:parallel::detectCores()) {
-        rstan_options(auto_write = TRUE)
-        options(mc.cores = cores)
-    }
-    else if (!(cores %in% 1:parallel::detectCores())) {
-        stop(paste0("'cores' must be a positive integer no larger than ", parallel::detectCores(), " (the number of cores in this system)."))
+    nc <- detectCores()
+    if (cores == "auto") cores <- nc
+    if (!(cores %in% 1:nc)) {
+        stop(paste0("'cores' must be a positive integer no larger than ", nc, " (the number of cores in this system)."))
     }
 
-    sampling(model, data = dat, pars = "multiplier", include = FALSE, ...)
+    sampling(model, data = dat, pars = "multiplier", include = FALSE, cores = cores, ...)
 }
 
 
@@ -189,9 +184,10 @@ extract_signatures_initialiser <- function(counts, nsignatures, method = "emu", 
 #' @importFrom "rstan" optimizing
 #' @importFrom "rstan" vb
 #' @importFrom "rstan" extract
+#' @importFrom "parallel" detectCores
 #' @export
 extract_signatures <- function(counts, nsignatures, method = "emu", opportunities = NULL, 
-                               sig_prior = NULL, stanfunc = "sampling", cores = "auto", ...) {
+                               sig_prior = NULL, stanfunc = "sampling", cores = 1, ...) {
     
     if (!is.null(sig_prior) & length(nsignatures) > 1) {
         stop("'sig_prior' is only admitted when 'nsignatures' is a scalar (single value).")
@@ -254,16 +250,10 @@ extract_signatures <- function(counts, nsignatures, method = "emu", opportunitie
     }
     
     # Set number of cores
-    if (cores == "auto") {
-        rstan_options(auto_write = TRUE)
-        options(mc.cores = parallel::detectCores())
-    }
-    else if (cores %in% 2:parallel::detectCores()) {
-        rstan_options(auto_write = TRUE)
-        options(mc.cores = cores)
-    }
-    else if (!(cores %in% 1:parallel::detectCores())) {
-        stop(paste0("'cores' must be a positive integer no larger than ", parallel::detectCores(), " (the number of cores in this system)."))
+    nc <- detectCores()
+    if (cores == "auto") cores <- nc
+    if (!(cores %in% 1:nc)) {
+        stop(paste0("'cores' must be a positive integer no larger than ", nc, " (the number of cores in this system)."))
     }
     
     # Extract signatures for each nsignatures value
@@ -277,7 +267,7 @@ extract_signatures <- function(counts, nsignatures, method = "emu", opportunitie
             cat("Extracting", n, "signatures\n")
             if (stanfunc == "sampling") {
                 cat("Stan sampling:")
-                out[[n]] <- sampling(model, data = dat, chains = 1, ...)
+                out[[n]] <- sampling(model, data = dat, chains = 1, cores = cores, ...)
                 
             }
             else if (stanfunc == "optimizing") {
@@ -373,10 +363,11 @@ extract_signatures <- function(counts, nsignatures, method = "emu", opportunitie
 #' @importFrom "rstan" sampling
 #' @importFrom "rstan" optimizing
 #' @importFrom "rstan" vb
+#' @importFrom "parallel" detectCores
 #' @export
 fit_extract_signatures <- function(counts, signatures, num_extra_sigs, 
                                    method = "nmf", opportunities = NULL, sig_prior = NULL,
-                                   stanfunc = "sampling", cores = "auto", ...) {
+                                   stanfunc = "sampling", cores = 1, ...) {
     # Check that num_extra_sigs is scalar
     if (length(num_extra_sigs) > 1) {
         stop("'num_extra_sigs' must be an integer scalar.")
@@ -452,21 +443,15 @@ fit_extract_signatures <- function(counts, signatures, num_extra_sigs,
     }
     
     # Set number of cores
-    if (cores == "auto") {
-        rstan_options(auto_write = TRUE)
-        options(mc.cores = parallel::detectCores())
-    }
-    else if (cores %in% 2:parallel::detectCores()) {
-        rstan_options(auto_write = TRUE)
-        options(mc.cores = cores)
-    }
-    else if (!(cores %in% 1:parallel::detectCores())) {
-        stop(paste0("'cores' must be a positive integer no larger than ", parallel::detectCores(), " (the number of cores in this system)."))
+    nc <- detectCores()
+    if (cores == "auto") cores <- nc
+    if (!(cores %in% 1:nc)) {
+        stop(paste0("'cores' must be a positive integer no larger than ", nc, " (the number of cores in this system)."))
     }
     
     if (stanfunc == "sampling") {
         cat("Stan sampling:")
-        sampling(model, data = dat, chains = 1, 
+        sampling(model, data = dat, chains = 1, cores = cores, 
                  pars = c("extra_sigs", "probs", "exposures_raw", "lambda"),
                  include = FALSE, ...)
     }
