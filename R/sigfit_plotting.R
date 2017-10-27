@@ -359,6 +359,17 @@ plot_reconstruction <- function(counts, mcmc_samples = NULL, signatures = NULL,
         # Obtain mean exposures (for legend)
         exposures <- t(apply(e$exposures, 2, colMeans))
         
+        # Fitting models don't contain signatures, so need to be supplied
+        if (!"signatures" %in% names(e)) {
+            if (is.null(signatures)) {
+                stop("signatures must be supplied when reconstructing fitting models")
+            }
+            e$signatures <- aperm(
+                sapply(1:NREP, function(i) as.matrix(signatures), simplify = "array"),
+                c(3, 1, 2)
+            )
+        }
+        
         # Create reconstructed catalogues
         reconstructions <- array(NA, dim = c(NSAMP, NSIG, NCAT))
         hpds <- array(NA, dim = c(NSAMP, 2, NCAT))
@@ -764,6 +775,8 @@ plot_spectrum <- function(spectra, name = NULL, pdf_path = NULL, max_y = NULL) {
 #' \code{"topright"}, \code{"right"} and \code{"center"}.
 #' @param sig_color_palette Character vector of color names or hexadecimal codes to use for each signature.
 #' Must have at least as many elements as the number of signatures.
+#' @importFrom "graphics" arrows axis barplot legend lines mtext par plot points rect text title
+#' @importFrom "grDevices" pdf dev.off rgb
 #' @export
 plot_exposures <- function(counts, exposures = NULL, mcmc_samples = NULL, pdf_path = NULL,
                            signature_names = NULL, thresh = 0.01, hpd_prob = 0.95,

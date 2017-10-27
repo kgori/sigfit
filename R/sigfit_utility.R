@@ -291,6 +291,7 @@ build_catalogues <- function(variants) {
 #' containing any zeros, which can affect computation of the log likelihood.
 #' @return Matrix of signatures, with one row per signature and one column for each of
 #' the 96 trinucleotide mutation types.
+#' @importFrom "utils" read.table
 #' @export
 fetch_cosmic_data <- function(reorder = TRUE, remove_zeros = TRUE) {
     cosmic_sigs <- read.table("http://cancer.sanger.ac.uk/cancergenome/assets/signatures_probabilities.txt", 
@@ -492,6 +493,7 @@ retrieve_pars <- function(mcmc_samples, feature, hpd_prob = 0.95, signature_name
 #' column for each of the 96 mutation types.
 #' @param mcmc_samples Object of class stanfit, generated via either \code{\link{fit_signatures}}
 #' or \code{\link{extract_signatures}}.
+#' @importFrom "stats" rmultinom rpois
 #' @export
 simulate_ppc <- function(counts, mcmc_samples) {
     if (grepl("nmf", mcmc_samples@model_name)) {
@@ -524,6 +526,7 @@ simulate_ppc <- function(counts, mcmc_samples) {
 #' column for each of the 96 mutation types.
 #' @param mcmc_samples Object of class stanfit, generated via either \code{\link{fit_signatures}}
 #' or \code{\link{extract_signatures}}.
+#' @importFrom "stats" dmultinom dpois
 #' @export
 get_loglik <- function(counts, mcmc_samples) {
     dnames <- list(NULL, NULL)
