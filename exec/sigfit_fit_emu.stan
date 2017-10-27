@@ -16,14 +16,14 @@ parameters {
 }
 transformed parameters {
     matrix<lower=0>[G, S] exposures_raw;
-    matrix[G, C] lambda;  // Poisson parameters
+    matrix[G, C] expected_counts;  // Poisson parameters
     
     for (g in 1:G) {
         exposures_raw[g] = exposures[g]' * multiplier[g];
     }
 
     // Poisson parameters
-    lambda = exposures_raw * signatures .* opps;
+    expected_counts = exposures_raw * signatures .* opps;
 }
 model {
     for (i in 1:G) {
@@ -32,6 +32,6 @@ model {
         multiplier ~ cauchy(0, 1);
         
         // Likelihood
-        counts[i] ~ poisson(lambda[i]);
+        counts[i] ~ poisson(expected_counts[i]);
     }
 }

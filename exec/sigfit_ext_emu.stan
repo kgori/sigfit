@@ -16,7 +16,7 @@ parameters {
 transformed parameters {
     // Poisson parameters
     // array_to_matrix is defined in common_functions.stan and is not in base Stan
-    matrix[G, C] lambda = exposures_raw * array_to_matrix(signatures) .* opps;
+    matrix[G, C] expected_counts = exposures_raw * array_to_matrix(signatures) .* opps;
 }
 model {
     // Label Switching -  the probabilities
@@ -34,7 +34,7 @@ model {
         exposures_raw[g] ~ cauchy(0, 1);
 
         // Likelihood
-        counts[g] ~ poisson(lambda[g]);
+        counts[g] ~ poisson(expected_counts[g]);
     }
 }
 generated quantities {

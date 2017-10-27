@@ -506,12 +506,12 @@ simulate_ppc <- function(counts, mcmc_samples) {
         }
     }
     else {
-        e <- extract(mcmc_samples, pars = "lambda")
-        ppc <- array(0, dim(e$lambda))
-        for (i in 1:dim(e$lambda)[1]) {
-            for (j in 1:dim(e$lambda)[2]) {
-                for (k in 1:dim(e$lambda)[3]) {
-                    ppc[i, j, k] <- rpois(1, e$lambda[i, j, k])
+        e <- extract(mcmc_samples, pars = "expected_counts")
+        ppc <- array(0, dim(e$expected_counts))
+        for (i in 1:dim(e$expected_counts)[1]) {
+            for (j in 1:dim(e$expected_counts)[2]) {
+                for (k in 1:dim(e$expected_counts)[3]) {
+                    ppc[i, j, k] <- rpois(1, e$expected_counts[i, j, k])
                 }
             }
         }
@@ -540,13 +540,13 @@ get_loglik <- function(counts, mcmc_samples) {
         }
     }
     else {
-        e <- extract(mcmc_samples, pars = "lambda")
-        nrep <- dim(e$lambda)[1]
-        nsamples <- dim(e$lambda)[2]
+        e <- extract(mcmc_samples, pars = "expected_counts")
+        nrep <- dim(e$expected_counts)[1]
+        nsamples <- dim(e$expected_counts)[2]
         log_lik <- matrix(0, nrow = nrep, ncol = nsamples, dimnames = dnames)
         for (i in 1:nrep) {
             for (j in 1:nsamples) {
-                log_lik[i, j] <- sum(dpois(counts[j, ], e$lambda[i, j, ], log = TRUE))
+                log_lik[i, j] <- sum(dpois(counts[j, ], e$expected_counts[i, j, ], log = TRUE))
             }
         }
     }

@@ -15,8 +15,6 @@
 #' (\code{method = "emu"}) method. Must be a matrix with same dimension as \code{counts}. 
 #' If equal to \code{"human-genome"} or \code{"human-exome"}, the reference human genome/exome 
 #' opportunities will be used for every sample.
-#' @param cores Positive integer, number of cores to use. The default (\code{cores="auto"}) assigns
-#' as many cores as detected in the system by \code{\link{parallel::detectCores()}}.
 #' @param ... Arguments to pass to \code{rstan::sampling}.
 #' @return A stanfit object containing the Monte Carlo samples from MCMC (from which the model
 #' parameters can be extracted using \code{\link{retrieve_parameters}}), as well as information about
@@ -39,10 +37,9 @@
 #'                             iter = 13000, warmup = 3000)
 #' @useDynLib sigfit, .registration = TRUE
 #' @importFrom "rstan" sampling
-#' @importFrom "parallel" detectCores
 #' @export
 fit_signatures <- function(counts, signatures, exp_prior = NULL, method = "nmf",
-                           opportunities = NULL, cores = "auto", ...) {
+                           opportunities = NULL, ...) {
     
     # Force counts and signatures to matrix
     counts <- to_matrix(counts)
@@ -106,14 +103,7 @@ fit_signatures <- function(counts, signatures, exp_prior = NULL, method = "nmf",
         model <- stanmodels$sigfit_fit_nmf
     }
     
-    # Set number of cores
-    nc <- detectCores()
-    if (cores == "auto") cores <- nc
-    if (!(cores %in% 1:nc)) {
-        stop(paste0("'cores' must be a positive integer no larger than ", nc, " (the number of cores in this system)."))
-    }
-
-    sampling(model, data = dat, pars = "multiplier", include = FALSE, cores = cores, ...)
+    sampling(model, data = dat, pars = "multiplier", include = FALSE, ...)
 }
 
 
@@ -158,8 +148,6 @@ extract_signatures_initialiser <- function(counts, nsignatures, method = "emu", 
 #' and \code{"vb"}. \code{"sampling"} is the full Bayesian MCMC approach, and is the default. 
 #' \code{"optimizing"} returns the Maximum a Posteriori (MAP) point estimates via numerical optimization.
 #' \code{"vb"} uses Variational Bayes to approximate the full posterior.
-#' @param cores Positive integer, number of cores to use. The default (\code{cores="auto"}) assigns
-#' as many cores as detected in the system by \code{\link{parallel::detectCores()}}.
 #' @param ... Any other parameters to pass to the sampling function (by default, \code{\link{rstan::sampling}}).
 #' (The number of chains is set to 1 and cannot be changed, to prevent 'label switching' problems.)
 #' @return A stanfit object containing the Monte Carlo samples from MCMC (from which the model
@@ -184,10 +172,9 @@ extract_signatures_initialiser <- function(counts, nsignatures, method = "emu", 
 #' @importFrom "rstan" optimizing
 #' @importFrom "rstan" vb
 #' @importFrom "rstan" extract
-#' @importFrom "parallel" detectCores
 #' @export
 extract_signatures <- function(counts, nsignatures, method = "emu", opportunities = NULL, 
-                               sig_prior = NULL, stanfunc = "sampling", cores = 1, ...) {
+                               sig_prior = NULL, stanfunc = "sampling", ...) {
     
     if (!is.null(sig_prior) & length(nsignatures) > 1) {
         stop("'sig_prior' is only admitted when 'nsignatures' is a scalar (single value).")
@@ -249,13 +236,6 @@ extract_signatures <- function(counts, nsignatures, method = "emu", opportunitie
         stop("'method' must be either \"emu\" or \"nmf\".")
     }
     
-    # Set number of cores
-    nc <- detectCores()
-    if (cores == "auto") cores <- nc
-    if (!(cores %in% 1:nc)) {
-        stop(paste0("'cores' must be a positive integer no larger than ", nc, " (the number of cores in this system)."))
-    }
-    
     # Extract signatures for each nsignatures value
     if (length(nsignatures) > 1) {
         out <- vector(mode = "list", length = max(nsignatures))
@@ -267,7 +247,7 @@ extract_signatures <- function(counts, nsignatures, method = "emu", opportunitie
             cat("Extracting", n, "signatures\n")
             if (stanfunc == "sampling") {
                 cat("Stan sampling:")
-                out[[n]] <- sampling(model, data = dat, chains = 1, cores = cores, ...)
+                out[[n]] <- sampling(model, data = dat, chains = 1, ...)
                 
             }
             else if (stanfunc == "optimizing") {
@@ -331,8 +311,6 @@ extract_signatures <- function(counts, nsignatures, method = "emu", opportunitie
 #' default. \code{"optimizing"} returns the Maximum a Posteriori (MAP) point estimates 
 #' via numerical optimization. \code{"vb"} uses Variational Bayes to approximate the 
 #' full posterior.
-#' @param cores Positive integer, number of cores to use. The default (\code{cores="auto"}) assigns
-#' as many cores as detected in the system by \code{\link{parallel::detectCores()}}.
 #' @param ... Any other parameters to pass to the sampling function (by default, \code{\link{rstan::sampling}}).
 #' (The number of chains is set to 1 and cannot be changed, to prevent 'label switching' problems.)
 #' @return A stanfit object containing the Monte Carlo samples from MCMC (from which the model
@@ -363,16 +341,14 @@ extract_signatures <- function(counts, nsignatures, method = "emu", opportunitie
 #' @importFrom "rstan" sampling
 #' @importFrom "rstan" optimizing
 #' @importFrom "rstan" vb
-#' @importFrom "parallel" detectCores
 #' @export
 fit_extract_signatures <- function(counts, signatures, num_extra_sigs, 
                                    method = "nmf", opportunities = NULL, sig_prior = NULL,
-                                   stanfunc = "sampling", cores = 1, ...) {
+                                   stanfunc = "sampling", ...) {
     # Check that num_extra_sigs is scalar
     if (length(num_extra_sigs) > 1) {
         stop("'num_extra_sigs' must be an integer scalar.")
     }
-    
     
     # Force counts and signatures to matrix
     counts <- to_matrix(counts)
@@ -442,18 +418,10 @@ fit_extract_signatures <- function(counts, signatures, num_extra_sigs,
         )
     }
     
-    # Set number of cores
-    nc <- detectCores()
-    if (cores == "auto") cores <- nc
-    if (!(cores %in% 1:nc)) {
-        stop(paste0("'cores' must be a positive integer no larger than ", nc, " (the number of cores in this system)."))
-    }
-    
     if (stanfunc == "sampling") {
         cat("Stan sampling:")
-        sampling(model, data = dat, chains = 1, cores = cores, 
-                 pars = c("extra_sigs", "probs", "exposures_raw", "lambda"),
-                 include = FALSE, ...)
+        sampling(model, data = dat, chains = 1,
+                 pars = "extra_sigs", include = FALSE, ...)
     }
     else if (stanfunc == "optimizing") {
         cat("Stan optimizing:")

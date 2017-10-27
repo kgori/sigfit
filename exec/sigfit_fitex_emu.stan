@@ -23,7 +23,7 @@ transformed parameters {
     matrix[T, C] signatures = append_row(fixed_sigs, array_to_matrix(extra_sigs));
     
     // Poisson parameters
-    matrix[G, C] lambda = exposures_raw * signatures .* opps;
+    matrix[G, C] expected_counts = exposures_raw * signatures .* opps;
 }
 model {
     // Priors for extra signatures
@@ -36,7 +36,7 @@ model {
         exposures_raw[g] ~ cauchy(0, 1);
         
         // Likelihood
-        counts[g] ~ poisson(lambda[g]);
+        counts[g] ~ poisson(expected_counts[g]);
     }
 }
 generated quantities {

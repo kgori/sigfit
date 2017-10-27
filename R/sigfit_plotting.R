@@ -187,9 +187,9 @@ plot_all <- function(counts, out_path, prefix = NULL, mcmc_samples = NULL, signa
 #' has typically been sampled using an extraction model (EMu or NMF) with a 
 #' different number of signatures.
 #' @param sample_list List of objects of class stanfit. Elements which are not of class stanfit are ignored.
-#' @param counts Matrix of observed mutation counts (integers), with one row per sample and 
+#' @param counts Integer matrix of observed mutation counts, with one row per sample and 
 #' column for each of the 96 mutation types.
-#' @param stat Function for measuring goodness of fit. Admits values \code{"cosine"} 
+#' @param stat Character, function for measuring goodness of fit. Admits values \code{"cosine"} 
 #' (cosine similarity; default) or \code{"L2"} (L2 norm, a.k.a. Euclidean distance).
 #' @importFrom "rstan" extract
 #' @export
@@ -208,16 +208,17 @@ plot_gof <- function(sample_list, counts, stat = "cosine") {
         
         if (grepl("emu", samples@model_name)) {
             method <- "EMu"
+            e <- extract(samples, pars = c("expected_counts", "signatures"))
+            reconstructed <- apply(e$expected_counts, c(2, 3), mean)
         }
         
         else {
             method <- "NMF"
+            e <- extract(samples, pars = c("probs", "signatures"))
+            reconstructed <- apply(e$probs, c(2, 3), mean) * rowSums(counts)
         }
         
-        e <- extract(samples, pars = c("expected_counts", "signatures"))
-        reconstructed <- apply(e$expected_counts, c(2, 3), mean)
-        
-        stopifnot(length(as.vector(reconstructed)) == length(as.vector(counts)))
+        stopifnot(dim(reconstructed) == dim(counts))
         
         nS <- c(nS, dim(e$signatures)[2])
         gof <- c(gof, gof_function(as.vector(reconstructed),
