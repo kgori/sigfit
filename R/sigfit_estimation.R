@@ -144,6 +144,7 @@ extract_signatures_initialiser <- function(counts, nsignatures, method = "emu", 
 #' @param sig_prior Matrix with one row per signature and one column per category, to be used as the Dirichlet 
 #' priors for the signatures to be extracted. Only used when \code{nsignatures} is a scalar.
 #' Default priors are uniform (uninformative).
+#' @param kappa Hyperparameter of the Dirichlet prior given to the exposures. Default value is 1 (uniform, uninformative).
 #' @param stanfunc Choice of rstan inference strategy; admits values \code{"sampling"}, \code{"optimizing"}
 #' and \code{"vb"}. \code{"sampling"} is the full Bayesian MCMC approach, and is the default. 
 #' \code{"optimizing"} returns the Maximum a Posteriori (MAP) point estimates via numerical optimization.
@@ -174,11 +175,13 @@ extract_signatures_initialiser <- function(counts, nsignatures, method = "emu", 
 #' @importFrom "rstan" extract
 #' @export
 extract_signatures <- function(counts, nsignatures, method = "emu", opportunities = NULL, 
-                               sig_prior = NULL, stanfunc = "sampling", ...) {
+                               sig_prior = NULL, kappa = 1, stanfunc = "sampling", ...) {
     
     if (!is.null(sig_prior) & length(nsignatures) > 1) {
         stop("'sig_prior' is only admitted when 'nsignatures' is a scalar (single value).")
     }
+    
+    stopifnot(is.numeric(kappa) & kappa > 0)
     
     # Force counts to matrix
     counts <- to_matrix(counts)
@@ -229,7 +232,8 @@ extract_signatures <- function(counts, nsignatures, method = "emu", opportunitie
             G = NSAMP,
             S = as.integer(nsignatures[1]),
             counts = counts,
-            alpha = sig_prior
+            alpha = sig_prior,
+            kappa = kappa
         )
     }
     else {
@@ -306,6 +310,7 @@ extract_signatures <- function(counts, nsignatures, method = "emu", opportunitie
 #' @param num_extra_sigs Number of additional signatures to be extracted.
 #' @param sig_prior Matrix with one row per additional signature and one column per category, to be used as the
 #' Dirichlet priors for the additional signatures to be extracted. Default priors are uniform (uninformative).
+#' @param kappa Hyperparameter of the Dirichlet prior given to the exposures. Default value is 1 (uniform, uninformative).
 #' @param stanfunc \code{"sampling"}|\code{"optimizing"}|\code{"vb"} Choice of rstan 
 #' inference strategy. \code{"sampling"} is the full Bayesian MCMC approach, and is the 
 #' default. \code{"optimizing"} returns the Maximum a Posteriori (MAP) point estimates 
@@ -343,12 +348,14 @@ extract_signatures <- function(counts, nsignatures, method = "emu", opportunitie
 #' @importFrom "rstan" vb
 #' @export
 fit_extract_signatures <- function(counts, signatures, num_extra_sigs, 
-                                   method = "nmf", opportunities = NULL, sig_prior = NULL,
+                                   method = "nmf", opportunities = NULL, sig_prior = NULL, kappa = 1,
                                    stanfunc = "sampling", ...) {
     # Check that num_extra_sigs is scalar
     if (length(num_extra_sigs) > 1) {
         stop("'num_extra_sigs' must be an integer scalar.")
     }
+    
+    stopifnot(is.numeric(kappa) & kappa > 0)
     
     # Force counts and signatures to matrix
     counts <- to_matrix(counts)
@@ -414,7 +421,8 @@ fit_extract_signatures <- function(counts, signatures, num_extra_sigs,
             N = as.integer(num_extra_sigs),
             fixed_sigs = signatures,
             counts = counts,
-            alpha = sig_prior
+            alpha = sig_prior,
+            kappa = kappa
         )
     }
     

@@ -5,7 +5,8 @@
 \title{Fit-and-extract mutational signatures}
 \usage{
 fit_extract_signatures(counts, signatures, num_extra_sigs, method = "nmf",
-  opportunities = NULL, sig_prior = NULL, stanfunc = "sampling", ...)
+  opportunities = NULL, sig_prior = NULL, kappa = 1,
+  stanfunc = "sampling", ...)
 }
 \arguments{
 \item{counts}{Matrix of observed mutation counts (integers), with one row per sample and 
@@ -19,6 +20,8 @@ per signature and one column for each of the 96 mutation types, or a list of sig
 
 \item{sig_prior}{Matrix with one row per additional signature and one column per category, to be used as the
 Dirichlet priors for the additional signatures to be extracted. Default priors are uniform (uninformative).}
+
+\item{kappa}{Hyperparameter of the Dirichlet prior given to the exposures. Default value is 1 (uniform, uninformative).}
 
 \item{stanfunc}{\code{"sampling"}|\code{"optimizing"}|\code{"vb"} Choice of rstan 
 inference strategy. \code{"sampling"} is the full Bayesian MCMC approach, and is the 

@@ -9,25 +9,22 @@ data {
     matrix[S, C] fixed_sigs;   // matrix of signatures (rows) by categories (columns)
     int<lower=0> counts[G, C]; // matrix of counts per genome (rows) in each category (columns)
     matrix[N, C] alpha;        // priors for extra signatures
+    real<lower=0> kappa;       // prior for exposures
 }
 transformed data {
     int T = S + N;   // total number of signatures, including extra signatures
+    vector[T] kappa_vec = rep_vector(kappa, T);
 }
 parameters {
     simplex[C] extra_sigs[N];   // additional signatures to extract
-    vector[T] exposures_raw[G]; // includes exposures for extra_sigs
+    simplex[T] exposures[G]; // includes exposures for extra_sigs
 }
 transformed parameters {
-    matrix[G, T] exposures;
     matrix[T, C] signatures;
     matrix<lower=0, upper=1>[G, C] probs;
     
-    for (g in 1:G) {
-        exposures[g] = softmax(exposures_raw[g])';
-    }
-    
     signatures = append_row(fixed_sigs, array_to_matrix(extra_sigs));
-    probs = exposures * signatures;
+    probs = array_to_matrix(exposures) * signatures;
 }
 model {
     // Priors for extra signatures
@@ -36,8 +33,8 @@ model {
     }
     
     for (g in 1:G) {
-        // Priors for exposures_raw are standard normal
-        exposures_raw[g] ~ normal(0, 1);
+        // Priors for exposures_raw are uniform dirichlet
+        exposures[g] ~ dirichlet(kappa_vec);
         
         // Likelihood
         counts[g] ~ multinomial(to_vector(probs[g]));
