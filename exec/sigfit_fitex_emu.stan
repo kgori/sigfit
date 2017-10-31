@@ -16,14 +16,14 @@ transformed data {
 }
 parameters {
     simplex[C] extra_sigs[N];             // additional signatures to extract
-    matrix<lower=0>[G, T] exposures_raw;  // includes exposures for extra_sigs
+    matrix<lower=0>[G, T] activities;  // includes exposures for extra_sigs
 }
 transformed parameters {
     // Full signatures matrix
     matrix[T, C] signatures = append_row(fixed_sigs, array_to_matrix(extra_sigs));
     
     // Poisson parameters
-    matrix[G, C] expected_counts = exposures_raw * signatures .* opps;
+    matrix[G, C] expected_counts = activities * signatures .* opps;
 }
 model {
     // Priors for extra signatures
@@ -32,8 +32,8 @@ model {
     }
 
     for (g in 1:G) {
-        // Priors for exposures_raw
-        exposures_raw[g] ~ cauchy(0, 1);
+        // Priors for activities
+        activities[g] ~ cauchy(0, 1);
         
         // Likelihood
         counts[g] ~ poisson(expected_counts[g]);
@@ -42,6 +42,6 @@ model {
 generated quantities {
     matrix[G, T] exposures;
     for (g in 1:G) {
-        exposures[g] = scale_row_to_sum_1(exposures_raw[g]);
+        exposures[g] = scale_row_to_sum_1(activities[g]);
     }
 }

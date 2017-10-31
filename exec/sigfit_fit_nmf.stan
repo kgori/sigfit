@@ -7,7 +7,7 @@ data {
     int<lower=1> G;             // number of genomes
     matrix[S, C] signatures;    // matrix of signatures (rows) to be fitted
     int<lower=0> counts[G, C];  // matrix of counts per category (columns) per genome sample (rows)
-    vector<lower=0>[S] alpha;   // prior on exposures (i.e. mixing proportions of signatures)
+    vector<lower=0>[S] kappa;   // prior on exposures (i.e. mixing proportions of signatures)
 }
 parameters {
     simplex[S] exposures[G];
@@ -19,7 +19,7 @@ transformed parameters {
 model {
     for (g in 1:G) {
         // Priors
-        exposures[g] ~ dirichlet(alpha);
+        exposures[g] ~ dirichlet(kappa);
         
         // Likelihood
         counts[g] ~ multinomial(probs[g]');

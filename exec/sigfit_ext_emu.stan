@@ -11,12 +11,12 @@ data {
 }
 parameters {
     simplex[C] signatures[S];   // matrix of signatures, with simplex constraint
-    matrix<lower=0>[G, S] exposures_raw;
+    matrix<lower=0>[G, S] activities;
 }
 transformed parameters {
     // Poisson parameters
     // array_to_matrix is defined in common_functions.stan and is not in base Stan
-    matrix[G, C] expected_counts = exposures_raw * array_to_matrix(signatures) .* opps;
+    matrix[G, C] expected_counts = activities * array_to_matrix(signatures) .* opps;
 }
 model {
     // Label Switching -  the probabilities
@@ -30,8 +30,8 @@ model {
     }
 
     for (g in 1:G) {
-        // Priors for exposures_raw
-        exposures_raw[g] ~ cauchy(0, 1);
+        // Priors for activities
+        activities[g] ~ cauchy(0, 1);
 
         // Likelihood
         counts[g] ~ poisson(expected_counts[g]);
@@ -40,6 +40,6 @@ model {
 generated quantities {
     matrix[G, S] exposures;
     for (g in 1:G) {
-        exposures[g] = scale_row_to_sum_1(exposures_raw[g]);
+        exposures[g] = scale_row_to_sum_1(activities[g]);
     }
 }

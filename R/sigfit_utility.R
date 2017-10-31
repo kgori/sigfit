@@ -600,7 +600,7 @@ get_reconstructions <- function(counts, mcmc_samples, signatures = NULL) {
         if (grepl("emu", mcmc_samples@model_name)) {        
             arr <- aperm(     
                 sapply(1:NREP, function(i) {      
-                    sweep(e$exposures_raw[i, sample, ] * e$signatures[i, , ],
+                    sweep(e$activities[i, sample, ] * e$signatures[i, , ],
                           2, as.numeric(opportunities[sample, ]), `*`)      
                 }, simplify = "array"),       
                 c(3, 1, 2)        
