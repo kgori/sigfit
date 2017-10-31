@@ -351,55 +351,11 @@ plot_reconstruction <- function(counts, mcmc_samples = NULL, signatures = NULL,
     
     # Case B: MCMC samples given instead of matrices
     else {
-        e <- extract(mcmc_samples)
-        NREP <- dim(e$exposures)[1]
-        stopifnot(NSAMP == dim(e$exposures)[2])
-        NSIG <- dim(e$exposures)[3]
-        
-        # Obtain mean exposures (for legend)
-        exposures <- t(apply(e$exposures, 2, colMeans))
-        
-        # Fitting models don't contain signatures, so need to be supplied
-        if (!"signatures" %in% names(e)) {
-            if (is.null(signatures)) {
-                stop("signatures must be supplied when reconstructing fitting models")
-            }
-            e$signatures <- aperm(
-                sapply(1:NREP, function(i) as.matrix(signatures), simplify = "array"),
-                c(3, 1, 2)
-            )
-        }
-        
-        # Create reconstructed catalogues
-        reconstructions <- array(NA, dim = c(NSAMP, NSIG, NCAT))
-        hpds <- array(NA, dim = c(NSAMP, 2, NCAT))
-        for (sample in 1:NSAMP) {
-            if (grepl("emu", mcmc_samples@model_name)) {        
-                arr <- aperm(     
-                    sapply(1:NREP, function(i) {      
-                        sweep(e$exposures_raw[i, sample, ] * e$signatures[i, , ],
-                              2, as.numeric(opportunities[sample, ]), `*`)      
-                    }, simplify = "array"),       
-                    c(3, 1, 2)        
-                )     
-            }     
-            
-            # For NMF results     
-            else {        
-                arr <- aperm(     
-                    sapply(1:NREP, function(i) {      
-                        e$exposures[i, sample, ] *        
-                            e$signatures[i, , ] *         
-                            sum(counts[sample, ])     
-                    }, simplify = "array"),       
-                    c(3, 1, 2)        
-                )     
-            }
-            reconstructions[sample, , ] <- apply(arr, c(2, 3), mean)
-            hpds[sample, , ] <- t(HPDinterval(
-                as.mcmc(apply(arr, c(1, 3), sum))
-            ))
-        }
+        l <- get_reconstructions(counts, mcmc_samples, signatures)
+        reconstructions <- l$reconstructions
+        exposures <- l$exposures
+        hpds <- l$hpds
+        NSIG <- dim(l$exposures)[2]
     }
     
     cat("Plotting reconstructions for each sample...\n")

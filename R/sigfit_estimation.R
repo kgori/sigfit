@@ -123,7 +123,8 @@ extract_signatures_initialiser <- function(counts, nsignatures, method = "emu", 
     else {
         params <- list(
             signatures = matrix(opt$par[grepl("signatures", names(opt$par))], nrow = nsignatures),
-            exposures_raw = matrix(opt$par[grepl("exposures_raw", names(opt$par))], nrow = nrow(counts))
+            exposures_raw = matrix(opt$par[grepl("exposures_raw", names(opt$par))], nrow = nrow(counts)),
+            exposures = matrix(opt$par[grepl("exposures", names(opt$par))], nrow = nrow(counts))
         )
         inits = list()
         for (i in 1:chains) inits[[i]] <- p

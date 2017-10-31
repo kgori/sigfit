@@ -413,76 +413,86 @@ convert_signatures <- function(signatures, ref_opportunities, model_to) {
 #' @importFrom "coda" HPDinterval
 #' @importFrom "coda" as.mcmc
 #' @export
-retrieve_pars <- function(mcmc_samples, feature, hpd_prob = 0.95, signature_names = NULL) {
-    
-    feat <- extract(mcmc_samples, pars = feature)[[feature]]
-    strand <- dim(feat)[3] == 192  # strand bias indicator
-    
-    # Multi-sample case
-    if (length(dim(feat)) > 2) {
-        # Assign dimension names
-        if (feature == "signatures") {
-            names2 <- mut_types(strand)
-            if (is.null(signature_names)) {
-                LETTERLABELS <- letterwrap(dim(feat)[2])
-                names1 <- paste("Signature", LETTERLABELS[1:dim(feat)[2]])
-            }
-            else {
-                if (dim(feat)[2] != length(signature_names)) {
-                    stop("'signature_names' must have length equal to the number of signatures.")
+retrieve_pars <- function(mcmc_samples, feature, hpd_prob = 0.95, counts = NULL, signatures = NULL, signature_names = NULL) {
+    if (feature == "reconstructions") {
+        if (is.null(counts)) {
+            stop("Counts must be provided to retrieve reconstructions")
+        }
+        l <- get_reconstructions(counts, mcmc_samples, signatures)
+        feat_summ <- list(mean = apply(l$reconstructions, c(1, 3), sum),
+                          lower = l$hpds[, 1, ],
+                          upper = l$hpds[, 2, ])
+    }
+    else {
+        feat <- extract(mcmc_samples, pars = feature)[[feature]]
+        strand <- dim(feat)[3] == 192  # strand bias indicator
+        
+        # Multi-sample case
+        if (length(dim(feat)) > 2) {
+            # Assign dimension names
+            if (feature == "signatures") {
+                names2 <- mut_types(strand)
+                if (is.null(signature_names)) {
+                    LETTERLABELS <- letterwrap(dim(feat)[2])
+                    names1 <- paste("Signature", LETTERLABELS[1:dim(feat)[2]])
                 }
-                names1 <- signature_names
+                else {
+                    if (dim(feat)[2] != length(signature_names)) {
+                        stop("'signature_names' must have length equal to the number of signatures.")
+                    }
+                    names1 <- signature_names
+                }
+            }
+            else if (feature == "exposures") {
+                names1 <- NULL
+                if (is.null(signature_names)) {
+                    LETTERLABELS <- letterwrap(dim(feat)[3])
+                    names2 <- paste("Signature", LETTERLABELS[1:dim(feat)[3]])
+                }
+                else {
+                    if (dim(feat)[3] != length(signature_names))  {
+                        stop("'signature_names' must have length equal to the number of signatures")
+                    }
+                    names2 <- signature_names
+                }
+            }
+            # for signatures: Signatures x Categories matrix
+            # for exposures: Samples x Signatures matrix
+            feat_summ <- list(matrix(NA, nrow = dim(feat)[2], ncol = dim(feat)[3], dimnames = list(names1, names2)),
+                              matrix(NA, nrow = dim(feat)[2], ncol = dim(feat)[3], dimnames = list(names1, names2)),
+                              matrix(NA, nrow = dim(feat)[2], ncol = dim(feat)[3], dimnames = list(names1, names2)))
+            names(feat_summ) <- c("mean", paste0(c("lower_", "upper_"), hpd_prob * 100))
+            for (i in 1:nrow(feat_summ[[1]])) {
+                hpd <- HPDinterval(as.mcmc(feat[,i,]), prob = hpd_prob)
+                feat_summ[[1]][i,] <- colMeans(feat[,i,])
+                feat_summ[[2]][i,] <- hpd[,1]
+                feat_summ[[3]][i,] <- hpd[,2]
             }
         }
-        else if (feature == "exposures") {
+        
+        # Single-sample case (only possible when fitting)
+        else {
             names1 <- NULL
             if (is.null(signature_names)) {
                 LETTERLABELS <- letterwrap(dim(feat)[3])
                 names2 <- paste("Signature", LETTERLABELS[1:dim(feat)[3]])
             }
             else {
-                if (dim(feat)[3] != length(signature_names))  {
-                    stop("'signature_names' must have length equal to the number of signatures")
+                if (dim(feat)[3] != length(signature_names)) {
+                    stop("'signature_names' must have length equal to the number of signatures.")
                 }
                 names2 <- signature_names
             }
-        }
-        # for signatures: Signatures x Categories matrix
-        # for exposures: Samples x Signatures matrix
-        feat_summ <- list(matrix(NA, nrow = dim(feat)[2], ncol = dim(feat)[3], dimnames = list(names1, names2)),
-                          matrix(NA, nrow = dim(feat)[2], ncol = dim(feat)[3], dimnames = list(names1, names2)),
-                          matrix(NA, nrow = dim(feat)[2], ncol = dim(feat)[3], dimnames = list(names1, names2)))
-        names(feat_summ) <- c("mean", paste0(c("lower_", "upper_"), hpd_prob * 100))
-        for (i in 1:nrow(feat_summ[[1]])) {
-            hpd <- HPDinterval(as.mcmc(feat[,i,]), prob = hpd_prob)
-            feat_summ[[1]][i,] <- colMeans(feat[,i,])
-            feat_summ[[2]][i,] <- hpd[,1]
-            feat_summ[[3]][i,] <- hpd[,2]
-        }
-    }
-    
-    # Single-sample case (only possible when fitting)
-    else {
-        names1 <- NULL
-        if (is.null(signature_names)) {
-            LETTERLABELS <- letterwrap(dim(feat)[3])
-            names2 <- paste("Signature", LETTERLABELS[1:dim(feat)[3]])
-        }
-        else {
-            if (dim(feat)[3] != length(signature_names)) {
-                stop("'signature_names' must have length equal to the number of signatures.")
+            feat_summ <- list(matrix(NA, nrow = 1, ncol = dim(feat)[2], dimnames = list(names1, names2)),
+                              matrix(NA, nrow = 1, ncol = dim(feat)[2], dimnames = list(names1, names2)),
+                              matrix(NA, nrow = 1, ncol = dim(feat)[2], dimnames = list(names1, names2)))
+            names(feat_summ) <- c("mean", paste0(c("lower_", "upper_"), hpd_prob * 100))
+            for (i in 1:nrow(feat_summ[[1]])) {
+                hpd <- HPDinterval(as.mcmc(feat), prob = hpd_prob)
+                feat_summ[[1]][1,] <- colMeans(feat)
+                feat_summ[[2]][1,] <- hpd[,1]
+                feat_summ[[3]][1,] <- hpd[,2]
             }
-            names2 <- signature_names
-        }
-        feat_summ <- list(matrix(NA, nrow = 1, ncol = dim(feat)[2], dimnames = list(names1, names2)),
-                          matrix(NA, nrow = 1, ncol = dim(feat)[2], dimnames = list(names1, names2)),
-                          matrix(NA, nrow = 1, ncol = dim(feat)[2], dimnames = list(names1, names2)))
-        names(feat_summ) <- c("mean", paste0(c("lower_", "upper_"), hpd_prob * 100))
-        for (i in 1:nrow(feat_summ[[1]])) {
-            hpd <- HPDinterval(as.mcmc(feat), prob = hpd_prob)
-            feat_summ[[1]][1,] <- colMeans(feat)
-            feat_summ[[2]][1,] <- hpd[,1]
-            feat_summ[[3]][1,] <- hpd[,2]
         }
     }
     feat_summ
@@ -554,4 +564,64 @@ get_loglik <- function(counts, mcmc_samples) {
         }
     }
     log_lik
+}
+
+#' Generate reconstructed mutation catalogues from parameters estimated from MCMC samples
+#' @param counts Matrix of observed mutation counts (integers), with one row per sample and 
+#' column for each of the 96 mutation types.
+#' @param mcmc_samples Object of class stanfit, generated via either \code{\link{fit_signatures}}
+#' or \code{\link{extract_signatures}}.
+#' @param signatures Matrix of signatures to use for fitting models, which make no estimate of signatures.
+#' @importFrom "rstan" extract
+#' @importFrom "coda" HPDinterval
+#' @export
+get_reconstructions <- function(counts, mcmc_samples, signatures = NULL) {
+    NCAT <- ncol(counts)   # number of categories
+    NSAMP <- nrow(counts)  # number of samples
+    
+    e <- extract(mcmc_samples)
+    NREP <- dim(e$exposures)[1]
+    stopifnot(NSAMP == dim(e$exposures)[2])
+    NSIG <- dim(e$exposures)[3]
+
+    if (!"signatures" %in% names(e)) {
+        if (is.null(signatures)) {
+            stop("No signatures found in MCMC samples and no matrix of signatures provided")
+        }
+        e$signatures <- aperm(
+            sapply(1:NREP, function(i) as.matrix(signatures), simplify = "array"),
+            c(3, 1, 2)
+        )
+    }
+    
+    reconstructions <- array(NA, dim = c(NSAMP, NSIG, NCAT))
+    hpds <- array(NA, dim = c(NSAMP, 2, NCAT))
+    for (sample in 1:NSAMP) {
+        if (grepl("emu", mcmc_samples@model_name)) {        
+            arr <- aperm(     
+                sapply(1:NREP, function(i) {      
+                    sweep(e$exposures_raw[i, sample, ] * e$signatures[i, , ],
+                          2, as.numeric(opportunities[sample, ]), `*`)      
+                }, simplify = "array"),       
+                c(3, 1, 2)        
+            )     
+        }     
+        
+        # For NMF results     
+        else {        
+            arr <- aperm(     
+                sapply(1:NREP, function(i) {      
+                    e$exposures[i, sample, ] *        
+                        e$signatures[i, , ] *         
+                        sum(counts[sample, ])     
+                }, simplify = "array"),       
+                c(3, 1, 2)        
+            )     
+        }
+        reconstructions[sample, , ] <- apply(arr, c(2, 3), mean)
+        hpds[sample, , ] <- t(HPDinterval(
+            as.mcmc(apply(arr, c(1, 3), sum))
+        ))
+    }
+    list(reconstructions = reconstructions, hpds = hpds, exposures = t(apply(e$exposures, 2, colMeans)))
 }

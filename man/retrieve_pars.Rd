@@ -4,8 +4,8 @@
 \alias{retrieve_pars}
 \title{Retrieve model parameters}
 \usage{
-retrieve_pars(mcmc_samples, feature, hpd_prob = 0.95,
-  signature_names = NULL)
+retrieve_pars(mcmc_samples, feature, hpd_prob = 0.95, counts = NULL,
+  signatures = NULL, signature_names = NULL)
 }
 \arguments{
 \item{mcmc_samples}{Object of class stanfit, generated via either \code{\link{fit_signatures}}
