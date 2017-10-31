@@ -383,10 +383,11 @@ convert_signatures <- function(signatures, ref_opportunities, model_to) {
 #' Obtains summary values for a set of model parameters (signatures or exposures) from a stanfit object.
 #' @param mcmc_samples Object of class stanfit, generated via either \code{\link{fit_signatures}}
 #' or \code{\link{extract_signatures}}.
-#' @param feature Name of the parameter set to extract; either \code{"signatures"} or \code{"exposures"}.
-#' @param hpd_prob A value in the interval (0, 1), giving the target probability content of 
+#' @param feature Character, name of the parameter set to extract. Can take values: \code{"signatures"}, 
+#' \code{"exposures"}, \code{"activities"} and \code{"reconstructions"}.
+#' @param hpd_prob Numeric, a value in the interval (0, 1), giving the target probability content of 
 #' the HPD intervals.
-#' @param signature_names Vector containing the names of the signatures used for fitting. Used only when 
+#' @param signature_names Character vector containing the names of the signatures used for fitting. Used only when 
 #' retrieving exposures from fitted signatures.
 #' @return A list of three matrices, which respectively contain the values corresponding to the
 #' mean of the model parameter of interest, and to the lower and upper ends of its HPD interval.
@@ -398,17 +399,20 @@ convert_signatures <- function(signatures, ref_opportunities, model_to) {
 #' samples <- extract_signatures(counts_21breast, nsignatures = 2, method = "emu",
 #'                               opportunities = "human-genome", iter = 800)
 #' 
-#' # Retrieve signatures and exposures
+#' # Retrieve signatures
 #' signatures <- retrieve_pars(samples, "signatures")
 #' 
-#' # Retrieve array of exposures using 90% HPD intervals
+#' # Retrieve exposures and activities using custom HPD intervals
 #' exposures <- retrieve_pars(samples, "exposures", hpd_prob = 0.9)
+#' activities <- retrieve_pars(samples, "activities", hpd_prob = 0.975)
 #' 
-#' # Plot signatures
+#' # Retrieve reconstructed catalogues (reconstructions)
+#' reconstructions <- retrieve_pars(samples, "reconstructions")
+#' 
+#' # Plot signatures, reconstructions and mean exposures
 #' plot_spectrum(signatures)
-#' 
-#' # Plot mean exposures
-#' barplot(exposures$mean)   ## or: barplot(exposures[[1]])
+#' plot_spectrum(reconstructions)
+#' barplot(exposures$mean)
 #' @importFrom "rstan" extract
 #' @importFrom "coda" HPDinterval
 #' @importFrom "coda" as.mcmc
@@ -416,7 +420,7 @@ convert_signatures <- function(signatures, ref_opportunities, model_to) {
 retrieve_pars <- function(mcmc_samples, feature, hpd_prob = 0.95, counts = NULL, signatures = NULL, signature_names = NULL) {
     if (feature == "reconstructions") {
         if (is.null(counts)) {
-            stop("Counts must be provided to retrieve reconstructions")
+            stop("'counts' must be provided to retrieve reconstructions.")
         }
         l <- get_reconstructions(counts, mcmc_samples, signatures)
         feat_summ <- list(mean = apply(l$reconstructions, c(1, 3), sum),
@@ -443,7 +447,7 @@ retrieve_pars <- function(mcmc_samples, feature, hpd_prob = 0.95, counts = NULL,
                     names1 <- signature_names
                 }
             }
-            else if (feature == "exposures") {
+            else if (feature %in% c("exposures", "activities")) {
                 names1 <- NULL
                 if (is.null(signature_names)) {
                     LETTERLABELS <- letterwrap(dim(feat)[3])
@@ -451,7 +455,7 @@ retrieve_pars <- function(mcmc_samples, feature, hpd_prob = 0.95, counts = NULL,
                 }
                 else {
                     if (dim(feat)[3] != length(signature_names))  {
-                        stop("'signature_names' must have length equal to the number of signatures")
+                        stop("'signature_names' must have length equal to the number of signatures.")
                     }
                     names2 <- signature_names
                 }
