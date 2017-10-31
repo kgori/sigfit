@@ -43,9 +43,19 @@ to_matrix <- function(x) {
 
 #' Build a opportunities matrix
 build_opps_matrix <- function(nsamples, keyword, strand) {
-    matrix(rep(human_trinuc_freqs(keyword, strand), nsamples),
-           nrow = nsamples, 
-           byrow = TRUE)
+    if (is.null(keyword)) {
+        # Uniform opps are approximated from the sum of human genome frequencies
+        NCAT <- ifelse(strand, 192, 96)
+        matrix(rep(rep(sum(human_trinuc_freqs()) / NCAT, NCAT), 
+                   nsamples),
+               nrow = nsamples, 
+               byrow = TRUE)
+    }
+    else {
+        matrix(rep(human_trinuc_freqs(keyword, strand), nsamples),
+               nrow = nsamples, 
+               byrow = TRUE)
+    }
 }
 
 #' Cosine similarity between two vectors
@@ -130,8 +140,8 @@ stan_models <- function() {
 #' \code{strand=TRUE}. In the latter case, the trinucleotide frequencies are assumed to be
 #' equally distributed between the two strands.
 #' @export
-human_trinuc_freqs <- function(type = "genome", strand = FALSE) {
-    if (type == "genome") {
+human_trinuc_freqs <- function(type = "human-genome", strand = FALSE) {
+    if (type == "human-genome") {
         # Human genome trinucleotide frequencies (from EMu)
         freq <- c(1.14e+08, 6.60e+07, 1.43e+07, 9.12e+07, # C>A @ AC[ACGT]
                   1.05e+08, 7.46e+07, 1.57e+07, 1.01e+08, # C>A @ CC[ACGT]
@@ -158,7 +168,7 @@ human_trinuc_freqs <- function(type = "genome", strand = FALSE) {
                   6.43e+07, 5.36e+07, 8.52e+07, 8.27e+07, # T>G @ AG[ACGT]
                   1.18e+08, 1.12e+08, 1.07e+08, 2.18e+08) # T>G @ AT[ACGT]
     }
-    else if (type == "exome") {
+    else if (type == "human-exome") {
         # Human exome trinucleotide frequencies (from EMu)
         freq <- c(1940794, 1442408, 514826, 1403756,
                   2277398, 2318284, 774498, 2269674,
@@ -186,7 +196,7 @@ human_trinuc_freqs <- function(type = "genome", strand = FALSE) {
                   1391660, 1674368, 1559846, 2850934)
     }
     else {
-        stop("'type' must be either \"genome\" or \"exome\"")
+        stop("'type' must be either \"human-genome\" or \"human-exome\"")
     }
     
     if (strand) {
@@ -350,11 +360,8 @@ convert_signatures <- function(signatures, ref_opportunities, model_to) {
         cat("'signatures' contains 192 mutations types: using strand-bias opportunities.\n")
     }
     
-    if (ref_opportunities == "human-genome") {
-        ref_opportunities <- human_trinuc_freqs(type = "genome", strand = strand)
-    }
-    else if (ref_opportunities == "human-exome") {
-        ref_opportunities <- human_trinuc_freqs(type = "exome", strand = strand)
+    if (ref_opportunities %in% c("human-genome", "human-exome")) {
+        ref_opportunities <- human_trinuc_freqs(type = ref_opportunities, strand = strand)
     }
     ref_opportunities <- as.numeric(ref_opportunities)
     if (length(ref_opportunities) != ncol(signatures)) {

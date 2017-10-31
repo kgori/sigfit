@@ -305,17 +305,13 @@ plot_reconstruction <- function(counts, mcmc_samples = NULL, signatures = NULL,
     NSAMP <- nrow(counts)  # number of samples
     strand <- NCAT == 192  # strand bias indicator (logical)
     
-    if (is.null(opportunities)) {
-        if (!is.null(mcmc_samples) & grepl("emu", mcmc_samples@model_name)) {
-            cat("Warning: Plotting EMu results, but no opportunities provided\n")
+    if (is.null(opportunities) & !is.null(mcmc_samples)) {
+        if (grepl("emu", mcmc_samples@model_name)) {
+            warning("Plotting EMu results, but no opportunities provided.\n")
         }
-        opportunities <- matrix(1, nrow = NSAMP, ncol = NCAT)
     }
-    else if (is.character(opportunities) & opportunities == "human-genome") {
-        opportunities <- build_opps_matrix(NSAMP, "genome", strand)
-    }
-    else if (is.character(opportunities) & opportunities == "human-exome") {
-        opportunities <- build_opps_matrix(NSAMP, "exome", strand)
+    if (is.null(opportunities) | is.character(opportunities)) {
+        opportunities <- build_opps_matrix(NSAMP, opportunities, strand)
     }
     else if (!is.matrix(opportunities)) {
         opportunities <- as.matrix(opportunities)

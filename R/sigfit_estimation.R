@@ -65,16 +65,10 @@ fit_signatures <- function(counts, signatures, exp_prior = NULL, method = "nmf",
     stopifnot(length(exp_prior) == NSIG)
     
     if (method == "emu") {
-        if (is.null(opportunities)) {
-            opportunities <- matrix(1, nrow = NSAMP, ncol = NCAT)
+        if (is.null(opportunities) | is.character(opportunities)) {
+            opportunities <- build_opps_matrix(NSAMP, opportunities, strand)
         }
-        else if (opportunities[1] == "human-genome") {
-            opportunities <- build_opps_matrix(NSAMP, "genome", strand)
-        }
-        else if (opportunities[1] == "human-exome") {
-            opportunities <- build_opps_matrix(NSAMP, "exome", strand)
-        }
-        if (!is.matrix(opportunities)) {
+        else if (!is.matrix(opportunities)) {
             opportunities <- as.matrix(opportunities)
         }
         stopifnot(all(dim(opportunities) == dim(counts)))
@@ -194,16 +188,10 @@ extract_signatures <- function(counts, nsignatures, method = "emu", opportunitie
     # EMu model
     if (method == "emu") {
         # Build opportunities matrix
-        if (is.null(opportunities)) {
-            opportunities <- matrix(1, nrow = NSAMP, ncol = NCAT)
+        if (is.null(opportunities) | is.character(opportunities)) {
+            opportunities <- build_opps_matrix(NSAMP, opportunities, strand)
         }
-        else if (opportunities[1] == "human-genome") {
-            opportunities <- build_opps_matrix(NSAMP, "genome", strand)
-        }
-        else if (opportunities[1] == "human-exome") {
-            opportunities <- build_opps_matrix(NSAMP, "exome", strand)
-        }
-        if (!is.matrix(opportunities)) {
+        else if (!is.matrix(opportunities)) {
             opportunities <- as.matrix(opportunities)
         }
         stopifnot(all(dim(opportunities) == dim(counts)))
@@ -223,7 +211,7 @@ extract_signatures <- function(counts, nsignatures, method = "emu", opportunitie
     # NMF model
     else if (method == "nmf") {
         if (!is.null(opportunities)) {
-            warning("Using \"nmf\" model: 'opportunities' will be ignored.")
+            warning("Extracting with NMF model: 'opportunities' will not be used.")
         }
         
         model <- stanmodels$sigfit_ext_nmf
@@ -385,16 +373,10 @@ fit_extract_signatures <- function(counts, signatures, num_extra_sigs,
     # EMu model
     if (method == "emu") {
         # Build opportunities matrix
-        if (is.null(opportunities)) {
-            opportunities <- matrix(1, nrow = NSAMP, ncol = NCAT)
+        if (is.null(opportunities) | is.character(opportunities)) {
+            opportunities <- build_opps_matrix(NSAMP, opportunities, strand)
         }
-        else if (is.character(opportunities) & opportunities == "human-genome") {
-            opportunities <- build_opps_matrix(NSAMP, "genome", strand)
-        }
-        else if (is.character(opportunities) & opportunities == "human-exome") {
-            opportunities <- build_opps_matrix(NSAMP, "exome", strand)
-        }
-        if (!is.matrix(opportunities)) {
+        else if (!is.matrix(opportunities)) {
             opportunities <- as.matrix(opportunities)
         }
         stopifnot(all(dim(opportunities) == dim(counts)))
