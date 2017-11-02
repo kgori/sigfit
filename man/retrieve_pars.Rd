@@ -11,12 +11,13 @@ retrieve_pars(mcmc_samples, feature, hpd_prob = 0.95, counts = NULL,
 \item{mcmc_samples}{Object of class stanfit, generated via either \code{\link{fit_signatures}}
 or \code{\link{extract_signatures}}.}
 
-\item{feature}{Name of the parameter set to extract; either \code{"signatures"} or \code{"exposures"}.}
+\item{feature}{Character, name of the parameter set to extract. Can take values: \code{"signatures"}, 
+\code{"exposures"}, \code{"activities"} and \code{"reconstructions"}.}
 
-\item{hpd_prob}{A value in the interval (0, 1), giving the target probability content of 
+\item{hpd_prob}{Numeric, a value in the interval (0, 1), giving the target probability content of 
 the HPD intervals.}
 
-\item{signature_names}{Vector containing the names of the signatures used for fitting. Used only when 
+\item{signature_names}{Character vector containing the names of the signatures used for fitting. Used only when 
 retrieving exposures from fitted signatures.}
 }
 \value{
@@ -34,15 +35,18 @@ data("counts_21breast")
 samples <- extract_signatures(counts_21breast, nsignatures = 2, method = "emu",
                               opportunities = "human-genome", iter = 800)
 
-# Retrieve signatures and exposures
+# Retrieve signatures
 signatures <- retrieve_pars(samples, "signatures")
 
-# Retrieve array of exposures using 90\% HPD intervals
+# Retrieve exposures and activities using custom HPD intervals
 exposures <- retrieve_pars(samples, "exposures", hpd_prob = 0.9)
+activities <- retrieve_pars(samples, "activities", hpd_prob = 0.975)
 
-# Plot signatures
+# Retrieve reconstructed catalogues (reconstructions)
+reconstructions <- retrieve_pars(samples, "reconstructions")
+
+# Plot signatures, reconstructions and mean exposures
 plot_spectrum(signatures)
-
-# Plot mean exposures
-barplot(exposures$mean)   ## or: barplot(exposures[[1]])
+plot_spectrum(reconstructions)
+barplot(exposures$mean)
 }

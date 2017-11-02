@@ -4,7 +4,7 @@
 \alias{human_trinuc_freqs}
 \title{Retrieve human trinucleotide frequencies}
 \usage{
-human_trinuc_freqs(type = "genome", strand = FALSE)
+human_trinuc_freqs(type = "human-genome", strand = FALSE)
 }
 \arguments{
 \item{type}{Character; either \code{"genome"} (default) or \code{"exome"}.}

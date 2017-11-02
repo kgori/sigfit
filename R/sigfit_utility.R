@@ -46,7 +46,7 @@ build_opps_matrix <- function(nsamples, keyword, strand) {
     if (is.null(keyword)) {
         # Uniform opps are approximated from the sum of human genome frequencies
         NCAT <- ifelse(strand, 192, 96)
-        matrix(rep(rep(sum(human_trinuc_freqs()) / NCAT, NCAT), 
+        matrix(rep(rep(round(sum(human_trinuc_freqs()) / NCAT), NCAT), 
                    nsamples),
                nrow = nsamples, 
                byrow = TRUE)

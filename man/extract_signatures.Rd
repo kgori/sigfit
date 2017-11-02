@@ -5,7 +5,7 @@
 \title{Extract signatures from a set of mutation counts}
 \usage{
 extract_signatures(counts, nsignatures, method = "emu",
-  opportunities = NULL, sig_prior = NULL, kappa = 1,
+  opportunities = NULL, sig_prior = NULL, exp_prior = 1,
   stanfunc = "sampling", ...)
 }
 \arguments{
@@ -25,7 +25,7 @@ opportunities will be used for every sample.}
 priors for the signatures to be extracted. Only used when \code{nsignatures} is a scalar.
 Default priors are uniform (uninformative).}
 
-\item{kappa}{Hyperparameter of the Dirichlet prior given to the exposures. Default value is 1 (uniform, uninformative).}
+\item{exp_prior}{Hyperparameter of the Dirichlet prior given to the exposures. Default value is 1 (uniform, uninformative).}
 
 \item{stanfunc}{Choice of rstan inference strategy; admits values \code{"sampling"}, \code{"optimizing"}
 and \code{"vb"}. \code{"sampling"} is the full Bayesian MCMC approach, and is the default. 
