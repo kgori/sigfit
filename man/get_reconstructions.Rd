@@ -4,7 +4,8 @@
 \alias{get_reconstructions}
 \title{Generate reconstructed mutation catalogues from parameters estimated from MCMC samples}
 \usage{
-get_reconstructions(counts, mcmc_samples, signatures = NULL)
+get_reconstructions(counts, mcmc_samples, signatures = NULL,
+  opportunities = NULL)
 }
 \arguments{
 \item{counts}{Matrix of observed mutation counts (integers), with one row per sample and 
