@@ -1,32 +1,17 @@
 # sigfit
 ### Discovering mutational signatures through Bayesian inference 
 
+sigfit is an R package to estimate signatures of mutational processes and their activities on mutation count data. Starting from a set of single-nucleotide variants (SNVs), it allows both estimation of the exposure of samples to predefined mutational signatures (including whether the signatures are present at all), and identification signatures _de novo_ from the mutation counts. These two procedures are often called, respectively, signature fitting and signature extraction. Furthermore, the signature fitting and extraction methods in sigfit can be seamlessly applied to mutational profiles beyond SNV data, including insertion/deletion (indel) or rearrangement count data. The package provides a range of functions to generate publication-quality graphics of the corresponding mutational catalogues, signatures and exposures.
+
 ## Installation
-sigfit is an R package. It can be installed from inside an R session using the devtools library
+sigfit is an R package. As it is in early development it is not yet on CRAN, but can be installed from inside an R session using the devtools library.
 
     devtools::install_github("kgori/sigfit", build_vignettes = TRUE)
     
 
 ## Usage guide
-First of all we need some mutational signatures to fit to our data. This command will fetch mutational signatures from [COSMIC](http://cancer.sanger.ac.uk/cosmic/signatures)
-    
-    sigs <- sigfit::fetch_cosmic_data()
 
-Let's use these signatures to simulate some mutation data.
-This code will generate 10000 mutations from a 4:3:2:1 mixture of signatures 1, 5, 7 and 11.
-
-    probs <- as.matrix(sigs[, c(1, 5, 7, 11)]) %*% c(0.4, 0.3, 0.2, 0.1)
-    mutations <- as.vector(rmultinom(1, 10000, probs))
-    names(mutations) <- rownames(sigs)
-    
-Now we can estimate the exposure of the data to each signature (pretending we don't already know that
-it was generated from 1, 5, 7, 11). ```sigfit``` uses [Stan](http://mc-stan.org/) to run a Bayesian model
-that produces Markov Chain Monte Carlo samples.
-
-    mcmc_samples <- sigfit::fit_signatures(counts = mutations, signatures = sigs,
-                                           iter = 1500, warmup = 500)
-                                         
-See the package vignettes for more a detailed example.
+See the package vignette for detailed usage examples:
 
     browseVignettes("sigfit")
 
