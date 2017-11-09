@@ -307,7 +307,7 @@ plot_reconstruction <- function(counts, mcmc_samples = NULL, signatures = NULL,
     
     if (is.null(opportunities) & !is.null(mcmc_samples)) {
         if (grepl("emu", mcmc_samples@model_name)) {
-            warning("Plotting EMu results, but no opportunities provided.\n")
+            warning("Plotting EMu results, but no opportunities provided.")
         }
     }
     if (is.null(opportunities) | is.character(opportunities)) {

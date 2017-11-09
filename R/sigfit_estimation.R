@@ -10,7 +10,7 @@
 #' \code{\link{retrieve_pars}}.
 #' @param exp_prior Vector with one element per signature, to be used as the Dirichlet prior for 
 #' the signature exposures in the sampling chain. Default prior is uniform (uninformative).
-#' @param method Model to sample from; either \code{"nmf"} or \code{"emu"}.
+#' @param method Character, model to sample from. Admits values \code{"nmf"} (default) or \code{"emu"}.
 #' @param opportunities Optional matrix of mutational opportunities for the "EMu" model 
 #' (\code{method = "emu"}) method. Must be a matrix with same dimension as \code{counts}. 
 #' If equal to \code{"human-genome"} or \code{"human-exome"}, the reference human genome/exome 
@@ -65,6 +65,10 @@ fit_signatures <- function(counts, signatures, exp_prior = NULL, method = "nmf",
     stopifnot(length(exp_prior) == NSIG)
     
     if (method == "emu") {
+        if (is.null(opportunities)) {
+            warning("Extracting with EMu model, but no opportunities provided.")
+        }
+        
         if (is.null(opportunities) | is.character(opportunities)) {
             opportunities <- build_opps_matrix(NSAMP, opportunities, strand)
         }
@@ -130,8 +134,8 @@ extract_signatures_initialiser <- function(counts, nsignatures, method = "emu", 
 #' 
 #' @param counts Matrix of observed mutation counts (integers), with one row per sample and 
 #' column for each of the 96 mutation types.
-#' @param nsignatures Number (or vector of numbers) of signatures to extract.
-#' @param method Either \code{"emu"} (default) or \code{"nmf"}.
+#' @param nsignatures Integer or integer vector, number(s) of signatures to extract.
+#' @param method Character, model to sample from. Admits values \code{"nmf"} (default) or \code{"emu"}.
 #' @param opportunities Optional matrix of mutational opportunities for the "EMu" model 
 #' (\code{method = "emu"}) method. Must be a matrix with same dimension as \code{counts}. 
 #' If equal to \code{"human-genome"} or \code{"human-exome"}, the reference human genome/exome 
@@ -169,7 +173,7 @@ extract_signatures_initialiser <- function(counts, nsignatures, method = "emu", 
 #' @importFrom "rstan" vb
 #' @importFrom "rstan" extract
 #' @export
-extract_signatures <- function(counts, nsignatures, method = "emu", opportunities = NULL, 
+extract_signatures <- function(counts, nsignatures, method = "nmf", opportunities = NULL, 
                                sig_prior = NULL, exp_prior = 1, stanfunc = "sampling", ...) {
     
     if (!is.null(sig_prior) & length(nsignatures) > 1) {
@@ -187,6 +191,10 @@ extract_signatures <- function(counts, nsignatures, method = "emu", opportunitie
     
     # EMu model
     if (method == "emu") {
+        if (is.null(opportunities)) {
+            warning("Extracting with EMu model, but no opportunities provided.")
+        }
+        
         # Build opportunities matrix
         if (is.null(opportunities) | is.character(opportunities)) {
             opportunities <- build_opps_matrix(NSAMP, opportunities, strand)
