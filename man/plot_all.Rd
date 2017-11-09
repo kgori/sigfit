@@ -11,39 +11,40 @@ plot_all(counts, out_path, prefix = NULL, mcmc_samples = NULL,
   rec_legend_pos = "topright", sig_color_palette = NULL)
 }
 \arguments{
-\item{counts}{Matrix of observed mutation counts (integers), with one row per sample and 
+\item{counts}{Integer matrix of observed mutation counts, with one row per sample and 
 column for each of the 96 mutation types.}
 
-\item{out_path}{Path to the directory where the output PDF files will be stored. M
+\item{out_path}{Character; path to the directory where the output PDF files will be stored.
 Will be created if it does not exist.}
 
-\item{prefix}{Optional prefix to be added to the output file names.}
+\item{prefix}{Character; optional prefix to be added to the output file names.}
 
 \item{mcmc_samples}{Object of class stanfit, generated via either \code{\link{fit_signatures}}
 or \code{\link{extract_signatures}}. Only needed if \code{signatures} or \code{exposures}
 are not provided.}
 
-\item{signatures}{Either a matrix of mutational signatures, with one row per signature and one
+\item{signatures}{Either a numeric matrix of mutational signatures, with one row per signature and one
 column for each of the 96 mutation types, or a list of signatures generated via
 \code{\link{retrieve_pars}}. Only needed if \code{mcmc_samples} is not provided, or if it
 contains signature fitting (instead of signature extraction) results.}
 
-\item{exposures}{Either a matrix of signature exposures, with one row per sample and one column 
+\item{exposures}{Either a numeric matrix of signature exposures, with one row per sample and one column 
 per signature, or a list of exposures as produced by \code{\link{retrieve_pars}}. 
 Only needed if \code{mcmc_samples} is not provided.}
 
-\item{opportunities}{If \code{signatures} and/or \code{exposures} were obtained by extracting or fitting
+\item{opportunities}{Integer matrix; it also admits values \code{"human-genome"} and \code{"human-exome"}.
+If \code{signatures} and/or \code{exposures} were obtained by extracting or fitting
 signatures using the "EMu" model (\code{method = "emu"}), these should be the same opportunities used 
-for extraction/fitting. Admits values \code{"human-genome"} and \code{"human-exome"}.}
+for extraction/fitting.}
 
-\item{thresh}{Minimum probability value that should be reached by the lower end of exposure HPD
+\item{thresh}{Numeric; minimum probability value that should be reached by the lower end of exposure HPD
 intervals. The exposures for which the lower HPD bound is below this value will be colored in grey.
 This value is passed to the \code{plot_exposures} function.}
 
-\item{horiz_labels}{If \code{TRUE}, sample name labels will be displayed horizontally in the
+\item{horiz_labels}{Logical; if \code{TRUE}, sample name labels will be displayed horizontally in the
 barplots. This value is passed to the \code{plot_exposures} function.}
 
-\item{hpd_prob}{A value in the interval (0, 1), giving the target probability content of 
+\item{hpd_prob}{Numeric; a value in the interval (0, 1), giving the target probability content of 
 the HPD intervals. This value is passed to the \code{plot_exposures} function.}
 
 \item{exp_legend_pos}{Character indicating the position of the legend in the exposures barplot. Admits values
@@ -54,7 +55,7 @@ the HPD intervals. This value is passed to the \code{plot_exposures} function.}
 \code{"bottomright"}, \code{"bottom"}, \code{"bottomleft"}, \code{"left"}, \code{"topleft"}, \code{"top"}, 
 \code{"topright"}, \code{"right"} and \code{"center"}. This value is passed to the \code{plot_reconstruction} function.}
 
-\item{sig_color_palette}{Character vector of color names or hexadecimal codes to use for each signature.
+\item{sig_color_palette}{Character vector of colour names or hexadecimal codes to use for each signature.
 Must have at least as many elements as the number of signatures. This value is passed to the 
 \code{plot_exposures} and \code{plot_reconstruction} functions.}
 }

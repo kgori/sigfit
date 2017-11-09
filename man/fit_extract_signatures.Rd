@@ -9,19 +9,19 @@ fit_extract_signatures(counts, signatures, num_extra_sigs, method = "nmf",
   stanfunc = "sampling", ...)
 }
 \arguments{
-\item{counts}{Matrix of observed mutation counts (integers), with one row per sample and 
+\item{counts}{Integer matrix of observed mutation counts, with one row per sample and 
 column for each of the 96 mutation types.}
 
-\item{signatures}{Fixed mutational signatures (columns) to be fitted. Either a matrix with one row 
+\item{signatures}{Fixed mutational signatures to be fitted. Either a numeric matrix with one row 
 per signature and one column for each of the 96 mutation types, or a list of signatures generated via
 \code{\link{retrieve_pars}}.}
 
-\item{num_extra_sigs}{Number of additional signatures to be extracted.}
+\item{num_extra_sigs}{Numeric; number of additional signatures to be extracted.}
 
-\item{sig_prior}{Matrix with one row per additional signature and one column per category, to be used as the
+\item{sig_prior}{Numeric matrix with one row per additional signature and one column per category, to be used as the
 Dirichlet priors for the additional signatures to be extracted. Default priors are uniform (uninformative).}
 
-\item{exp_prior}{Hyperparameter of the Dirichlet prior given to the exposures. Default value is 1 (uniform, uninformative).}
+\item{exp_prior}{Numeric; hyperparameter of the Dirichlet prior given to the exposures. Default value is 1 (uniform, uninformative).}
 
 \item{stanfunc}{\code{"sampling"}|\code{"optimizing"}|\code{"vb"} Choice of rstan 
 inference strategy. \code{"sampling"} is the full Bayesian MCMC approach, and is the 

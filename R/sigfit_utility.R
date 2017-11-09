@@ -2,11 +2,11 @@
 #' 
 #' \code{match_signatures} compares two independent estimates of signatures to 
 #' find the closest matches between them.
-#' @param sigs_a Signatures estimate: either a list such as one produced by 
-#' \code{\link{retrieve_pars}}, with a \code{$mean} entry, or a matrix with one 
+#' @param sigs_a Signatures estimate; either a list such as one produced by 
+#' \code{\link{retrieve_pars}}, with a \code{$mean} entry, or a numeric matrix with one 
 #' row per signature and one column for each of the 96 mutation types.
 #' @param sigs_b Signatures estimate as for \code{sigs_a}.
-#' @return A vector containing, for each signature in \code{sigs_a}, the index 
+#' @return A numeric vector containing, for each signature in \code{sigs_a}, the index 
 #' of the closest match in \code{sigs_b}.
 #' @importFrom "clue" solve_LSAP
 #' @export
@@ -133,7 +133,7 @@ stan_models <- function() {
 #' \code{human_trinuc_freqs} returns the reference human genome or exome 
 #' trinucleotide frequencies.
 #' @param type Character; either \code{"genome"} (default) or \code{"exome"}.
-#' @param strand Logical; if \code{TRUE}, a strand-bias representation of catalogues
+#' @param strand Logical; if \code{TRUE}, a strandwise representation of catalogues
 #' and signatures will be used.
 #' @return A numeric vector containinig 96 frequency values (one per trinucleotide type), if
 #' \code{strand=FALSE}, or 192 frequency values (one per trinucleotide and strand type), if
@@ -211,7 +211,7 @@ human_trinuc_freqs <- function(type = "human-genome", strand = FALSE) {
 #' 
 #' \code{build_catalogues} generates a set of mutational catalogues from a table containing 
 #' the base change and trinucleotide context of each single-nucleotide variant in every sample.
-#' @param variants Matrix with one row per single-nucleotide variant, and four or five columns:
+#' @param variants Character matrix with one row per single-nucleotide variant, and four (or five) columns:
 #' \itemize{
 #'  \item{Sample ID (character, e.g. "Sample 1").}
 #'  \item{Reference allele (character: "A", "C", "G", or "T").}
@@ -219,10 +219,10 @@ human_trinuc_freqs <- function(type = "human-genome", strand = FALSE) {
 #'  \item{Trinucleotide context of the variant (the reference sequence between the positions 
 #'  immediately before and after the variant; character, e.g. "TCA").}
 #'  \item{Optional: transcriptional strand of the variant (character: "T" for transcribed,
-#'  or "U" for untranscribed). If this column is included, a strand-bias representation of
+#'  or "U" for untranscribed). If this column is included, a strandwise representation of
 #'  catalogues will be used.}
 #' }
-#' @return A matrix of mutation counts, where each row corresponds to a sample and each column
+#' @return An integer matrix of mutation counts, where each row corresponds to a sample and each column
 #' corresponds to one of the 96 trinucleotide mutation types.
 #' @examples
 #' # Load example mutation data
@@ -296,8 +296,8 @@ build_catalogues <- function(variants) {
 #' \code{fetch_cosmic_data} downloads the latest release of signatures from COSMIC
 #' (http://cancer.sanger.ac.uk/cosmic/signatures) and produces a matrix of signatures
 #' that can be used for signature fitting.
-#' @param reorder If \code{TRUE}, the matrix will be reordered by substitution type and trinucleotide.
-#' @param remove_zeros If \code{TRUE}, pseudocounts will be added to prevent the signatures from
+#' @param reorder Logical; if \code{TRUE} (default), the matrix will be reordered by substitution type and trinucleotide.
+#' @param remove_zeros Logical; if \code{TRUE} (default), pseudocounts will be added to prevent the signatures from
 #' containing any zeros, which can affect computation of the log likelihood.
 #' @return Matrix of signatures, with one row per signature and one column for each of
 #' the 96 trinucleotide mutation types.
@@ -324,16 +324,16 @@ fetch_cosmic_data <- function(reorder = TRUE, remove_zeros = TRUE) {
 #' the representation used in the EMu model (which is not relative to mutational opportunities).
 #' This is done by multiplying or dividing each signature by the average mutational opportunities
 #' of the samples, or by the human genome/exome reference trinucleotide frequencies.
-#' @param signatures Either a matrix of mutational signatures, with one row per signature and one
+#' @param signatures Either a numeric matrix of mutational signatures, with one row per signature and one
 #' column for each of the 96 (or 192) mutation types, or a list of signatures generated via
 #' \code{\link{retrieve_pars}}.
 #' @param ref_opportunities Numeric vector of reference or average mutational opportunities, with 
-#' one element for each of the 96 (or 192) mutation types. If equal to \code{"human-genome"} or 
-#' \code{"human-exome"}, the reference human genome/exome mutational opportunities will be used.
-#' @param model_to The model to convert to: either \code{"nmf"} (in which case the signatures will
+#' one element for each of the 96 (or 192) mutation types. It can also take values \code{"human-genome"} or 
+#' \code{"human-exome"}, in which case the reference human genome/exome mutational opportunities will be used.
+#' @param model_to Character; model to convert to: either \code{"nmf"} (in which case the signatures will
 #' be multiplied by the opportunities) or \code{"emu"} (in which case the signatures will be divided
 #' by the opportunities).
-#' @return A matrix of transformed signatures with the same dimensions as \code{signatures}.
+#' @return A numeric matrix of transformed signatures with the same dimensions as \code{signatures}.
 #' @examples
 #' # Fetch COSMIC signatures 
 #' # These are in "NMF" format, i.e. they are relative
@@ -387,17 +387,17 @@ convert_signatures <- function(signatures, ref_opportunities, model_to) {
 
 #' Retrieve model parameters
 #' 
-#' Obtains summary values for a set of model parameters (signatures or exposures) from a stanfit object.
+#' \code{retrieve_pars} obtains summary values for a set of model parameters (signatures or exposures) from a stanfit object.
 #' @param mcmc_samples Object of class stanfit, generated via either \code{\link{fit_signatures}}
 #' or \code{\link{extract_signatures}}.
-#' @param feature Character, name of the parameter set to extract. Can take values: \code{"signatures"}, 
-#' \code{"exposures"}, \code{"activities"} and \code{"reconstructions"}.
-#' @param hpd_prob Numeric, a value in the interval (0, 1), giving the target probability content of 
+#' @param feature Character; name of the parameter set to extract. Can take values: \code{"signatures"}, 
+#' \code{"exposures"}, \code{"activities"} or \code{"reconstructions"}.
+#' @param hpd_prob Numeric; a value in the interval (0, 1), giving the target probability content of 
 #' the HPD intervals.
 #' @param signature_names Character vector containing the names of the signatures used for fitting. Used only when 
 #' retrieving exposures from fitted signatures.
 #' @return A list of three matrices, which respectively contain the values corresponding to the
-#' mean of the model parameter of interest, and to the lower and upper ends of its HPD interval.
+#' mean of the model parameter of interest, and those corresponding to the lower and upper ends of its HPD interval.
 #' @examples
 #' # Load example mutational catalogues
 #' data("counts_21breast")
@@ -521,7 +521,7 @@ retrieve_pars <- function(mcmc_samples, feature, hpd_prob = 0.95, counts = NULL,
 }
 
 #' Generate posterior predictive check values from a model
-#' @param counts Matrix of observed mutation counts (integers), with one row per sample and 
+#' @param counts Integer matrix of observed mutation counts, with one row per sample and 
 #' column for each of the 96 mutation types.
 #' @param mcmc_samples Object of class stanfit, generated via either \code{\link{fit_signatures}}
 #' or \code{\link{extract_signatures}}.
@@ -554,7 +554,7 @@ simulate_ppc <- function(counts, mcmc_samples) {
 }
 
 #' Generate log likelihood values from a model
-#' @param counts Matrix of observed mutation counts (integers), with one row per sample and 
+#' @param counts Integer matrix of observed mutation counts, with one row per sample and 
 #' column for each of the 96 mutation types.
 #' @param mcmc_samples Object of class stanfit, generated via either \code{\link{fit_signatures}}
 #' or \code{\link{extract_signatures}}.
@@ -589,11 +589,11 @@ get_loglik <- function(counts, mcmc_samples) {
 }
 
 #' Generate reconstructed mutation catalogues from parameters estimated from MCMC samples
-#' @param counts Matrix of observed mutation counts (integers), with one row per sample and 
+#' @param counts Integer matrix of observed mutation counts, with one row per sample and 
 #' column for each of the 96 mutation types.
 #' @param mcmc_samples Object of class stanfit, generated via either \code{\link{fit_signatures}}
 #' or \code{\link{extract_signatures}}.
-#' @param signatures Matrix of signatures to use for fitting models, which make no estimate of signatures.
+#' @param signatures Numeric matrix of signatures to use for fitting models, which produce no estimate of signatures.
 #' @importFrom "rstan" extract
 #' @importFrom "coda" HPDinterval
 #' @export
@@ -608,7 +608,7 @@ get_reconstructions <- function(counts, mcmc_samples, signatures = NULL, opportu
 
     if (!"signatures" %in% names(e)) {
         if (is.null(signatures)) {
-            stop("No signatures found in MCMC samples and no matrix of signatures provided")
+            stop("No signatures found in MCMC samples and no matrix of signatures provided.")
         }
         e$signatures <- aperm(
             sapply(1:NREP, function(i) as.matrix(signatures), simplify = "array"),

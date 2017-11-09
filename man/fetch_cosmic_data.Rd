@@ -7,9 +7,9 @@
 fetch_cosmic_data(reorder = TRUE, remove_zeros = TRUE)
 }
 \arguments{
-\item{reorder}{If \code{TRUE}, the matrix will be reordered by substitution type and trinucleotide.}
+\item{reorder}{Logical; if \code{TRUE} (default), the matrix will be reordered by substitution type and trinucleotide.}
 
-\item{remove_zeros}{If \code{TRUE}, pseudocounts will be added to prevent the signatures from
+\item{remove_zeros}{Logical; if \code{TRUE} (default), pseudocounts will be added to prevent the signatures from
 containing any zeros, which can affect computation of the log likelihood.}
 }
 \value{

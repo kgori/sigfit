@@ -4,30 +4,30 @@
 \alias{extract_signatures}
 \title{Extract signatures from a set of mutation counts}
 \usage{
-extract_signatures(counts, nsignatures, method = "emu",
+extract_signatures(counts, nsignatures, method = "nmf",
   opportunities = NULL, sig_prior = NULL, exp_prior = 1,
   stanfunc = "sampling", ...)
 }
 \arguments{
-\item{counts}{Matrix of observed mutation counts (integers), with one row per sample and 
+\item{counts}{Integer matrix of observed mutation counts, with one row per sample and 
 column for each of the 96 mutation types.}
 
-\item{nsignatures}{Number (or vector of numbers) of signatures to extract.}
+\item{nsignatures}{Integer or integer vector; number(s) of signatures to extract.}
 
-\item{method}{Either \code{"emu"} (default) or \code{"nmf"}.}
+\item{method}{Character; model to sample from. Admits values \code{"nmf"} (default) or \code{"emu"}.}
 
-\item{opportunities}{Optional matrix of mutational opportunities for the "EMu" model 
+\item{opportunities}{Numeric matrix of optional mutational opportunities for the "EMu" model 
 (\code{method = "emu"}) method. Must be a matrix with same dimension as \code{counts}. 
-If equal to \code{"human-genome"} or \code{"human-exome"}, the reference human genome/exome 
-opportunities will be used for every sample.}
+Alternatively, it also admits character values \code{"human-genome"} or \code{"human-exome"}, 
+in which case the reference human genome/exome opportunities will be used for every sample.}
 
-\item{sig_prior}{Matrix with one row per signature and one column per category, to be used as the Dirichlet 
+\item{sig_prior}{Numeric matrix with one row per signature and one column per category, to be used as the Dirichlet 
 priors for the signatures to be extracted. Only used when \code{nsignatures} is a scalar.
 Default priors are uniform (uninformative).}
 
-\item{exp_prior}{Hyperparameter of the Dirichlet prior given to the exposures. Default value is 1 (uniform, uninformative).}
+\item{exp_prior}{Numeric; hyperparameter of the Dirichlet prior given to the exposures. Default value is 1 (uniform, uninformative).}
 
-\item{stanfunc}{Choice of rstan inference strategy; admits values \code{"sampling"}, \code{"optimizing"}
+\item{stanfunc}{Character; choice of rstan inference strategy. Admits values \code{"sampling"}, \code{"optimizing"}
 and \code{"vb"}. \code{"sampling"} is the full Bayesian MCMC approach, and is the default. 
 \code{"optimizing"} returns the Maximum a Posteriori (MAP) point estimates via numerical optimization.
 \code{"vb"} uses Variational Bayes to approximate the full posterior.}
@@ -41,7 +41,8 @@ parameters can be extracted using \code{\link{retrieve_parameters}}), as well as
 the model and sampling process.
 }
 \description{
-Extract signatures from a set of mutation counts
+\code{extract_signatures} runs MCMC sampling to extract a set of mutational signatures 
+and their exposures from a collection of mutational catalogues.
 }
 \examples{
 # Load example mutational catalogues

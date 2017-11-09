@@ -8,22 +8,22 @@ fit_signatures(counts, signatures, exp_prior = NULL, method = "nmf",
   opportunities = NULL, ...)
 }
 \arguments{
-\item{counts}{Matrix of observed mutation counts (integers), with one row per sample and 
+\item{counts}{Integer matrix of observed mutation counts, with one row per sample and 
 column for each of the 96 mutation types.}
 
-\item{signatures}{Mutational signatures to be fitted. Either a matrix with one row per signature
+\item{signatures}{Mutational signatures to be fitted. Either a numeric matrix with one row per signature
 and one column for each of the 96 mutation types, or a list of signatures generated via
 \code{\link{retrieve_pars}}.}
 
-\item{exp_prior}{Vector with one element per signature, to be used as the Dirichlet prior for 
+\item{exp_prior}{Numeric vector with one element per signature, to be used as the Dirichlet prior for 
 the signature exposures in the sampling chain. Default prior is uniform (uninformative).}
 
-\item{method}{Model to sample from; either \code{"nmf"} or \code{"emu"}.}
+\item{method}{Character; model to sample from. Admits values \code{"nmf"} (default) or \code{"emu"}.}
 
-\item{opportunities}{Optional matrix of mutational opportunities for the "EMu" model 
+\item{opportunities}{Numeric matrix of optional mutational opportunities for the "EMu" model 
 (\code{method = "emu"}) method. Must be a matrix with same dimension as \code{counts}. 
-If equal to \code{"human-genome"} or \code{"human-exome"}, the reference human genome/exome 
-opportunities will be used for every sample.}
+Alternatively, it also admits character values \code{"human-genome"} or \code{"human-exome"}, 
+in which case the reference human genome/exome opportunities will be used for every sample.}
 
 \item{...}{Arguments to pass to \code{rstan::sampling}.}
 }

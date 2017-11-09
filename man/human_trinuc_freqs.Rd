@@ -9,7 +9,7 @@ human_trinuc_freqs(type = "human-genome", strand = FALSE)
 \arguments{
 \item{type}{Character; either \code{"genome"} (default) or \code{"exome"}.}
 
-\item{strand}{Logical; if \code{TRUE}, a strand-bias representation of catalogues
+\item{strand}{Logical; if \code{TRUE}, a strandwise representation of catalogues
 and signatures will be used.}
 }
 \value{

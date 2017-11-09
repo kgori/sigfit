@@ -7,17 +7,18 @@
 plot_spectrum(spectra, name = NULL, pdf_path = NULL, max_y = NULL)
 }
 \arguments{
-\item{spectra}{Either a vector with one element for each of the 96 mutation types, or a matrix 
-with 96 columns and one row per signature/catalogue, or a list of signatures as produced by 
+\item{spectra}{Either a numeric vector with one element for each of the 96 mutation types,
+or a numeric matrix with 96 columns and one row per 
+signature/catalogue, or a list of signatures as produced by 
 \code{\link{retrieve_pars}}. In the latter case, HPD intervals will also be plotted. 
 Row names will be adopted as the sample/signature names.}
 
-\item{name}{Name to include in the plot title; useful when plotting a single spectrum.}
+\item{name}{Character; name to include in the plot title. Useful when plotting a single spectrum.}
 
-\item{pdf_path}{If provided, the plots will be output to a PDF file with this path. The PDF 
+\item{pdf_path}{Character; if provided, the plots will be output to a PDF file with this path. The PDF 
 size and graphical parameters will be automatically set to appropriate values.}
 
-\item{max_y}{Fixed maximum limit of the y-axis (if necessary).}
+\item{max_y}{Numeric; fixed higher limit of the y-axis (if necessary).}
 }
 \description{
 \code{plot_spectrum} generates plots of one or more spectra, which can be either mutational 

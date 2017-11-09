@@ -11,10 +11,10 @@ retrieve_pars(mcmc_samples, feature, hpd_prob = 0.95, counts = NULL,
 \item{mcmc_samples}{Object of class stanfit, generated via either \code{\link{fit_signatures}}
 or \code{\link{extract_signatures}}.}
 
-\item{feature}{Character, name of the parameter set to extract. Can take values: \code{"signatures"}, 
-\code{"exposures"}, \code{"activities"} and \code{"reconstructions"}.}
+\item{feature}{Character; name of the parameter set to extract. Can take values: \code{"signatures"}, 
+\code{"exposures"}, \code{"activities"} or \code{"reconstructions"}.}
 
-\item{hpd_prob}{Numeric, a value in the interval (0, 1), giving the target probability content of 
+\item{hpd_prob}{Numeric; a value in the interval (0, 1), giving the target probability content of 
 the HPD intervals.}
 
 \item{signature_names}{Character vector containing the names of the signatures used for fitting. Used only when 
@@ -22,10 +22,10 @@ retrieving exposures from fitted signatures.}
 }
 \value{
 A list of three matrices, which respectively contain the values corresponding to the
-mean of the model parameter of interest, and to the lower and upper ends of its HPD interval.
+mean of the model parameter of interest, and those corresponding to the lower and upper ends of its HPD interval.
 }
 \description{
-Obtains summary values for a set of model parameters (signatures or exposures) from a stanfit object.
+\code{retrieve_pars} obtains summary values for a set of model parameters (signatures or exposures) from a stanfit object.
 }
 \examples{
 # Load example mutational catalogues

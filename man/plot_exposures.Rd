@@ -10,29 +10,29 @@ plot_exposures(counts, exposures = NULL, mcmc_samples = NULL,
   sig_color_palette = NULL)
 }
 \arguments{
-\item{counts}{Matrix of observed mutation counts (integers), with one row per sample and 
+\item{counts}{Integer matrix of observed mutation counts, with one row per sample and 
 column for each of the 96 mutation types.}
 
-\item{exposures}{Either a matrix of signature exposures, with one row per sample and one column 
+\item{exposures}{Either a numeric matrix of signature exposures, with one row per sample and one column 
 per signature, or a list of exposures as produced by \code{\link{retrieve_pars}}. 
 Only needed if \code{mcmc_samples} is not provided.}
 
 \item{mcmc_samples}{Object of class stanfit, generated via either \code{\link{fit_signatures}}
 or \code{\link{extract_signatures}}. Only needed if \code{exposures} is not provided.}
 
-\item{pdf_path}{If provided, the plots will be output to a PDF file with this path. The PDF 
+\item{pdf_path}{Character; if provided, the plots will be output to a PDF file with this path. The PDF 
 size and graphical parameters will be automatically set to appropriate values.}
 
-\item{signature_names}{Vector containing the names of the signatures. Only used when plotting
+\item{signature_names}{Character vector containing the names of the signatures. Only used when plotting
 exposures obtained through signature fitting (not extraction).}
 
-\item{thresh}{Minimum probability value that should be reached by the lower end of exposure HPD
+\item{thresh}{Numeric; minimum probability value that should be reached by the lower end of exposure HPD
 intervals. The exposures for which the lower HPD bound is below this value will be colored in grey.}
 
-\item{hpd_prob}{A value in the interval (0, 1), giving the target probability content of 
+\item{hpd_prob}{Numeric; a value in the interval (0, 1), giving the target probability content of 
 the HPD intervals.}
 
-\item{horiz_labels}{If \code{TRUE}, sample name labels will be displayed horizontally in the
+\item{horiz_labels}{Logical; if \code{TRUE}, sample name labels will be displayed horizontally in the
 barplots.}
 
 \item{legend_pos}{Character indicating the position of the legend in the exposures barplot. Admits values

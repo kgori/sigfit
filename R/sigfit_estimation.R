@@ -3,18 +3,18 @@
 #' \code{fit_signatures} runs MCMC sampling to fit a set of mutational signatures 
 #' to a collection of mutational catalogues and estimate the exposure of each
 #' catalogue to each signature.
-#' @param counts Matrix of observed mutation counts (integers), with one row per sample and 
+#' @param counts Integer matrix of observed mutation counts, with one row per sample and 
 #' column for each of the 96 mutation types.
-#' @param signatures Mutational signatures to be fitted. Either a matrix with one row per signature
+#' @param signatures Mutational signatures to be fitted. Either a numeric matrix with one row per signature
 #' and one column for each of the 96 mutation types, or a list of signatures generated via
 #' \code{\link{retrieve_pars}}.
-#' @param exp_prior Vector with one element per signature, to be used as the Dirichlet prior for 
+#' @param exp_prior Numeric vector with one element per signature, to be used as the Dirichlet prior for 
 #' the signature exposures in the sampling chain. Default prior is uniform (uninformative).
-#' @param method Character, model to sample from. Admits values \code{"nmf"} (default) or \code{"emu"}.
-#' @param opportunities Optional matrix of mutational opportunities for the "EMu" model 
+#' @param method Character; model to sample from. Admits values \code{"nmf"} (default) or \code{"emu"}.
+#' @param opportunities Numeric matrix of optional mutational opportunities for the "EMu" model 
 #' (\code{method = "emu"}) method. Must be a matrix with same dimension as \code{counts}. 
-#' If equal to \code{"human-genome"} or \code{"human-exome"}, the reference human genome/exome 
-#' opportunities will be used for every sample.
+#' Alternatively, it also admits character values \code{"human-genome"} or \code{"human-exome"}, 
+#' in which case the reference human genome/exome opportunities will be used for every sample.
 #' @param ... Arguments to pass to \code{rstan::sampling}.
 #' @return A stanfit object containing the Monte Carlo samples from MCMC (from which the model
 #' parameters can be extracted using \code{\link{retrieve_parameters}}), as well as information about
@@ -132,19 +132,21 @@ extract_signatures_initialiser <- function(counts, nsignatures, method = "emu", 
 
 #' Extract signatures from a set of mutation counts
 #' 
-#' @param counts Matrix of observed mutation counts (integers), with one row per sample and 
+#' \code{extract_signatures} runs MCMC sampling to extract a set of mutational signatures 
+#' and their exposures from a collection of mutational catalogues.
+#' @param counts Integer matrix of observed mutation counts, with one row per sample and 
 #' column for each of the 96 mutation types.
-#' @param nsignatures Integer or integer vector, number(s) of signatures to extract.
-#' @param method Character, model to sample from. Admits values \code{"nmf"} (default) or \code{"emu"}.
-#' @param opportunities Optional matrix of mutational opportunities for the "EMu" model 
+#' @param nsignatures Integer or integer vector; number(s) of signatures to extract.
+#' @param method Character; model to sample from. Admits values \code{"nmf"} (default) or \code{"emu"}.
+#' @param opportunities Numeric matrix of optional mutational opportunities for the "EMu" model 
 #' (\code{method = "emu"}) method. Must be a matrix with same dimension as \code{counts}. 
-#' If equal to \code{"human-genome"} or \code{"human-exome"}, the reference human genome/exome 
-#' opportunities will be used for every sample.
-#' @param sig_prior Matrix with one row per signature and one column per category, to be used as the Dirichlet 
+#' Alternatively, it also admits character values \code{"human-genome"} or \code{"human-exome"}, 
+#' in which case the reference human genome/exome opportunities will be used for every sample.
+#' @param sig_prior Numeric matrix with one row per signature and one column per category, to be used as the Dirichlet 
 #' priors for the signatures to be extracted. Only used when \code{nsignatures} is a scalar.
 #' Default priors are uniform (uninformative).
-#' @param exp_prior Hyperparameter of the Dirichlet prior given to the exposures. Default value is 1 (uniform, uninformative).
-#' @param stanfunc Choice of rstan inference strategy; admits values \code{"sampling"}, \code{"optimizing"}
+#' @param exp_prior Numeric; hyperparameter of the Dirichlet prior given to the exposures. Default value is 1 (uniform, uninformative).
+#' @param stanfunc Character; choice of rstan inference strategy. Admits values \code{"sampling"}, \code{"optimizing"}
 #' and \code{"vb"}. \code{"sampling"} is the full Bayesian MCMC approach, and is the default. 
 #' \code{"optimizing"} returns the Maximum a Posteriori (MAP) point estimates via numerical optimization.
 #' \code{"vb"} uses Variational Bayes to approximate the full posterior.
@@ -299,15 +301,15 @@ extract_signatures <- function(counts, nsignatures, method = "nmf", opportunitie
 #' 
 #' \code{fit_extract_signatures} fits signatures to estimate exposures in a set of mutation counts
 #' and extracts additional signatures present in the samples.
-#' @param counts Matrix of observed mutation counts (integers), with one row per sample and 
+#' @param counts Integer matrix of observed mutation counts, with one row per sample and 
 #' column for each of the 96 mutation types.
-#' @param signatures Fixed mutational signatures (columns) to be fitted. Either a matrix with one row 
+#' @param signatures Fixed mutational signatures to be fitted. Either a numeric matrix with one row 
 #' per signature and one column for each of the 96 mutation types, or a list of signatures generated via
 #' \code{\link{retrieve_pars}}.
-#' @param num_extra_sigs Number of additional signatures to be extracted.
-#' @param sig_prior Matrix with one row per additional signature and one column per category, to be used as the
+#' @param num_extra_sigs Numeric; number of additional signatures to be extracted.
+#' @param sig_prior Numeric matrix with one row per additional signature and one column per category, to be used as the
 #' Dirichlet priors for the additional signatures to be extracted. Default priors are uniform (uninformative).
-#' @param exp_prior Hyperparameter of the Dirichlet prior given to the exposures. Default value is 1 (uniform, uninformative).
+#' @param exp_prior Numeric; hyperparameter of the Dirichlet prior given to the exposures. Default value is 1 (uniform, uninformative).
 #' @param stanfunc \code{"sampling"}|\code{"optimizing"}|\code{"vb"} Choice of rstan 
 #' inference strategy. \code{"sampling"} is the full Bayesian MCMC approach, and is the 
 #' default. \code{"optimizing"} returns the Maximum a Posteriori (MAP) point estimates 

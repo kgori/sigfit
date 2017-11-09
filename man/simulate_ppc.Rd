@@ -7,7 +7,7 @@
 simulate_ppc(counts, mcmc_samples)
 }
 \arguments{
-\item{counts}{Matrix of observed mutation counts (integers), with one row per sample and 
+\item{counts}{Integer matrix of observed mutation counts, with one row per sample and 
 column for each of the 96 mutation types.}
 
 \item{mcmc_samples}{Object of class stanfit, generated via either \code{\link{fit_signatures}}

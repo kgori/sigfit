@@ -10,7 +10,7 @@ red = observed value is outside ppc simulations}
 plot_ppc(c, c_ppc, sample = 1)
 }
 \arguments{
-\item{c}{Matrix of observed counts}
+\item{c}{Integer matrix of observed counts.}
 
 \item{c_ppc}{Simulated posterior predictive counts obtained from
 MCMC samples using \code{extract(samples)$counts_ppc}}

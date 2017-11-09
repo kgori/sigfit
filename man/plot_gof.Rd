@@ -12,7 +12,7 @@ plot_gof(sample_list, counts, stat = "cosine")
 \item{counts}{Integer matrix of observed mutation counts, with one row per sample and 
 column for each of the 96 mutation types.}
 
-\item{stat}{Character, function for measuring goodness of fit. Admits values \code{"cosine"} 
+\item{stat}{Character; function for measuring goodness of fit. Admits values \code{"cosine"} 
 (cosine similarity; default) or \code{"L2"} (L2 norm, a.k.a. Euclidean distance).}
 }
 \description{

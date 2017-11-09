@@ -7,7 +7,7 @@
 build_catalogues(variants)
 }
 \arguments{
-\item{variants}{Matrix with one row per single-nucleotide variant, and four or five columns:
+\item{variants}{Character matrix with one row per single-nucleotide variant, and four (or five) columns:
 \itemize{
  \item{Sample ID (character, e.g. "Sample 1").}
  \item{Reference allele (character: "A", "C", "G", or "T").}
@@ -15,12 +15,12 @@ build_catalogues(variants)
  \item{Trinucleotide context of the variant (the reference sequence between the positions 
  immediately before and after the variant; character, e.g. "TCA").}
  \item{Optional: transcriptional strand of the variant (character: "T" for transcribed,
- or "U" for untranscribed). If this column is included, a strand-bias representation of
+ or "U" for untranscribed). If this column is included, a strandwise representation of
  catalogues will be used.}
 }}
 }
 \value{
-A matrix of mutation counts, where each row corresponds to a sample and each column
+An integer matrix of mutation counts, where each row corresponds to a sample and each column
 corresponds to one of the 96 trinucleotide mutation types.
 }
 \description{

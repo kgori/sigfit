@@ -7,14 +7,14 @@
 match_signatures(sigs_a, sigs_b)
 }
 \arguments{
-\item{sigs_a}{Signatures estimate: either a list such as one produced by 
-\code{\link{retrieve_pars}}, with a \code{$mean} entry, or a matrix with one 
+\item{sigs_a}{Signatures estimate; either a list such as one produced by 
+\code{\link{retrieve_pars}}, with a \code{$mean} entry, or a numeric matrix with one 
 row per signature and one column for each of the 96 mutation types.}
 
 \item{sigs_b}{Signatures estimate as for \code{sigs_a}.}
 }
 \value{
-A vector containing, for each signature in \code{sigs_a}, the index 
+A numeric vector containing, for each signature in \code{sigs_a}, the index 
 of the closest match in \code{sigs_b}.
 }
 \description{

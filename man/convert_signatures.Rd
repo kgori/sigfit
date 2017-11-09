@@ -7,20 +7,20 @@
 convert_signatures(signatures, ref_opportunities, model_to)
 }
 \arguments{
-\item{signatures}{Either a matrix of mutational signatures, with one row per signature and one
+\item{signatures}{Either a numeric matrix of mutational signatures, with one row per signature and one
 column for each of the 96 (or 192) mutation types, or a list of signatures generated via
 \code{\link{retrieve_pars}}.}
 
 \item{ref_opportunities}{Numeric vector of reference or average mutational opportunities, with 
-one element for each of the 96 (or 192) mutation types. If equal to \code{"human-genome"} or 
-\code{"human-exome"}, the reference human genome/exome mutational opportunities will be used.}
+one element for each of the 96 (or 192) mutation types. It can also take values \code{"human-genome"} or 
+\code{"human-exome"}, in which case the reference human genome/exome mutational opportunities will be used.}
 
-\item{model_to}{The model to convert to: either \code{"nmf"} (in which case the signatures will
+\item{model_to}{Character; model to convert to: either \code{"nmf"} (in which case the signatures will
 be multiplied by the opportunities) or \code{"emu"} (in which case the signatures will be divided
 by the opportunities).}
 }
 \value{
-A matrix of transformed signatures with the same dimensions as \code{signatures}.
+A numeric matrix of transformed signatures with the same dimensions as \code{signatures}.
 }
 \description{
 \code{convert_signatures} converts between the representation of signatures used
