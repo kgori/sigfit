@@ -424,12 +424,23 @@ convert_signatures <- function(signatures, ref_opportunities, model_to) {
 #' @importFrom "coda" HPDinterval
 #' @importFrom "coda" as.mcmc
 #' @export
-retrieve_pars <- function(mcmc_samples, feature, hpd_prob = 0.95, counts = NULL, signatures = NULL, signature_names = NULL) {
+retrieve_pars <- function(mcmc_samples, feature, hpd_prob = 0.95, counts = NULL, signatures = NULL, opportunities = NULL, signature_names = NULL) {
     if (feature == "reconstructions") {
         if (is.null(counts)) {
             stop("'counts' must be provided to retrieve reconstructions.")
         }
-        l <- get_reconstructions(counts, mcmc_samples, signatures)
+        
+        NSAMP <- nrow(counts)
+        NCAT <- ncol(counts)
+        strand <- NCAT == 192  # strand bias indicator
+        
+        if (is.null(opportunities) | is.character(opportunities)) {
+            opportunities <- build_opps_matrix(NSAMP, opportunities, strand)
+        }
+        else if (!is.matrix(opportunities)) {
+            opportunities <- as.matrix(opportunities)
+        }
+        l <- get_reconstructions(counts, mcmc_samples, signatures, opportunities)
         feat_summ <- list(mean = apply(l$reconstructions, c(1, 3), sum),
                           lower = l$hpds[, 1, ],
                           upper = l$hpds[, 2, ])
@@ -586,7 +597,7 @@ get_loglik <- function(counts, mcmc_samples) {
 #' @importFrom "rstan" extract
 #' @importFrom "coda" HPDinterval
 #' @export
-get_reconstructions <- function(counts, mcmc_samples, signatures = NULL) {
+get_reconstructions <- function(counts, mcmc_samples, signatures = NULL, opportunities = NULL) {
     NCAT <- ncol(counts)   # number of categories
     NSAMP <- nrow(counts)  # number of samples
     
@@ -608,8 +619,11 @@ get_reconstructions <- function(counts, mcmc_samples, signatures = NULL) {
     reconstructions <- array(NA, dim = c(NSAMP, NSIG, NCAT))
     hpds <- array(NA, dim = c(NSAMP, 2, NCAT))
     for (sample in 1:NSAMP) {
-        if (grepl("emu", mcmc_samples@model_name)) {        
-            arr <- aperm(     
+        if (grepl("emu", mcmc_samples@model_name)) {
+            if (is.null(opportunities)) {
+                stop("Opportunities required to reconstruct counts modelled using the EMu method")
+            }
+            arr <- aperm(
                 sapply(1:NREP, function(i) {      
                     sweep(e$activities[i, sample, ] * e$signatures[i, , ],
                           2, as.numeric(opportunities[sample, ]), `*`)      

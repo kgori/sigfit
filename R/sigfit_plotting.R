@@ -347,7 +347,7 @@ plot_reconstruction <- function(counts, mcmc_samples = NULL, signatures = NULL,
     
     # Case B: MCMC samples given instead of matrices
     else {
-        l <- get_reconstructions(counts, mcmc_samples, signatures)
+        l <- get_reconstructions(counts, mcmc_samples, signatures, opportunities)
         reconstructions <- l$reconstructions
         exposures <- l$exposures
         hpds <- l$hpds
