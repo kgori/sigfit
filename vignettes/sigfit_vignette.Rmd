@@ -42,9 +42,9 @@ Let's use these signatures to simulate some mutation data. This code will genera
 
 ```{r sim}
 set.seed(1)
-probs <- c(0.4, 0.3, 0.2, 0.1) %*% as.matrix(sigs[c(1, 3, 7, 11), ])
+probs <- c(0.4, 0.3, 0.2, 0.1) %*% as.matrix(cosmic_signatures[c(1, 3, 7, 11), ])
 mutations <- matrix(rmultinom(1, 20000, probs), nrow = 1)
-colnames(mutations) <- colnames(sigs)
+colnames(mutations) <- colnames(cosmic_signatures)
 ```
 
 Here is what our simulated counts look like:
@@ -61,7 +61,7 @@ In general, one should run as many MCMC iterations (```iter``` argument) as one'
 
 ```{r fitting, warning=FALSE}
 mcmc_samples <- sigfit::fit_signatures(counts = mutations, 
-                                       signatures = sigs,
+                                       signatures = cosmic_signatures,
                                        iter = 2000, 
                                        warmup = 1000, 
                                        chains = 1, 
@@ -80,7 +80,7 @@ Since we are fitting known signatures and not extracting new ones, we can provid
 exposures <- retrieve_pars(mcmc_samples, 
                            feature = "exposures", 
                            hpd_prob = 0.95, 
-                           signature_names = rownames(sigs))
+                           signature_names = rownames(cosmic_signatures))
 names(exposures)
 exposures$mean
 ```
@@ -95,12 +95,12 @@ The ```plot_exposures``` function produces a barplot of each signature's inferre
 par(mar=c(7,4,3,0))
 sigfit::plot_exposures(mutations, 
                        mcmc_samples = mcmc_samples, 
-                       signature_names = rownames(sigs))
+                       signature_names = rownames(cosmic_signatures))
 ```
 
 The bars in this plot are coloured blue if the estimated exposure value is 'sufficiently non-zero'. It is difficult for the model to make hard assignments of which signatures are present or absent due to the non-negative constraint on the estimate, which means that the range of values in the sample will not normally include zero. In practice, 'sufficiently non-zero' means that the lower end of the Bayesian HPD credible interval is above a threshold value (by default 0.01, and adjustable via the ```thresh``` argument). In this example, ```sigfit``` has identified the 4 signatures used to construct the sample.
 
-Next, we would recommend running ```fit_signatures``` again, this time to fit only those signatures (i.e. those rows of the ```sigs``` matrix) which have been highlighted as 'sufficiently non-zero' in the plot above, in order to obtain more accurate estimates. We will skip this step in the present example.
+Next, we would recommend running ```fit_signatures``` again, this time to fit only those signatures (i.e. those rows of the ```cosmic_signatures``` matrix) which have been highlighted as 'sufficiently non-zero' in the plot above, in order to obtain more accurate estimates. We will skip this step in the present example.
 
 We can also examine how effectively the estimated signatures and/or exposures can reconstruct the original count data, using the ```plot_reconstruction``` function. 
 
@@ -110,7 +110,7 @@ __All the plotting functions in ```sigfit``` are designed with a view to plottin
 par(mar=c(6.5,6,5.5,2))
 sigfit::plot_reconstruction(mutations, 
                             mcmc_samples = mcmc_samples, 
-                            signatures = sigs,
+                            signatures = cosmic_signatures,
                             pdf_path = NULL)
 ```
 
@@ -121,7 +121,7 @@ The ```plot_spectrum```, ```plot_exposures``` and ```plot_reconstructions``` fun
 sigfit::plot_all(mutations,
                  out_path = "your/output/dir/here",
                  mcmc_samples = mcmc_samples, 
-                 signatures = sigs,
+                 signatures = cosmic_signatures,
                  prefix = "Fitting")
 ```
 
