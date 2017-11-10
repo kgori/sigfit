@@ -363,6 +363,7 @@ plot_reconstruction <- function(counts, mcmc_samples = NULL, signatures = NULL,
     COLORS <- c("deepskyblue", "black", "firebrick2", "gray76", "darkolivegreen3", "rosybrown2")
     STRANDCOL <- c("deepskyblue3", "red3")
     BACKCOL <- c("#00BFFF33", "#00000033", "#EE2C2C33", "#C2C2C24D", "#A2CD5A4D", "#EEB4B44D")
+    LINECOL <- "gray60"
     XL <- c(0.2, 19.4, 38.6, 57.8, 77, 96.2)
     XR <- c(19.2, 38.4, 57.6, 76.8, 96, 115.2)
     BACKLIM <- c(0, 46.5, 93, 139.5, 186, 232.5, 279)
@@ -422,10 +423,10 @@ plot_reconstruction <- function(counts, mcmc_samples = NULL, signatures = NULL,
             if (!is.null(mcmc_samples)) {
                 arrows(bars, colSums(reconstructions[i, , ]), 
                        bars, hpds[i, 1, ], 
-                       angle = 90, length = 0.03, lwd = 1.5, col = "gray35")
+                       angle = 90, length = 0, lwd = 2, col = LINECOL)
                 arrows(bars, colSums(reconstructions[i, , ]), 
                        bars, hpds[i, 2, ], 
-                       angle = 90, length = 0.03, lwd = 1.5, col = "gray35")
+                       angle = 90, length = 0, lwd = 2, col = LINECOL)
             }
             # Mutation type labels
             rect(xleft = XL, xright = XR, ybottom = max_y * 0.95, ytop = max_y, 
@@ -486,10 +487,10 @@ plot_reconstruction <- function(counts, mcmc_samples = NULL, signatures = NULL,
                 bars <- as.numeric(t(bars))
                 arrows(bars, colSums(reconstructions[i, , ]), 
                        bars, hpds[i, 1, ], 
-                       angle = 90, length = 0.03, lwd = 1.5, col = "gray35")
+                       angle = 90, length = 0, lwd = 2, col = LINECOL)
                 arrows(bars, colSums(reconstructions[i, , ]), 
                        bars, hpds[i, 2, ], 
-                       angle = 90, length = 0.03, lwd = 1.5, col = "gray35")
+                       angle = 90, length = 0, lwd = 2, col = LINECOL)
             }
             # Legend
             legend(legend_pos, inset = c(0.01, 0.105), ncol = 2,
@@ -563,6 +564,7 @@ plot_spectrum <- function(spectra, name = NULL, pdf_path = NULL, max_y = NULL) {
     COLORS <- c("deepskyblue", "black", "firebrick2", "gray76", "darkolivegreen3", "rosybrown2")
     STRANDCOL <- c("deepskyblue3", "red3")
     BACKCOL <- c("#00BFFF33", "#00000033", "#EE2C2C33", "#C2C2C24D", "#A2CD5A4D", "#EEB4B44D")
+    LINECOL <- "gray60"
     XL <- c(0.2, 19.4, 38.6, 57.8, 77, 96.2)
     XR <- c(19.2, 38.4, 57.6, 76.8, 96, 115.2)
     BACKLIM <- c(0, 46.5, 93, 139.5, 186, 232.5, 279)
@@ -619,9 +621,9 @@ plot_spectrum <- function(spectra, name = NULL, pdf_path = NULL, max_y = NULL) {
             # Plot HPD intervals
             if (!is.null(lwr)) {
                 arrows(bars, spec[i,], bars, lwr[i,], angle = 90, 
-                       length = 0.03, lwd = 1.5, col = "gray35")
+                       length = 0, lwd = 2, col = LINECOL)
                 arrows(bars, spec[i,], bars, upr[i,], angle = 90, 
-                       length = 0.03, lwd = 1.5, col = "gray35")
+                       length = 0, lwd = 2, col = LINECOL)
             }
             # Plot mutation type labels
             rect(xleft = XL, xright = XR, ybottom = 0.95 * samp_max_y, ytop = samp_max_y, 
@@ -693,9 +695,9 @@ plot_spectrum <- function(spectra, name = NULL, pdf_path = NULL, max_y = NULL) {
             if (!is.null(lwr)) {
                 bars <- as.numeric(t(bars))
                 arrows(bars, spec[i,], bars, lwr[i,], angle = 90, 
-                       length = 0.03, lwd = 1.5, col = "gray35")
+                       length = 0, lwd = 2, col = LINECOL)
                 arrows(bars, spec[i,], bars, upr[i,], angle = 90, 
-                       length = 0.03, lwd = 1.5, col = "gray35")
+                       length = 0, lwd = 2, col = LINECOL)
             }
         }
     }
@@ -816,9 +818,9 @@ plot_exposures <- function(counts, exposures = NULL, mcmc_samples = NULL, pdf_pa
     mtext(text = "Mutation fraction", side = 2, line = 2.5)
     if (!is.null(lwr)) {
         arrows(bars, exposures_global, bars, lwr_global, 
-               angle = 90, length = 0.03, lwd = 1.5, col = "gray50")
+               angle = 90, length = 0, lwd = 2, col = "gray50")
         arrows(bars, exposures_global, bars, upr_global, 
-               angle = 90, length = 0.03, lwd = 1.5, col = "gray50")
+               angle = 90, length = 0, lwd = 2, col = "gray50")
     }
     
     # If >1 sample: plot exposures per sample
