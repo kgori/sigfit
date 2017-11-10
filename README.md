@@ -15,3 +15,5 @@ See the package vignette for detailed usage examples:
 
     browseVignettes("sigfit")
 
+You can also browse the package vignette in [GitHub](http://htmlpreview.github.io/?https://github.com/kgori/sigfit/blob/dev/inst/doc/sigfit_vignette.html).
+
