@@ -20,15 +20,15 @@ par(mar = c(6,4,5,1))
 sigfit::plot_spectrum(mutations)
 
 ## ----fitting, warning=FALSE----------------------------------------------
-mcmc_samples <- sigfit::fit_signatures(counts = mutations, 
-                                       signatures = cosmic_signatures,
-                                       iter = 2000, 
-                                       warmup = 1000, 
-                                       chains = 1, 
-                                       seed = 1)
+mcmc_samples_fit <- sigfit::fit_signatures(counts = mutations, 
+                                           signatures = cosmic_signatures,
+                                           iter = 2000, 
+                                           warmup = 1000, 
+                                           chains = 1, 
+                                           seed = 1)
 
 ## ----retrieve_exp--------------------------------------------------------
-exposures <- retrieve_pars(mcmc_samples, 
+exposures <- retrieve_pars(mcmc_samples_fit, 
                            feature = "exposures", 
                            hpd_prob = 0.90, 
                            signature_names = rownames(cosmic_signatures))
@@ -38,21 +38,21 @@ exposures$mean
 ## ----plot_exp, fig.width=12, fig.height=5, out.width='100%', fig.align="center", echo=-1----
 par(mar=c(7,4,3,0))
 sigfit::plot_exposures(mutations, 
-                       mcmc_samples = mcmc_samples, 
+                       mcmc_samples = mcmc_samples_fit, 
                        signature_names = rownames(cosmic_signatures))
 
 ## ----reconstruct, fig.width=25, fig.height=17, out.width='100%', warning=FALSE, results="hide", echo=-1----
 par(mar=c(6.5,6,5.5,2))
 sigfit::plot_reconstruction(mutations, 
-                            mcmc_samples = mcmc_samples, 
+                            mcmc_samples = mcmc_samples_fit, 
                             signatures = cosmic_signatures,
                             pdf_path = NULL)
 
-## ----eval=FALSE, plot_all------------------------------------------------
+## ----plot_all, eval=FALSE------------------------------------------------
 #  ## This is an illustratrive example and will not be run
 #  sigfit::plot_all(mutations,
 #                   out_path = "your/output/dir/here",
-#                   mcmc_samples = mcmc_samples,
+#                   mcmc_samples = mcmc_samples_fit,
 #                   signatures = cosmic_signatures,
 #                   prefix = "Fitting")
 
@@ -97,7 +97,7 @@ cat("Estimated best number of signatures:", nS[best], "\n")
 rownames(extr_signatures$mean)
 
 ## ----plot_sigs, warning=FALSE, fig.width=22, fig.height=10, out.width='100%', fig.align="center", echo=-1----
-par(mar = c(5,6,7,2))
+par(mar = c(6,7,6,1))
 par(mfrow = c(2, 2))
 sigfit::plot_spectrum(extr_signatures)
 

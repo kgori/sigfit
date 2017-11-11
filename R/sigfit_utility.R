@@ -216,8 +216,8 @@ human_trinuc_freqs <- function(type = "human-genome", strand = FALSE) {
 #'  \item{Sample ID (character, e.g. "Sample 1").}
 #'  \item{Reference allele (character: "A", "C", "G", or "T").}
 #'  \item{Alternate allele (character: "A", "C", "G", or "T").}
-#'  \item{Trinucleotide context of the variant (the reference sequence between the positions 
-#'  immediately before and after the variant; character, e.g. "TCA").}
+#'  \item{Trinucleotide context of the variant (character; the reference sequence between the positions 
+#'  immediately before and after the variant; e.g. "TCA").}
 #'  \item{Optional: transcriptional strand of the variant (character: "T" for transcribed,
 #'  or "U" for untranscribed). If this column is included, a strandwise representation of
 #'  catalogues will be used.}
