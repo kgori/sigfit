@@ -23,7 +23,7 @@ par(mar = c(6, 4, 6, 4))
 ```sigfit``` is an R package. As it is in early development it is not yet on CRAN, but can be installed from GitHub using the ```devtools``` library
 
 ```{r devtools_instructions, eval=FALSE}
-devtools::install_github("kgori/sigfit", args = "--preclean")
+devtools::install_github("kgori/sigfit", args = "--preclean", build_vignettes = TRUE)
 ```
 
 ## Usage guide
@@ -59,7 +59,7 @@ Next, we can estimate the exposure of the data to each signature (pretending we 
 
 __In general, one should run as many MCMC iterations (```iter``` argument) as one's computer and patience allow, with runtime being the major constraint.__
 
-We recommend that the number of warmup (burn-in) iterations (```warmup``` argument) be bewteen one-third and half the value of ```iter```. By default, ```rstan::sampling``` uses ```iter = 2000``` and ```warmup = floor(iter/2)```; we do not normally recommend going below these values. The ```seed``` argument can be used to make the MCMC samples reproducible over different runs.
+We recommend that the number of warmup (burn-in) iterations (```warmup``` argument) be between one-third and half the value of ```iter```. The behaviour of the MCMC sampler (which ultimately affects the quality of the analysis) depends on parameters set during the warmup, so it is important to run plenty of warmup iterations. By default, ```rstan::sampling``` uses ```iter = 2000``` and ```warmup = floor(iter/2)```; we do not normally recommend going below these values. The ```seed``` argument can be used to make the MCMC samples reproducible over different runs.
 
 We can use ```fit_signatures``` to fit the COSMIC signatures to the simulated counts as follows.
 
@@ -102,13 +102,13 @@ sigfit::plot_exposures(mutations,
                        signature_names = rownames(cosmic_signatures))
 ```
 
-The bars in this plot are coloured blue if the estimated exposure value is 'sufficiently non-zero'. It is difficult for the model to make hard assignments of which signatures are present or absent due to the non-negative constraint on the estimate, which means that the range of values in the sample will not normally include zero. In practice, 'sufficiently non-zero' means that the lower end of the Bayesian HPD credible interval is above a threshold value (by default 0.01, and adjustable via the ```thresh``` argument). In this example, ```sigfit``` has identified the 4 signatures used to construct the sample.
+The bars in this plot are coloured blue if the estimated exposure value is 'sufficiently non-zero'. It is difficult for the model to make hard assignments of which signatures are present or absent due to the non-negative constraint on the estimate, which means that the range of values in the sample will not normally include zero. In practice, 'sufficiently non-zero' means that the lower end of the Bayesian HPD credible interval is below a threshold value close to zero (by default 0.01, and adjustable via the ```thresh``` argument). In this example, ```sigfit``` has identified the 4 signatures used to construct the sample.
 
 Next, we would recommend running ```fit_signatures``` again, this time to fit only those signatures (i.e. those rows of the ```cosmic_signatures``` matrix) which have been highlighted as 'sufficiently non-zero' in the plot above, in order to obtain more accurate estimates. We will skip this step in the present example.
 
 We can also examine how effectively the estimated signatures and/or exposures can reconstruct the original count data, using the ```plot_reconstruction``` function. 
 
-__Note that the plotting functions in ```sigfit``` are designed with a view to plotting directly to a PDF file__.
+__Note that the plotting functions in ```sigfit``` are designed with a preference for plotting directly to a PDF file__.
 
 The path to our desired output PDF can be provided using the ```pdf_path``` argument, and each function will automatically select the most appropriate size and graphical parameters for the plot. (We will not make use of this option in the present example, however.) The ```sig_color_palette``` argument can be used to specify custom colours for the signatures in the reconstructed spectrum.
 

@@ -4,7 +4,7 @@ suppressPackageStartupMessages(library(sigfit))
 par(mar = c(6, 4, 6, 4))
 
 ## ----devtools_instructions, eval=FALSE-----------------------------------
-#  devtools::install_github("kgori/sigfit", args = "--preclean")
+#  devtools::install_github("kgori/sigfit", args = "--preclean", build_vignettes = TRUE)
 
 ## ----fetch---------------------------------------------------------------
 data("cosmic_signatures", package = "sigfit")
