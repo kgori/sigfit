@@ -354,13 +354,13 @@ fetch_cosmic_data <- function(reorder = TRUE, remove_zeros = TRUE) {
 #' @export
 convert_signatures <- function(signatures, ref_opportunities, model_to) {
     signatures <- to_matrix(signatures)
-    stopifnot(ncol(signatures) %in% c(96, 192))
-    strand <- ncol(signatures) == 192
-    if (strand) {
-        cat("'signatures' contains 192 mutations types: using strand-bias opportunities.\n")
-    }
     
     if (ref_opportunities %in% c("human-genome", "human-exome")) {
+        stopifnot(ncol(signatures) %in% c(96, 192))
+        strand <- ncol(signatures) == 192
+        if (strand) {
+            cat("'signatures' contains 192 mutations types: using strand-bias opportunities.\n")
+        }
         ref_opportunities <- human_trinuc_freqs(type = ref_opportunities, strand = strand)
     }
     ref_opportunities <- as.numeric(ref_opportunities)
@@ -447,13 +447,18 @@ retrieve_pars <- function(mcmc_samples, feature, hpd_prob = 0.95, counts = NULL,
     }
     else {
         feat <- extract(mcmc_samples, pars = feature)[[feature]]
-        strand <- dim(feat)[3] == 192  # strand bias indicator
         
         # Multi-sample case
         if (length(dim(feat)) > 2) {
             # Assign dimension names
             if (feature == "signatures") {
-                names2 <- mut_types(strand)
+                if (dim(feat)[3] %in% c(96, 192)) {
+                    strand <- dim(feat)[3] == 192  # strand bias indicator
+                    names2 <- mut_types(strand)
+                }
+                else {
+                    names2 <- NULL
+                }
                 if (is.null(signature_names)) {
                     LETTERLABELS <- letterwrap(dim(feat)[2])
                     names1 <- paste("Signature", LETTERLABELS[1:dim(feat)[2]])

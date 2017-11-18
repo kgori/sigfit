@@ -301,7 +301,9 @@ plot_reconstruction <- function(counts, mcmc_samples = NULL, signatures = NULL,
                                 legend_pos = "topright", sig_color_palette = NULL) {
     # Force counts to matrix
     counts <- to_matrix(counts)
-    stopifnot(ncol(counts) %in% c(96, 192))
+    if (!(ncol(counts) %in% c(96, 192))) {
+        stop("This function is only available for data with 96 or 192 mutation types.")
+    }
     
     NCAT <- ncol(counts)   # number of categories
     NSAMP <- nrow(counts)  # number of samples
@@ -552,8 +554,10 @@ plot_spectrum <- function(spectra, name = NULL, pdf_path = NULL, max_y = NULL) {
     }
     # Force spectrum to matrix (96 columns)
     spec <- to_matrix(spec)
-    stopifnot(ncol(spec) %in% c(96, 192))
-    
+    if (!(ncol(spec) %in% c(96, 192))) {
+        stop("This function is only available for data with 96 or 192 mutation types.")
+    }
+
     NCAT <- ncol(spec)      # number of categories
     NSAMP <- nrow(spec)     # number of samples
     strand <- NCAT == 192   # strand bias indicator (logical)
