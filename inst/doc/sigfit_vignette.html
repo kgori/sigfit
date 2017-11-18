@@ -111,8 +111,8 @@ mutations &lt;-<span class="st"> </span><span class="kw">matrix</span>(<span cla
 <pre><code>## 
 ## SAMPLING FOR MODEL 'sigfit_fit_nmf' NOW (CHAIN 1).
 ## 
-## Gradient evaluation took 0.000113 seconds
-## 1000 transitions using 10 leapfrog steps per transition would take 1.13 seconds.
+## Gradient evaluation took 8.8e-05 seconds
+## 1000 transitions using 10 leapfrog steps per transition would take 0.88 seconds.
 ## Adjust your expectations accordingly!
 ## 
 ## 
@@ -129,9 +129,9 @@ mutations &lt;-<span class="st"> </span><span class="kw">matrix</span>(<span cla
 ## Iteration: 1800 / 2000 [ 90%]  (Sampling)
 ## Iteration: 2000 / 2000 [100%]  (Sampling)
 ## 
-##  Elapsed Time: 1.23078 seconds (Warm-up)
-##                0.462452 seconds (Sampling)
-##                1.69323 seconds (Total)</code></pre>
+##  Elapsed Time: 1.20853 seconds (Warm-up)
+##                0.477046 seconds (Sampling)
+##                1.68558 seconds (Total)</code></pre>
 </div>
 <div id="retrieving-signature-exposures" class="section level4">
 <h4>Retrieving signature exposures</h4>
@@ -216,6 +216,13 @@ sigfit<span class="op">::</span><span class="kw">plot_all</span>(mutations,
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">counts_21breast &lt;-<span class="st"> </span><span class="kw">build_catalogues</span>(variants_21breast)
 <span class="kw">dim</span>(counts_21breast)</code></pre></div>
 <pre><code>## [1] 21 96</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">counts_21breast[<span class="dv">1</span><span class="op">:</span><span class="dv">5</span>, <span class="dv">1</span><span class="op">:</span><span class="dv">8</span>]</code></pre></div>
+<pre><code>##          ACA&gt;AAA ACC&gt;AAC ACG&gt;AAG ACT&gt;AAT CCA&gt;CAA CCC&gt;CAC CCG&gt;CAG CCT&gt;CAT
+## Sample 1      31      34       9      21      24      19       6      27
+## Sample 2     110      91       9      87     108      66      10      67
+## Sample 3     122     112      13     107      99      72       7      84
+## Sample 4      94      69      11      65      86      55      17      64
+## Sample 5     243     163      24     155     199     173      19     180</code></pre>
 <p>The mutational catalogues are stored as a matrix of mutation counts, where each row refers to a sample and each column corresponds to a trinucleotide mutation type.</p>
 <p>(This example set of 21 mutational catalogues can also be loaded directly using <code>data(&quot;counts_21breast&quot;, package = &quot;sigfit&quot;)</code>).</p>
 <p>We can plot the spectrum of all the mutational catalogues using the <code>plot_spectrum</code> function, as in the previous example. For tables containing more than one catalogue, this function will produce one plot per catalogue, which makes using an output PDF file (<code>pdf_path</code> argument) more convenient. In this example, however, we will plot all the catalogues together.</p>

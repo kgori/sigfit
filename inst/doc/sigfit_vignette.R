@@ -63,22 +63,23 @@ head(variants_21breast)
 ## ----show_samples--------------------------------------------------------
 unique(variants_21breast[, 1])
 
-## ----build_catalogues----------------------------------------------------
+## ----build_catalogues----------------------------------------------------------------
 counts_21breast <- build_catalogues(variants_21breast)
 dim(counts_21breast)
+counts_21breast[1:5, 1:8]
 
 ## ----plot_spectra, fig.width=22, fig.height=25, out.width='100%', fig.align="center", echo=-1----
 par(mar = c(5,6,7,2))
 par(mfrow = c(7, 3))
 sigfit::plot_spectrum(counts_21breast)
 
-## ----extraction, eval=FALSE----------------------------------------------
+## ----extraction, eval=FALSE----------------------------------------------------------
 #  mcmc_samples_extr <- sigfit::extract_signatures(counts_21breast,
 #                                                  nsignatures = 2:7,
 #                                                  iter = 1000,
 #                                                  seed = 1)
 
-## ----plot_gof_silent, echo=FALSE, fig.width=9, fig.height=6, out.width="100%"----
+## ----plot_gof_silent, echo=FALSE, fig.width=9, fig.height=6, out.width="100%"--------
 ## Plot precalculated GOF in order to avoid running the model
 data("sigfit_vignette_data", package = "sigfit")
 plot(nS, gof, type = "o", lty = 3, pch = 16, col = "dodgerblue4",
@@ -88,12 +89,12 @@ plot(nS, gof, type = "o", lty = 3, pch = 16, col = "dodgerblue4",
 points(nS[best], gof[best], pch = 16, col = "orangered", cex = 1.1)
 cat("Estimated best number of signatures:", nS[best], "\n")
 
-## ----retrieve_sigs, eval=FALSE-------------------------------------------
+## ----retrieve_sigs, eval=FALSE-------------------------------------------------------
 #  ## Note: mcmc_samples_extr[[N]] contains the extraction results for N signatures
 #  extr_signatures <- retrieve_pars(mcmc_samples_extr[[4]],
 #                                   feature = "signatures")
 
-## ----show_signames-------------------------------------------------------
+## ----show_signames-------------------------------------------------------------------
 rownames(extr_signatures$mean)
 
 ## ----plot_sigs, warning=FALSE, fig.width=22, fig.height=10, out.width='100%', fig.align="center", echo=-1----
