@@ -160,6 +160,7 @@ The first step is to transform these variants into mutational catalogues, which 
 ```{r build_catalogues}
 counts_21breast <- build_catalogues(variants_21breast)
 dim(counts_21breast)
+counts_21breast[1:5, 1:8]
 ```
 
 The mutational catalogues are stored as a matrix of mutation counts, where each row refers to a sample and each column corresponds to a trinucleotide mutation type.
