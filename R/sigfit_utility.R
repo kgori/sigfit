@@ -355,7 +355,7 @@ fetch_cosmic_data <- function(reorder = TRUE, remove_zeros = TRUE) {
 convert_signatures <- function(signatures, ref_opportunities, model_to) {
     signatures <- to_matrix(signatures)
     
-    if (ref_opportunities %in% c("human-genome", "human-exome")) {
+    if (ref_opportunities[1] %in% c("human-genome", "human-exome")) {
         stopifnot(ncol(signatures) %in% c(96, 192))
         strand <- ncol(signatures) == 192
         if (strand) {
