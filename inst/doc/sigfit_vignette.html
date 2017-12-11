@@ -111,8 +111,8 @@ mutations &lt;-<span class="st"> </span><span class="kw">matrix</span>(<span cla
 <pre><code>## 
 ## SAMPLING FOR MODEL 'sigfit_fit_nmf' NOW (CHAIN 1).
 ## 
-## Gradient evaluation took 0.000117 seconds
-## 1000 transitions using 10 leapfrog steps per transition would take 1.17 seconds.
+## Gradient evaluation took 0.000101 seconds
+## 1000 transitions using 10 leapfrog steps per transition would take 1.01 seconds.
 ## Adjust your expectations accordingly!
 ## 
 ## 
@@ -129,9 +129,9 @@ mutations &lt;-<span class="st"> </span><span class="kw">matrix</span>(<span cla
 ## Iteration: 1800 / 2000 [ 90%]  (Sampling)
 ## Iteration: 2000 / 2000 [100%]  (Sampling)
 ## 
-##  Elapsed Time: 1.23949 seconds (Warm-up)
-##                0.486576 seconds (Sampling)
-##                1.72607 seconds (Total)</code></pre>
+##  Elapsed Time: 1.11942 seconds (Warm-up)
+##                0.485902 seconds (Sampling)
+##                1.60532 seconds (Total)</code></pre>
 </div>
 <div id="retrieving-signature-exposures" class="section level4">
 <h4>Retrieving signature exposures</h4>
@@ -196,7 +196,7 @@ sigfit<span class="op">::</span><span class="kw">plot_all</span>(<span class="dt
 <li><strong>Reference base</strong> (character: “A”, “C”, “G”, or “T”).</li>
 <li><strong>Mutated base</strong> (character: “A”, “C”, “G”, or “T”).</li>
 <li><strong>Trinucleotide context</strong> of the variant (character; reference sequence between the positions immediately before (-1) and after (+1) the variant, e.g. “TCA”). This can be obtained from the reference genome that was used to call the variants, using an R package like <code>BSgenome</code>; however, sequence context information is sometimes provided by variant callers within the INFO field of the VCF file.</li>
-<li><strong>Optionally</strong>: if there is information available about the transcriptional strand in which each mutation occurred, this can be incorporated as a fifth column taking character values “U” (for untranscribed strand) or “T” (for transcribed strand). If this column is present in the table, all the estimation and plotting functions will automatically incorporate such transcriptional strand information.</li>
+<li><strong>Optionally</strong>: if there is information available about the transcriptional strand in which each mutation occurred, this can be incorporated as a fifth column taking character values “U” (for untranscribed strand) or “T” (for transcribed strand). If this column is present in the table, all the estimation and plotting functions will automatically incorporate transcriptional strand information.</li>
 </ul>
 <p>Importantly, since a variant can only have a single sample ID, variants which are found in more than one sample need to be included multiple times in the table, using different sample IDs. The order in which the samples are found in this table is the order in which they will be displayed thereafter. In this case, the samples are already sorted alphabetically:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">unique</span>(variants_21breast[, <span class="dv">1</span>])</code></pre></div>
@@ -231,7 +231,7 @@ sigfit<span class="op">::</span><span class="kw">plot_spectrum</span>(counts_21b
 <pre><code>## Estimated best number of signatures: 4</code></pre>
 <p>The plot above shows that the most plausible number of signatures is four, based on the evolution of the goodness of fit (reconstruction accuracy measured through cosine similarity).</p>
 <p>Next, we would recommend running <code>extract_signatures</code> again, this time with <code>nsignatures = 4</code> and a much greater number of iterations, in order to obtain more accurate estimates. We will skip this step in the present example.</p>
-<p>As in the case of signature fitting (Example 1 above), the extracted signatures and exposures can be retrieved using the <code>retrieve_pars</code> function with <code>feature = &quot;signatures&quot;</code> or <code>feature = &quot;exposures&quot;</code>. The <code>signature_names</code> argument is not needed in this case, since the signatures are not known <em>a priori</em>.</p>
+<p>As in the case of signature fitting (Example 1 above), the extracted signatures and exposures can be retrieved using the <code>retrieve_pars</code> function with <code>par = &quot;signatures&quot;</code> or <code>par = &quot;exposures&quot;</code>. The <code>signature_names</code> argument is not needed in this case, since the signatures are not known <em>a priori</em>.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">## Note: mcmc_samples_extr[[N]] contains the extraction results for N signatures
 extr_signatures &lt;-<span class="st"> </span><span class="kw">retrieve_pars</span>(mcmc_samples_extr[[<span class="dv">4</span>]],
                                  <span class="dt">par =</span> <span class="st">&quot;signatures&quot;</span>)</code></pre></div>

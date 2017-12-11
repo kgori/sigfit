@@ -140,7 +140,7 @@ This table illustrates the structure of the variant data that can be used as inp
 * __Reference base__ (character: "A", "C", "G", or "T").
 * __Mutated base__ (character: "A", "C", "G", or "T").
 * __Trinucleotide context__ of the variant (character; reference sequence between the positions immediately before (-1) and after (+1) the variant, e.g. "TCA"). This can be obtained from the reference genome that was used to call the variants, using an R package like ```BSgenome```; however, sequence context information is sometimes provided by variant callers within the INFO field of the VCF file.
-* __Optionally__: if there is information available about the transcriptional strand in which each mutation occurred, this can be incorporated as a fifth column taking character values "U" (for untranscribed strand) or "T" (for transcribed strand). If this column is present in the table, all the estimation and plotting functions will automatically incorporate such transcriptional strand information.
+* __Optionally__: if there is information available about the transcriptional strand in which each mutation occurred, this can be incorporated as a fifth column taking character values "U" (for untranscribed strand) or "T" (for transcribed strand). If this column is present in the table, all the estimation and plotting functions will automatically incorporate transcriptional strand information.
 
 Importantly, since a variant can only have a single sample ID, variants which are found in more than one sample need to be included multiple times in the table, using different sample IDs. The order in which the samples are found in this table is the order in which they will be displayed thereafter. In this case, the samples are already sorted alphabetically:
  
@@ -192,7 +192,7 @@ The plot above shows that the most plausible number of signatures is four, based
 
 Next, we would recommend running ```extract_signatures``` again, this time with ```nsignatures = 4``` and a much greater number of iterations, in order to obtain more accurate estimates. We will skip this step in the present example.
 
-As in the case of signature fitting (Example 1 above), the extracted signatures and exposures can be retrieved using the ```retrieve_pars``` function with ```feature = "signatures"``` or ```feature = "exposures"```. The ```signature_names``` argument is not needed in this case, since the signatures are not known _a priori_.
+As in the case of signature fitting (Example 1 above), the extracted signatures and exposures can be retrieved using the ```retrieve_pars``` function with ```par = "signatures"``` or ```par = "exposures"```. The ```signature_names``` argument is not needed in this case, since the signatures are not known _a priori_.
 
 ```{r retrieve_sigs, eval=FALSE}
 ## Note: mcmc_samples_extr[[N]] contains the extraction results for N signatures
