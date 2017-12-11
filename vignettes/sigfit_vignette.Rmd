@@ -76,7 +76,7 @@ mcmc_samples_fit <- sigfit::fit_signatures(counts = mutations,
 
 Once we have the result of the MCMC sampling in ```mcmc_samples_fit```, we can retrieve the estimated exposures from it using the ```retrieve_pars``` function. This returns a named list with three matrices, one containing the mean exposures, and the others containing the values corresponding to the lower and upper limits of the highest posterior density (HPD) interval (the Bayesian alternative to a confidence interval) for each exposure in each sample. The ```prob``` argument can be used to indicate the target probability content of the HPD interval (by default, 95% HPD intervals are returned).
 
-Since we are fitting known signatures and not extracting new ones, we need to provide the original signature labels via the ```signature_names``` argument, so the exposures to each signature are labelled accordingly in the exposures table. If the signatures have no names, they will be labelled by ```sigfit``` as 'Signature A', 'Signature B', etc.
+Since we are fitting known signatures and not extracting new ones, the exposures will be automatically labelled with the signature names. If the signatures have no names (or have been extracted _de novo_ instead of fitted, as we will see below), they will be labelled as 'Signature A', 'Signature B', etc.
 
 ```{r retrieve_exp}
 exposures <- retrieve_pars(mcmc_samples_fit, 
@@ -168,7 +168,7 @@ par(mfrow = c(7, 3))
 sigfit::plot_spectrum(counts_21breast)
 ```
 
-To extract signatures from this set of catalogues, we use the ```extract_signatures``` function, specifying the number of signatures to extract via the ```nsignatures``` argument; this can be a single integer or a range, e.g. ```3:6```. Our recommended approach is first running the function for a small number of iterations and a reasonably wide range of numbers of signatures (e.g. ```nsignatures = 2:8```). When ```nsignatures``` is a range of values, ```sigfit``` will automatically determine the most plausible number of signatures present in the data (which is done by assessing goodness of fit through the ```plot_gof``` function). Also, for ranges of ```nsignatures``` the result is not a single stanfit object, but a list of such objects, where element ```[[N]]``` in the list corresponds to the extraction results for ```nsignatures = N```.
+To extract signatures from this set of catalogues, we use the ```extract_signatures``` function, specifying the number of signatures to extract via the ```nsignatures``` argument; this can be a single integer or a range, e.g. ```3:6```. Our recommended approach is first running the function for a small number of iterations and a reasonably wide range of numbers of signatures (e.g. ```nsignatures = 2:8```). When ```nsignatures``` is a range of values, ```sigfit``` will automatically determine the most plausible number of signatures present in the data (which is done by assessing goodness of fit through the ```plot_gof``` function). The output will contain the results for the estimated best number of signatures only.
 
 ```{r extraction, eval=FALSE}
 mcmc_samples_extr <- sigfit::extract_signatures(counts = counts_21breast,
@@ -192,11 +192,10 @@ The plot above shows that the most plausible number of signatures is four, based
 
 Next, we would recommend running ```extract_signatures``` again, this time with ```nsignatures = 4``` and a much greater number of iterations, in order to obtain more accurate estimates. We will skip this step in the present example.
 
-As in the case of signature fitting (Example 1 above), the extracted signatures and exposures can be retrieved using the ```retrieve_pars``` function with ```par = "signatures"``` or ```par = "exposures"```. The ```signature_names``` argument is not needed in this case, since the signatures are not known _a priori_.
+As in the case of signature fitting (Example 1 above), the extracted signatures and exposures can be retrieved using the ```retrieve_pars``` function with ```par = "signatures"``` or ```par = "exposures"```. These signatures and exposures refer only to the estimated best number of signatures (in this case, four).
 
 ```{r retrieve_sigs, eval=FALSE}
-## Note: mcmc_samples_extr[[N]] contains the extraction results for N signatures
-extr_signatures <- retrieve_pars(mcmc_samples_extr[[4]],
+extr_signatures <- retrieve_pars(mcmc_samples_extr,
                                  par = "signatures")
 ```
 ```{r show_signames}

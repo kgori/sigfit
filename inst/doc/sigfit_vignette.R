@@ -83,8 +83,7 @@ points(nS[best], gof[best], pch = 16, col = "orangered", cex = 1.1)
 cat("Estimated best number of signatures:", nS[best], "\n")
 
 ## ----retrieve_sigs, eval=FALSE-------------------------------------------
-#  ## Note: mcmc_samples_extr[[N]] contains the extraction results for N signatures
-#  extr_signatures <- retrieve_pars(mcmc_samples_extr[[4]],
+#  extr_signatures <- retrieve_pars(mcmc_samples_extr,
 #                                   par = "signatures")
 
 ## ----show_signames-------------------------------------------------------
