@@ -188,15 +188,15 @@ plot_all <- function(mcmc_samples = NULL, out_path, prefix = NULL, counts = NULL
 #' \code{plot_gof} plots the goodness of fit of a set of samples, each of which
 #' has typically been sampled using an extraction model (EMu or NMF) with a 
 #' different number of signatures.
-#' @param sample_list List with elements \code{$data} and \code{$results}, produced via 
-#' \code{\link{extract_signatures}}. Must contain the results of signature extraction using
-#' multiple numbers of signatures; i.e. the \code{nsignature} argument must have contained
-#' multiple values when \code{\link{extract_signatures}} was run.
+#' @param sample_list List of stanfit objects, containing the results of signature extraction using
+#' multiple numbers of signatures. Elements which are not of class stanfit are ignored.
+#' @param counts Integer matrix of observed mutation counts, with one row per sample and 
+#' one column per mutation type.
 #' @param stat Character; function for measuring goodness of fit. Admits values \code{"cosine"} 
 #' (default, cosine similarity) or \code{"L2"} (L2 norm or Euclidean distance).
 #' @importFrom "rstan" extract
 #' @export
-plot_gof <- function(sample_list, stat = "cosine") {
+plot_gof <- function(sample_list, counts, stat = "cosine") {
     gof_function <- switch(stat,
                            "cosine" = cosine_sim,
                            "L2" = l2_norm)
@@ -206,7 +206,6 @@ plot_gof <- function(sample_list, stat = "cosine") {
     
     nS <- NULL
     gof <- NULL
-    counts <- sample_list$data$counts
     for (samples in sample_list) {
         if (class(samples) != "stanfit") next
         
