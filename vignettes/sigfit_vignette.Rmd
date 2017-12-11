@@ -80,9 +80,8 @@ Since we are fitting known signatures and not extracting new ones, we need to pr
 
 ```{r retrieve_exp}
 exposures <- retrieve_pars(mcmc_samples_fit, 
-                           feature = "exposures", 
-                           hpd_prob = 0.90, 
-                           signature_names = rownames(cosmic_signatures))
+                           par = "exposures", 
+                           hpd_prob = 0.90)
 names(exposures)
 exposures$mean
 ```
@@ -97,9 +96,7 @@ The ```plot_exposures``` function produces a barplot of the estimated signature 
 
 ```{r plot_exp, fig.width=12, fig.height=5, out.width='100%', fig.align="center", echo=-1}
 par(mar=c(7,4,3,0))
-sigfit::plot_exposures(mutations, 
-                       mcmc_samples = mcmc_samples_fit, 
-                       signature_names = rownames(cosmic_signatures))
+sigfit::plot_exposures(mcmc_samples = mcmc_samples_fit)
 ```
 
 The bars in this plot are coloured blue if the estimated exposure value is 'sufficiently non-zero'. It is difficult for the model to make hard assignments of which signatures are present or absent due to the non-negative constraint on the estimate, which means that the range of values in the sample will not normally include zero. In practice, 'sufficiently non-zero' means that the lower end of the Bayesian HPD credible interval is above a threshold value close to zero (by default 0.01, and adjustable via the ```thresh``` argument). In this example, ```sigfit``` has identified the 4 signatures used to construct the sample.
@@ -114,9 +111,7 @@ The path to our desired output PDF can be provided using the ```pdf_path``` argu
 
 ```{r reconstruct, fig.width=25, fig.height=17, out.width='100%', warning=FALSE, results="hide", echo=-1}
 par(mar=c(6.5,6,5.5,2))
-sigfit::plot_reconstruction(mutations, 
-                            mcmc_samples = mcmc_samples_fit, 
-                            signatures = cosmic_signatures,
+sigfit::plot_reconstruction(mcmc_samples = mcmc_samples_fit,
                             pdf_path = NULL)
 ```
 
@@ -124,10 +119,8 @@ The ```plot_spectrum```, ```plot_exposures``` and ```plot_reconstructions``` fun
 
 ```{r plot_all, eval=FALSE}
 ## This is an illustratrive example and will not be run
-sigfit::plot_all(mutations,
+sigfit::plot_all(mcmc_samples = mcmc_samples_fit, 
                  out_path = "your/output/dir/here",
-                 mcmc_samples = mcmc_samples_fit, 
-                 signatures = cosmic_signatures,
                  prefix = "Fitting")
 ```
 
@@ -178,7 +171,7 @@ sigfit::plot_spectrum(counts_21breast)
 To extract signatures from this set of catalogues, we use the ```extract_signatures``` function, specifying the number of signatures to extract via the ```nsignatures``` argument; this can be a single integer or a range, e.g. ```3:6```. Our recommended approach is first running the function for a small number of iterations and a reasonably wide range of numbers of signatures (e.g. ```nsignatures = 2:8```). When ```nsignatures``` is a range of values, ```sigfit``` will automatically determine the most plausible number of signatures present in the data (which is done by assessing goodness of fit through the ```plot_gof``` function). Also, for ranges of ```nsignatures``` the result is not a single stanfit object, but a list of such objects, where element ```[[N]]``` in the list corresponds to the extraction results for ```nsignatures = N```.
 
 ```{r extraction, eval=FALSE}
-mcmc_samples_extr <- sigfit::extract_signatures(counts_21breast,
+mcmc_samples_extr <- sigfit::extract_signatures(counts = counts_21breast,
                                                 nsignatures = 2:7,
                                                 iter = 1000, 
                                                 seed = 1)
@@ -204,7 +197,7 @@ As in the case of signature fitting (Example 1 above), the extracted signatures 
 ```{r retrieve_sigs, eval=FALSE}
 ## Note: mcmc_samples_extr[[N]] contains the extraction results for N signatures
 extr_signatures <- retrieve_pars(mcmc_samples_extr[[4]],
-                                 feature = "signatures")
+                                 par = "signatures")
 ```
 ```{r show_signames}
 rownames(extr_signatures$mean)
