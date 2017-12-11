@@ -48,3 +48,20 @@ Must have at least as many elements as the number of signatures.}
 \description{
 \code{plot_exposures} plots the distribution of signature exposures across the samples.
 }
+\examples{
+# Load example mutational catalogues and COSMIC signatures
+data("counts_21breast")
+data("cosmic_signatures")
+
+# Fit signatures and retrieve exposures
+samples <- fit_signatures(counts_21breast, cosmic_signatures)
+exposures <- retrieve_pars(samples, "exposures")
+
+# Plot exposures using MCMC samples
+plot_exposures(mcmc_samples = samples, pdf_path = "Exposures.pdf")
+
+# Plot exposures using retrieved exposures matrix
+plot_exposures(counts = counts_21breast, exposures = exposures,
+               signature_names = rownames(cosmic_signatures),
+               pdf_path = "Exposures.pdf")
+}

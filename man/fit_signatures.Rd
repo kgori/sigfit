@@ -42,19 +42,17 @@ to a collection of mutational catalogues and estimate the exposure of each
 catalogue to each signature.
 }
 \examples{
-# Load example mutational catalogues
+# Load example mutational catalogues and COSMIC signatures
 data("counts_21breast")
-
-# Fetch COSMIC signatures 
-signatures <- fetch_cosmic_data()
+data("cosmic_signatures")
 
 # Fit signatures 1 to 4, using a custom prior that favors signature 1 over the rest
 # (4 chains, 300 warmup iterations + 300 sampling iterations -- use more in practice)
-samples_1 <- fit_signatures(counts_21breast, signatures[1:4, ], 
+samples_1 <- fit_signatures(counts_21breast, cosmic_signatures[1:4, ], 
                             exp_prior = c(10, 1, 1, 1), iter = 600)
 
 # Fit all the signatures, running a single chain for many iterations
 # (3000 warmup iterations + 10000 sampling iterations)
-samples_2 <- fit_signatures(counts_21breast, signatures, chains = 1, 
+samples_2 <- fit_signatures(counts_21breast, cosmic_signatures, chains = 1, 
                             iter = 13000, warmup = 3000)
 }

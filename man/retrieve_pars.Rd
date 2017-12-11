@@ -14,7 +14,7 @@ retrieve_pars(mcmc_samples, par, hpd_prob = 0.95)
 \code{"exposures"}, \code{"activities"} or \code{"reconstructions"}.}
 
 \item{hpd_prob}{Numeric; a value in the interval (0, 1), giving the target probability content of 
-the HPD intervals.}
+the HPD intervals. (Default is 0.95.)}
 }
 \value{
 A list of three matrices, which respectively contain the values corresponding to the

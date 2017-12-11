@@ -61,10 +61,9 @@ signatures <- retrieve_pars(samples, "signatures")
 exposures <- retrieve_pars(samples, "exposures")
 
 # Plot reconstructed catalogues using stanfit object
-plot_reconstruction(counts_21breast, mcmc_samples = samples, opportunities = "human-genome",
-                    pdf_path = "Reconstructions_1.pdf")
+plot_reconstruction(mcmc_samples = samples, pdf_path = "Reconstructions_1.pdf")
                     
 # Plot reconstructed catalogues using retrieved signatures and exposures
-plot_reconstruction(counts_21breast, signatures = signatures, exposures = exposures,
+plot_reconstruction(counts = counts_21breast, signatures = signatures, exposures = exposures,
                     opportunities = "human-genome", pdf_path = "Reconstructions_2.pdf")
 }
