@@ -175,7 +175,8 @@ extract_signatures_initialiser <- function(counts, nsignatures, method = "emu", 
 #' \itemize{
 #'  \item{\code{$data}: list containing the input data supplied to the model.}
 #'  \item{\code{$result}: object of class stanfit, containing the output MCMC samples, 
-#'  as well as information about the model and sampling process.}}
+#'  as well as information about the model and sampling process. These results
+#'  refer only to the estimated best number of signatures (\code{nsignatures} value).}}
 #' The model parameters (such as signatures and exposures) can be extracted from this 
 #' object using \code{\link{retrieve_parameters}}.
 #' @examples
@@ -285,11 +286,12 @@ extract_signatures <- function(counts, nsignatures, method = "nmf", opportunitie
                 out[[n]] <- vb(model, data = dat, ...)
             }
         }
-        
-        names(out) <- paste0("nsignatures=", 1:length(out))
+        #names(out) <- paste0("nsignatures=", 1:length(out))
         
         # Plot goodness of fit and best number of signatures
-        out$best <- plot_gof(out, counts)
+        #out$best <- plot_gof(out, counts)
+        best <- plot_gof(out, counts)
+        out <- out[[best]]
     }
     
     # Single nsignatures value case
