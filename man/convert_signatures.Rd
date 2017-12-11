@@ -8,7 +8,7 @@ convert_signatures(signatures, ref_opportunities, model_to)
 }
 \arguments{
 \item{signatures}{Either a numeric matrix of mutational signatures, with one row per signature and one
-column for each of the 96 (or 192) mutation types, or a list of signatures generated via
+column for each of the 96 (or 192) mutation types, or a list of matrices generated via
 \code{\link{retrieve_pars}}.}
 
 \item{ref_opportunities}{Numeric vector of reference or average mutational opportunities, with 

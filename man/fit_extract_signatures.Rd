@@ -10,10 +10,10 @@ fit_extract_signatures(counts, signatures, num_extra_sigs, method = "nmf",
 }
 \arguments{
 \item{counts}{Integer matrix of observed mutation counts, with one row per sample and 
-column for each of the 96 mutation types.}
+one column per mutation type.}
 
 \item{signatures}{Fixed mutational signatures to be fitted. Either a numeric matrix with one row 
-per signature and one column for each of the 96 mutation types, or a list of signatures generated via
+per signature and one column per mutation type, or a list of matrices generated via
 \code{\link{retrieve_pars}}.}
 
 \item{num_extra_sigs}{Numeric; number of additional signatures to be extracted.}
@@ -33,9 +33,13 @@ full posterior.}
 (The number of chains is set to 1 and cannot be changed, to prevent 'label switching' problems.)}
 }
 \value{
-A stanfit object containing the Monte Carlo samples from MCMC (from which the model
-parameters can be extracted using \code{\link{retrieve_parameters}}), as well as information about
-the model and sampling process.
+A list with two elements:
+\itemize{
+ \item{\code{$data}: list containing the input data supplied to the model.}
+ \item{\code{$result}: object of class stanfit, containing the output MCMC samples, 
+ as well as information about the model and sampling process.}}
+The model parameters (such as signatures and exposures) can be extracted from this 
+object using \code{\link{retrieve_parameters}}.
 }
 \description{
 \code{fit_extract_signatures} fits signatures to estimate exposures in a set of mutation counts
