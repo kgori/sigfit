@@ -10,7 +10,7 @@ extract_signatures(counts, nsignatures, method = "nmf",
 }
 \arguments{
 \item{counts}{Integer matrix of observed mutation counts, with one row per sample and 
-column for each of the 96 mutation types.}
+one column per mutation type.}
 
 \item{nsignatures}{Integer or integer vector; number(s) of signatures to extract.}
 
@@ -36,9 +36,13 @@ and \code{"vb"}. \code{"sampling"} is the full Bayesian MCMC approach, and is th
 (The number of chains is set to 1 and cannot be changed, to prevent 'label switching' problems.)}
 }
 \value{
-A stanfit object containing the Monte Carlo samples from MCMC (from which the model
-parameters can be extracted using \code{\link{retrieve_parameters}}), as well as information about
-the model and sampling process.
+A list with two elements:
+\itemize{
+ \item{\code{$data}: list containing the input data supplied to the model.}
+ \item{\code{$result}: object of class stanfit, containing the output MCMC samples, 
+ as well as information about the model and sampling process.}}
+The model parameters (such as signatures and exposures) can be extracted from this 
+object using \code{\link{retrieve_parameters}}.
 }
 \description{
 \code{extract_signatures} runs MCMC sampling to extract a set of mutational signatures 

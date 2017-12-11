@@ -9,10 +9,10 @@ fit_signatures(counts, signatures, exp_prior = NULL, method = "nmf",
 }
 \arguments{
 \item{counts}{Integer matrix of observed mutation counts, with one row per sample and 
-column for each of the 96 mutation types.}
+one column per mutation type.}
 
 \item{signatures}{Mutational signatures to be fitted. Either a numeric matrix with one row per signature
-and one column for each of the 96 mutation types, or a list of signatures generated via
+and one column per mutation type, or a list of matrices generated via
 \code{\link{retrieve_pars}}.}
 
 \item{exp_prior}{Numeric vector with one element per signature, to be used as the Dirichlet prior for 
@@ -28,9 +28,13 @@ in which case the reference human genome/exome opportunities will be used for ev
 \item{...}{Arguments to pass to \code{rstan::sampling}.}
 }
 \value{
-A stanfit object containing the Monte Carlo samples from MCMC (from which the model
-parameters can be extracted using \code{\link{retrieve_parameters}}), as well as information about
-the model and sampling process.
+A list with two elements:
+\itemize{
+ \item{\code{$data}: list containing the input data supplied to the model.}
+ \item{\code{$result}: object of class stanfit, containing the output MCMC samples, 
+ as well as information about the model and sampling process.}}
+The model parameters (such as signatures and exposures) can be extracted from this 
+object using \code{\link{retrieve_parameters}}.
 }
 \description{
 \code{fit_signatures} runs MCMC sampling to fit a set of mutational signatures 

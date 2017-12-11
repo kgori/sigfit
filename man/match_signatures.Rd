@@ -7,9 +7,9 @@
 match_signatures(sigs_a, sigs_b)
 }
 \arguments{
-\item{sigs_a}{Signatures estimate; either a list such as one produced by 
-\code{\link{retrieve_pars}}, with a \code{$mean} entry, or a numeric matrix with one 
-row per signature and one column for each of the 96 mutation types.}
+\item{sigs_a}{Signatures estimate; Either a numeric matrix of mutational signatures, 
+with one row per signature and one column per mutation type, or a list of matrices 
+generated via \code{\link{retrieve_pars}}.}
 
 \item{sigs_b}{Signatures estimate as for \code{sigs_a}.}
 }

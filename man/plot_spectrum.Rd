@@ -7,9 +7,9 @@
 plot_spectrum(spectra, name = NULL, pdf_path = NULL, max_y = NULL)
 }
 \arguments{
-\item{spectra}{Either a numeric vector with one element for each of the 96 mutation types,
-or a numeric matrix with 96 columns and one row per 
-signature/catalogue, or a list of signatures as produced by 
+\item{spectra}{Either a numeric vector with one element for each of the 96 (or 192) mutation types,
+or a numeric matrix with 96 (or 192) columns and one row per 
+signature/catalogue, or a list of signature matrices as produced by 
 \code{\link{retrieve_pars}}. In the latter case, HPD intervals will also be plotted. 
 Row names will be adopted as the sample/signature names.}
 

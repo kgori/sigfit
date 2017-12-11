@@ -4,16 +4,16 @@
 \alias{plot_gof}
 \title{Plot goodness of fit}
 \usage{
-plot_gof(sample_list, counts, stat = "cosine")
+plot_gof(sample_list, stat = "cosine")
 }
 \arguments{
-\item{sample_list}{List of objects of class stanfit. Elements which are not of class stanfit are ignored.}
-
-\item{counts}{Integer matrix of observed mutation counts, with one row per sample and 
-column for each of the 96 mutation types.}
+\item{sample_list}{List with elements \code{$data} and \code{$results}, produced via 
+\code{\link{extract_signatures}}. Must contain the results of signature extraction using
+multiple numbers of signatures; i.e. the \code{nsignature} argument must have contained
+multiple values when \code{\link{extract_signatures}} was run.}
 
 \item{stat}{Character; function for measuring goodness of fit. Admits values \code{"cosine"} 
-(cosine similarity; default) or \code{"L2"} (L2 norm, a.k.a. Euclidean distance).}
+(default, cosine similarity) or \code{"L2"} (L2 norm or Euclidean distance).}
 }
 \description{
 \code{plot_gof} plots the goodness of fit of a set of samples, each of which

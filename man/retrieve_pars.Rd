@@ -4,21 +4,17 @@
 \alias{retrieve_pars}
 \title{Retrieve model parameters}
 \usage{
-retrieve_pars(mcmc_samples, feature, hpd_prob = 0.95, counts = NULL,
-  signatures = NULL, opportunities = NULL, signature_names = NULL)
+retrieve_pars(mcmc_samples, par, hpd_prob = 0.95)
 }
 \arguments{
-\item{mcmc_samples}{Object of class stanfit, generated via either \code{\link{fit_signatures}}
-or \code{\link{extract_signatures}}.}
+\item{mcmc_samples}{List with elements \code{$data} and \code{$results}, produced via either 
+\code{\link{fit_signatures}}, \code{\link{extract_signatures}} or \code{\link{fit_extract_signatures}}.}
 
-\item{feature}{Character; name of the parameter set to extract. Can take values: \code{"signatures"}, 
+\item{par}{Character; name of the parameter set to extract. Can take values: \code{"signatures"}, 
 \code{"exposures"}, \code{"activities"} or \code{"reconstructions"}.}
 
 \item{hpd_prob}{Numeric; a value in the interval (0, 1), giving the target probability content of 
 the HPD intervals.}
-
-\item{signature_names}{Character vector containing the names of the signatures used for fitting. Used only when 
-retrieving exposures from fitted signatures.}
 }
 \value{
 A list of three matrices, which respectively contain the values corresponding to the

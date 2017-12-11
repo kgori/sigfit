@@ -2,10 +2,10 @@
 % Please edit documentation in R/sigfit_utility.R
 \name{mut_types}
 \alias{mut_types}
-\title{Generates character vector of 96 (or 192, if strand=T) trinucleotide mutation types}
+\title{Generates character vector of 96 (or 192, if strand=TRUE) trinucleotide mutation types}
 \usage{
 mut_types(strand = FALSE)
 }
 \description{
-Generates character vector of 96 (or 192, if strand=T) trinucleotide mutation types
+Generates character vector of 96 (or 192, if strand=TRUE) trinucleotide mutation types
 }
