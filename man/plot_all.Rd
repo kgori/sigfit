@@ -80,8 +80,8 @@ samples <- extract_signatures(counts_21breast, nsignatures = 2, method = "emu",
 signatures <- retrieve_pars(samples, "signatures")
 exposures <- retrieve_pars(samples, "exposures")
 
-# Plot results using stanfit object
-plot_all(samples, out_path = ".", prefix = "Test1")
+# Plot results using MCMC samples
+plot_all(mcmc_samples = samples, out_path = ".", prefix = "Test1")
                     
 # Plot results using retrieved signatures and exposures
 plot_all(counts = counts_21breast, signatures = signatures, 
