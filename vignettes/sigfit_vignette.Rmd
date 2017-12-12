@@ -57,7 +57,7 @@ sigfit::plot_spectrum(mutations)
 
 Next, we can estimate the exposure of the data to each signature (pretending we ignore that it was generated from signatures 1, 3, 7 and 11). ```sigfit``` uses [Stan](http://mc-stan.org/) to run a Bayesian model that produces Markov chain Monte Carlo (MCMC) samples. Arguments to the ```rstan::sampling``` function, such as ```iter```, ```warmup```, etc., can be passed through. For further sampling options, type ```?rstan::sampling``` to read the documentation.
 
-__In general, one should run as many MCMC iterations (```iter``` argument) as one's computer and patience allow, with runtime being the major constraint.__
+__In general, one should run as many MCMC iterations (```iter``` argument) as one's computer and patience allow, runtime being the major constraint.__
 
 We recommend that the number of warmup (burn-in) iterations (```warmup``` argument) be between one-third and half the value of ```iter```. The behaviour of the MCMC sampler (which ultimately affects the quality of the analysis) depends on parameters set during the warmup, so it is important to run plenty of warmup iterations. By default, ```rstan::sampling``` uses ```iter = 2000``` and ```warmup = floor(iter/2)```; we do not normally recommend going below these values. The ```seed``` argument can be used to make the MCMC samples reproducible over different runs.
 
@@ -168,7 +168,7 @@ par(mfrow = c(7, 3))
 sigfit::plot_spectrum(counts_21breast)
 ```
 
-To extract signatures from this set of catalogues, we use the ```extract_signatures``` function, specifying the number of signatures to extract via the ```nsignatures``` argument; this can be a single integer or a range, e.g. ```3:6```. Our recommended approach is first running the function for a small number of iterations and a reasonably wide range of numbers of signatures (e.g. ```nsignatures = 2:8```). When ```nsignatures``` is a range of values, ```sigfit``` will automatically determine the most plausible number of signatures present in the data (which is done by assessing goodness of fit through the ```plot_gof``` function). The output will contain the results for the estimated best number of signatures only.
+To extract signatures from this set of catalogues, we use the ```extract_signatures``` function, specifying the number of signatures to extract via the ```nsignatures``` argument; this can be a single integer or a range, e.g. ```3:6```. Our recommended approach is first running the function for a small number of iterations and a reasonably wide range of numbers of signatures (e.g. ```nsignatures = 2:8```). When ```nsignatures``` is a range of values, ```sigfit``` will automatically determine the most plausible number of signatures present in the data (which is done by assessing goodness of fit through the ```plot_gof``` function). Also, for ranges of ```nsignatures``` the result will be a list, where element ```[[N]]``` in the list corresponds to the extraction results for ```nsignatures = N```.
 
 ```{r extraction, eval=FALSE}
 mcmc_samples_extr <- sigfit::extract_signatures(counts = counts_21breast,
@@ -192,17 +192,20 @@ The plot above shows that the most plausible number of signatures is four, based
 
 Next, we would recommend running ```extract_signatures``` again, this time with ```nsignatures = 4``` and a much greater number of iterations, in order to obtain more accurate estimates. We will skip this step in the present example.
 
-As in the case of signature fitting (Example 1 above), the extracted signatures and exposures can be retrieved using the ```retrieve_pars``` function with ```par = "signatures"``` or ```par = "exposures"```. These signatures and exposures refer only to the estimated best number of signatures (in this case, four).
+As in the case of signature fitting (Example 1 above), the extracted signatures and exposures can be retrieved using the ```retrieve_pars``` function with ```par = "signatures"``` or ```par = "exposures"```. However, because the output is a list containing the results for each value in ```nsignatures```, __we need to specify which  number of signatures we are interested in, using the ```[[ ]]``` operator__. Note that this is not necessary if a single value of ```nsignatures``` was used for extraction.
 
 ```{r retrieve_sigs, eval=FALSE}
-extr_signatures <- retrieve_pars(mcmc_samples_extr,
+## Note: mcmc_samples_extr[[N]] contains the extraction results for N signatures
+extr_signatures <- retrieve_pars(mcmc_samples_extr[[4]],
                                  par = "signatures")
 ```
 ```{r show_signames}
 rownames(extr_signatures$mean)
 ```
 
-Plotting can be done through the functions seen in Example 1, with the difference that there is no need to use the ```signatures``` argument in this case. Below we plot the signatures extracted from these 21 catalogues.
+Plotting can be done through the functions seen in Example 1, with the difference that, when plotting directly from MCMC results (via the ```mcmc_samples``` argument), we need to select the relevant element of the results list using ```mcmc_samples_extr[[N]]```, as seen above. Note that this is not necessary if a single value of ```nsignatures``` was used for extraction.
+
+Below we plot the signatures extracted from these 21 catalogues.
 
 ```{r plot_sigs, warning=FALSE, fig.width=22, fig.height=10, out.width='100%', fig.align="center", echo=-1}
 par(mar = c(6,7,6,1))
