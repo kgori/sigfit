@@ -188,15 +188,13 @@ plot_all <- function(mcmc_samples = NULL, out_path, prefix = NULL, counts = NULL
 #' \code{plot_gof} plots the goodness of fit of a set of samples, each of which
 #' has typically been sampled using an extraction model (EMu or NMF) with a 
 #' different number of signatures.
-#' @param sample_list List of stanfit objects, containing the results of signature extraction using
-#' multiple numbers of signatures. Elements which are not of class stanfit are ignored.
-#' @param counts Integer matrix of observed mutation counts, with one row per sample and 
-#' one column per mutation type.
+#' @param sample_list List containing the results of signature extraction 
+#' (\code{\link{extract_signatures}}) using  multiple numbers of signatures. 
 #' @param stat Character; function for measuring goodness of fit. Admits values \code{"cosine"} 
 #' (default, cosine similarity) or \code{"L2"} (L2 norm or Euclidean distance).
 #' @importFrom "rstan" extract
 #' @export
-plot_gof <- function(sample_list, counts, stat = "cosine") {
+plot_gof <- function(sample_list, stat = "cosine") {
     gof_function <- switch(stat,
                            "cosine" = cosine_sim,
                            "L2" = l2_norm)
@@ -207,17 +205,20 @@ plot_gof <- function(sample_list, counts, stat = "cosine") {
     nS <- NULL
     gof <- NULL
     for (samples in sample_list) {
-        if (class(samples) != "stanfit") next
+        #if (class(samples) != "stanfit") next
+        if (!is.list(samples)) next
         
-        if (grepl("emu", samples@model_name)) {
+        counts <- samples$data$counts
+        
+        if (grepl("emu", samples$result@model_name)) {
             method <- "EMu"
-            e <- extract(samples, pars = c("expected_counts", "signatures"))
+            e <- extract(samples$result, pars = c("expected_counts", "signatures"))
             reconstructed <- apply(e$expected_counts, c(2, 3), mean)
         }
         
         else {
             method <- "NMF"
-            e <- extract(samples, pars = c("probs", "signatures"))
+            e <- extract(samples$result, pars = c("probs", "signatures"))
             reconstructed <- apply(e$probs, c(2, 3), mean) * rowSums(counts)
         }
         

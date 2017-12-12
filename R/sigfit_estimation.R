@@ -274,24 +274,26 @@ extract_signatures <- function(counts, nsignatures, method = "nmf", opportunitie
             cat("Extracting", n, "signatures\n")
             if (stanfunc == "sampling") {
                 cat("Stan sampling:")
-                out[[n]] <- sampling(model, data = dat, chains = 1, ...)
+                out[[n]] <- list("data" = dat,
+                                 "result" = sampling(model, data = dat, chains = 1, ...))
                 
             }
             else if (stanfunc == "optimizing") {
                 cat("Stan optimizing:")
-                out[[n]] <- optimizing(model, data = dat, ...)
+                out[[n]] <- list("data" = dat,
+                                 "result" = optimizing(model, data = dat, ...))
             }
             else if (stanfunc == "vb") {
                 cat("Stan vb:")
-                out[[n]] <- vb(model, data = dat, ...)
+                out[[n]] <- list("data" = dat,
+                                 "result" = vb(model, data = dat, ...))
             }
         }
-        #names(out) <- paste0("nsignatures=", 1:length(out))
+        
+        names(out) <- paste0("nsignatures=", 1:length(out))
         
         # Plot goodness of fit and best number of signatures
-        #out$best <- plot_gof(out, counts)
-        best <- plot_gof(out, counts)
-        out <- out[[best]]
+        out$best <- plot_gof(out)
     }
     
     # Single nsignatures value case
@@ -308,20 +310,22 @@ extract_signatures <- function(counts, nsignatures, method = "nmf", opportunitie
         cat("Extracting", nsignatures, "signatures\n")
         if (stanfunc == "sampling") {
             cat("Stan sampling:")
-            out <- sampling(model, data = dat, chains = 1, ...)
+            out <- list("data" = dat,
+                        "result" = sampling(model, data = dat, chains = 1, ...))
         }
         else if (stanfunc == "optimizing") {
             cat("Stan optimizing:")
-            out <- optimizing(model, data = dat, ...)
+            out <- list("data" = dat,
+                        "result" = optimizing(model, data = dat, ...))
         }
         else if (stanfunc == "vb") {
             cat("Stan vb:")
-            out <- vb(model, data = dat, ...)
+            out <- list("data" = dat,
+                        "result" = vb(model, data = dat, ...))
         }
     }
     
-    list("data" = dat,
-         "result" = out)
+    out
 }
 
 #' Fit-and-extract mutational signatures
