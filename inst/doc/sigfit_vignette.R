@@ -28,9 +28,9 @@ mcmc_samples_fit <- sigfit::fit_signatures(counts = mutations,
                                            seed = 1)
 
 ## ----retrieve_exp--------------------------------------------------------
-exposures <- retrieve_pars(mcmc_samples_fit, 
-                           par = "exposures", 
-                           hpd_prob = 0.90)
+exposures <- sigfit::retrieve_pars(mcmc_samples_fit, 
+                                   par = "exposures", 
+                                   hpd_prob = 0.90)
 names(exposures)
 exposures$mean
 
@@ -84,8 +84,8 @@ cat("Estimated best number of signatures:", nS[best], "\n")
 
 ## ----retrieve_sigs, eval=FALSE-------------------------------------------
 #  ## Note: mcmc_samples_extr[[N]] contains the extraction results for N signatures
-#  extr_signatures <- retrieve_pars(mcmc_samples_extr[[4]],
-#                                   par = "signatures")
+#  extr_signatures <- sigfit::retrieve_pars(mcmc_samples_extr[[4]],
+#                                           par = "signatures")
 
 ## ----show_signames-------------------------------------------------------
 rownames(extr_signatures$mean)
