@@ -29,7 +29,7 @@
 #' data("cosmic_signatures")
 #' 
 #' # Fit signatures 1 to 4, using a custom prior that favors signature 1 over the rest
-#' # (4 chains, 300 warmup iterations + 300 sampling iterations -- use more in practice)
+#' # (4 chains, 300 warmup iterations + 300 sampling iterations - use more in practice)
 #' samples_1 <- fit_signatures(counts_21breast, cosmic_signatures[1:4, ], 
 #'                             exp_prior = c(10, 1, 1, 1), iter = 600)
 #' 
@@ -175,21 +175,22 @@ extract_signatures_initialiser <- function(counts, nsignatures, method = "emu", 
 #' \itemize{
 #'  \item{\code{$data}: list containing the input data supplied to the model.}
 #'  \item{\code{$result}: object of class stanfit, containing the output MCMC samples, 
-#'  as well as information about the model and sampling process. These results
-#'  refer only to the estimated best number of signatures (\code{nsignatures} value).}}
+#'  as well as information about the model and sampling process.}}
 #' The model parameters (such as signatures and exposures) can be extracted from this 
 #' object using \code{\link{retrieve_parameters}}.
+#' If a range of numbers of signatures is provided via the \code{nsignatures} argument, a list is returned where
+#' the N-th element contains the extraction results for N signatures, as a list with the structure described above.
 #' @examples
 #' # Load example mutational catalogues
 #' data("counts_21breast")
 #' 
 #' # Extract 2 to 6 signatures using the NMF (multinomial) model
-#' # (400 warmup iterations + 400 sampling iterations -- use more in practice)
+#' # (400 warmup iterations + 400 sampling iterations - use more in practice)
 #' samples_nmf <- extract_signatures(counts_21breast, nsignatures = 2:6, 
 #'                                   method = "nmf", iter = 800)
 #' 
 #' # Extract 4 signatures using the EMu (Poisson) model
-#' # (400 warmup iterations + 800 sampling iterations -- use more in practice)
+#' # (400 warmup iterations + 800 sampling iterations - use more in practice)
 #' samples_emu <- extract_signatures(counts_21breast, nsignatures = 4, method = "emu", 
 #'                                   opportunities = "human-genome",
 #'                                   iter = 1200, warmup = 400)
@@ -331,7 +332,7 @@ extract_signatures <- function(counts, nsignatures, method = "nmf", opportunitie
 #' Fit-and-extract mutational signatures
 #' 
 #' \code{fit_extract_signatures} fits signatures to estimate exposures in a set of mutation counts
-#' and extracts additional signatures present in the samples.
+#' and simultaneously extracts additional signatures present in the samples.
 #' @param counts Integer matrix of observed mutation counts, with one row per sample and 
 #' one column per mutation type.
 #' @param signatures Fixed mutational signatures to be fitted. Either a numeric matrix with one row 
@@ -341,11 +342,9 @@ extract_signatures <- function(counts, nsignatures, method = "nmf", opportunitie
 #' @param sig_prior Numeric matrix with one row per additional signature and one column per category, to be used as the
 #' Dirichlet priors for the additional signatures to be extracted. Default priors are uniform (uninformative).
 #' @param exp_prior Numeric; hyperparameter of the Dirichlet prior given to the exposures. Default value is 1 (uniform, uninformative).
-#' @param stanfunc \code{"sampling"}|\code{"optimizing"}|\code{"vb"} Choice of rstan 
-#' inference strategy. \code{"sampling"} is the full Bayesian MCMC approach, and is the 
-#' default. \code{"optimizing"} returns the Maximum a Posteriori (MAP) point estimates 
-#' via numerical optimization. \code{"vb"} uses Variational Bayes to approximate the 
-#' full posterior.
+#' @param stanfunc Character; choice of rstan inference strategy. Admits values \code{"sampling"}, \code{"optimizing"} and \code{"vb"}. 
+#' \code{"sampling"} is the full Bayesian MCMC approach, and is the default. \code{"optimizing"} returns the Maximum a 
+#' Posteriori (MAP) point estimates via numerical optimization. \code{"vb"} uses Variational Bayes to approximate the full posterior.
 #' @param ... Any other parameters to pass to the sampling function (by default, \code{\link{rstan::sampling}}).
 #' (The number of chains is set to 1 and cannot be changed, to prevent 'label switching' problems.)
 #' @return A list with two elements:
@@ -368,7 +367,7 @@ extract_signatures <- function(counts, nsignatures, method = "nmf", opportunitie
 #' 
 #' # Assuming that we do not know signature 7 a priori, but we know the others
 #' # to be present, extract 1 signature while fitting signatures 1, 4 and 5.
-#' # (400 warmup iterations + 400 sampling iterations -- use more in practice)
+#' # (400 warmup iterations + 400 sampling iterations - use more in practice)
 #' mcmc_samples <- fit_extract_signatures(mutations, signatures = signatures[c(1, 4, 5), ],
 #'                                        num_extra_sigs = 1, method = "nmf", iter = 800)
 #' 

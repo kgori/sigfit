@@ -43,6 +43,8 @@ A list with two elements:
  as well as information about the model and sampling process.}}
 The model parameters (such as signatures and exposures) can be extracted from this 
 object using \code{\link{retrieve_parameters}}.
+If a range of numbers of signatures is provided via the \code{nsignatures} argument, a list is returned where
+the N-th element contains the extraction results for N signatures, as a list with the structure described above.
 }
 \description{
 \code{extract_signatures} runs MCMC sampling to extract a set of mutational signatures 
@@ -53,12 +55,12 @@ and their exposures from a collection of mutational catalogues.
 data("counts_21breast")
 
 # Extract 2 to 6 signatures using the NMF (multinomial) model
-# (400 warmup iterations + 400 sampling iterations -- use more in practice)
+# (400 warmup iterations + 400 sampling iterations - use more in practice)
 samples_nmf <- extract_signatures(counts_21breast, nsignatures = 2:6, 
                                   method = "nmf", iter = 800)
 
 # Extract 4 signatures using the EMu (Poisson) model
-# (400 warmup iterations + 800 sampling iterations -- use more in practice)
+# (400 warmup iterations + 800 sampling iterations - use more in practice)
 samples_emu <- extract_signatures(counts_21breast, nsignatures = 4, method = "emu", 
                                   opportunities = "human-genome",
                                   iter = 1200, warmup = 400)
