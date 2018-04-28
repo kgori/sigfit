@@ -111,8 +111,8 @@ mutations &lt;-<span class="st"> </span><span class="kw">matrix</span>(<span cla
 <pre><code>## 
 ## SAMPLING FOR MODEL 'sigfit_fit_nmf' NOW (CHAIN 1).
 ## 
-## Gradient evaluation took 6.7e-05 seconds
-## 1000 transitions using 10 leapfrog steps per transition would take 0.67 seconds.
+## Gradient evaluation took 6.9e-05 seconds
+## 1000 transitions using 10 leapfrog steps per transition would take 0.69 seconds.
 ## Adjust your expectations accordingly!
 ## 
 ## 
@@ -129,9 +129,9 @@ mutations &lt;-<span class="st"> </span><span class="kw">matrix</span>(<span cla
 ## Iteration: 1800 / 2000 [ 90%]  (Sampling)
 ## Iteration: 2000 / 2000 [100%]  (Sampling)
 ## 
-##  Elapsed Time: 1.0763 seconds (Warm-up)
-##                0.459187 seconds (Sampling)
-##                1.53549 seconds (Total)</code></pre>
+##  Elapsed Time: 1.08565 seconds (Warm-up)
+##                0.449095 seconds (Sampling)
+##                1.53474 seconds (Total)</code></pre>
 </div>
 <div id="retrieving-signature-exposures" class="section level4">
 <h4>Retrieving signature exposures</h4>
@@ -206,7 +206,7 @@ sigfit<span class="op">::</span><span class="kw">plot_all</span>(<span class="dt
 ## [16] &quot;Sample 16&quot; &quot;Sample 17&quot; &quot;Sample 18&quot; &quot;Sample 19&quot; &quot;Sample 20&quot;
 ## [21] &quot;Sample 21&quot;</code></pre>
 <p>The first step is to transform these variants into mutational catalogues, which is done by the <code>build_catalogues</code> function. (You can skip this step if you already have mutational catalogues for each of your samples.)</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">counts_21breast &lt;-<span class="st"> </span><span class="kw">build_catalogues</span>(variants_21breast)
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">counts_21breast &lt;-<span class="st"> </span>sigfit<span class="op">::</span><span class="kw">build_catalogues</span>(variants_21breast)
 <span class="kw">dim</span>(counts_21breast)</code></pre></div>
 <pre><code>## [1] 21 96</code></pre>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">counts_21breast[<span class="dv">1</span><span class="op">:</span><span class="dv">5</span>, <span class="dv">1</span><span class="op">:</span><span class="dv">8</span>]</code></pre></div>
