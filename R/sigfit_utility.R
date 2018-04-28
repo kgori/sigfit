@@ -246,6 +246,9 @@ build_catalogues <- function(variants) {
     else {
         strand <- FALSE
     }
+    if (!is.matrix(variants)) {
+        variants <- as.matrix(variants)
+    }
     
     # Check that REF base coincides with middle base in trinucleotide
     if (any(variants[, 2] != substr(variants[, 4], 2, 2))) {
