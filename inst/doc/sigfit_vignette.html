@@ -10,7 +10,7 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
-<meta name="author" content="Kevin Gori and Adrian Baez-Ortega (2017)" />
+<meta name="author" content="Kevin Gori and Adrian Baez-Ortega (2018)" />
 
 
 <title>Fitting and extracting mutational signatures with sigfit</title>
@@ -68,7 +68,7 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 
 
 <h1 class="title toc-ignore">Fitting and extracting mutational signatures with sigfit</h1>
-<h4 class="author"><em>Kevin Gori and Adrian Baez-Ortega (2017)</em></h4>
+<h4 class="author"><em>Kevin Gori and Adrian Baez-Ortega (2018)</em></h4>
 
 
 
@@ -111,8 +111,8 @@ mutations &lt;-<span class="st"> </span><span class="kw">matrix</span>(<span cla
 <pre><code>## 
 ## SAMPLING FOR MODEL 'sigfit_fit_nmf' NOW (CHAIN 1).
 ## 
-## Gradient evaluation took 6.1e-05 seconds
-## 1000 transitions using 10 leapfrog steps per transition would take 0.61 seconds.
+## Gradient evaluation took 6.7e-05 seconds
+## 1000 transitions using 10 leapfrog steps per transition would take 0.67 seconds.
 ## Adjust your expectations accordingly!
 ## 
 ## 
@@ -129,17 +129,17 @@ mutations &lt;-<span class="st"> </span><span class="kw">matrix</span>(<span cla
 ## Iteration: 1800 / 2000 [ 90%]  (Sampling)
 ## Iteration: 2000 / 2000 [100%]  (Sampling)
 ## 
-##  Elapsed Time: 1.11208 seconds (Warm-up)
-##                0.473294 seconds (Sampling)
-##                1.58537 seconds (Total)</code></pre>
+##  Elapsed Time: 1.0763 seconds (Warm-up)
+##                0.459187 seconds (Sampling)
+##                1.53549 seconds (Total)</code></pre>
 </div>
 <div id="retrieving-signature-exposures" class="section level4">
 <h4>Retrieving signature exposures</h4>
 <p>Once we have the result of the MCMC sampling in <code>mcmc_samples_fit</code>, we can retrieve the estimated exposures from it using the <code>retrieve_pars</code> function. This returns a named list with three matrices, one containing the mean exposures, and the others containing the values corresponding to the lower and upper limits of the highest posterior density (HPD) interval (the Bayesian alternative to a confidence interval) for each exposure in each sample. The <code>prob</code> argument can be used to indicate the target probability content of the HPD interval (by default, 95% HPD intervals are returned).</p>
 <p>Since we are fitting known signatures and not extracting new ones, the exposures will be automatically labelled with the signature names. If the signatures have no names (or have been extracted <em>de novo</em> instead of fitted, as we will see below), they will be labelled as ‘Signature A’, ‘Signature B’, etc.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">exposures &lt;-<span class="st"> </span><span class="kw">retrieve_pars</span>(mcmc_samples_fit, 
-                           <span class="dt">par =</span> <span class="st">&quot;exposures&quot;</span>, 
-                           <span class="dt">hpd_prob =</span> <span class="fl">0.90</span>)
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">exposures &lt;-<span class="st"> </span>sigfit<span class="op">::</span><span class="kw">retrieve_pars</span>(mcmc_samples_fit, 
+                                   <span class="dt">par =</span> <span class="st">&quot;exposures&quot;</span>, 
+                                   <span class="dt">hpd_prob =</span> <span class="fl">0.90</span>)
 <span class="kw">names</span>(exposures)</code></pre></div>
 <pre><code>## [1] &quot;mean&quot;     &quot;lower_90&quot; &quot;upper_90&quot;</code></pre>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">exposures<span class="op">$</span>mean</code></pre></div>
@@ -233,8 +233,8 @@ sigfit<span class="op">::</span><span class="kw">plot_spectrum</span>(counts_21b
 <p>Next, we would recommend running <code>extract_signatures</code> again, this time with <code>nsignatures = 4</code> and a much greater number of iterations, in order to obtain more accurate estimates. We will skip this step in the present example.</p>
 <p>As in the case of signature fitting (Example 1 above), the extracted signatures and exposures can be retrieved using the <code>retrieve_pars</code> function with <code>par = &quot;signatures&quot;</code> or <code>par = &quot;exposures&quot;</code>. However, because the output is a list containing the results for each value in <code>nsignatures</code>, <strong>we need to specify which number of signatures we are interested in, using the <code>[[ ]]</code> operator</strong>. Note that this is not necessary if a single value of <code>nsignatures</code> was used for extraction.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">## Note: mcmc_samples_extr[[N]] contains the extraction results for N signatures
-extr_signatures &lt;-<span class="st"> </span><span class="kw">retrieve_pars</span>(mcmc_samples_extr[[<span class="dv">4</span>]],
-                                 <span class="dt">par =</span> <span class="st">&quot;signatures&quot;</span>)</code></pre></div>
+extr_signatures &lt;-<span class="st"> </span>sigfit<span class="op">::</span><span class="kw">retrieve_pars</span>(mcmc_samples_extr[[<span class="dv">4</span>]],
+                                         <span class="dt">par =</span> <span class="st">&quot;signatures&quot;</span>)</code></pre></div>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">rownames</span>(extr_signatures<span class="op">$</span>mean)</code></pre></div>
 <pre><code>## [1] &quot;Signature A&quot; &quot;Signature B&quot; &quot;Signature C&quot; &quot;Signature D&quot;</code></pre>
 <p>Plotting can be done through the functions seen in Example 1, with the difference that, when plotting directly from MCMC results (via the <code>mcmc_samples</code> argument), we need to select the relevant element of the results list using <code>mcmc_samples_extr[[N]]</code>, as seen above. Note that this is not necessary if a single value of <code>nsignatures</code> was used for extraction.</p>

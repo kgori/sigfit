@@ -1,6 +1,6 @@
 ---
 title: "Fitting and extracting mutational signatures with sigfit"
-author: "Kevin Gori and Adrian Baez-Ortega (2017)"
+author: "Kevin Gori and Adrian Baez-Ortega (2018)"
 output: rmarkdown::html_vignette
 vignette: >
   %\VignetteIndexEntry{Usage guide}
@@ -79,9 +79,9 @@ Once we have the result of the MCMC sampling in ```mcmc_samples_fit```, we can r
 Since we are fitting known signatures and not extracting new ones, the exposures will be automatically labelled with the signature names. If the signatures have no names (or have been extracted _de novo_ instead of fitted, as we will see below), they will be labelled as 'Signature A', 'Signature B', etc.
 
 ```{r retrieve_exp}
-exposures <- retrieve_pars(mcmc_samples_fit, 
-                           par = "exposures", 
-                           hpd_prob = 0.90)
+exposures <- sigfit::retrieve_pars(mcmc_samples_fit, 
+                                   par = "exposures", 
+                                   hpd_prob = 0.90)
 names(exposures)
 exposures$mean
 ```
@@ -196,8 +196,8 @@ As in the case of signature fitting (Example 1 above), the extracted signatures 
 
 ```{r retrieve_sigs, eval=FALSE}
 ## Note: mcmc_samples_extr[[N]] contains the extraction results for N signatures
-extr_signatures <- retrieve_pars(mcmc_samples_extr[[4]],
-                                 par = "signatures")
+extr_signatures <- sigfit::retrieve_pars(mcmc_samples_extr[[4]],
+                                         par = "signatures")
 ```
 ```{r show_signames}
 rownames(extr_signatures$mean)
