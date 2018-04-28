@@ -21,7 +21,7 @@ build_catalogues(variants)
 }
 \value{
 An integer matrix of mutation counts, where each row corresponds to a sample and each column
-corresponds to one of the 96 trinucleotide mutation types.
+corresponds to one of the 96 (or 192) trinucleotide mutation types.
 }
 \description{
 \code{build_catalogues} generates a set of mutational catalogues from a table containing 

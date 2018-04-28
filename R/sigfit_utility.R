@@ -2,21 +2,17 @@
 #' 
 #' \code{match_signatures} compares two independent estimates of signatures to 
 #' find the closest matches between them.
-#' @param sigs_a Signatures estimate; either a list such as one produced by 
-#' \code{\link{retrieve_pars}}, with a \code{$mean} entry, or a numeric matrix with one 
-#' row per signature and one column for each of the 96 mutation types.
+#' @param sigs_a Signatures estimate; Either a numeric matrix of mutational signatures, 
+#' with one row per signature and one column per mutation type, or a list of matrices 
+#' generated via \code{\link{retrieve_pars}}.
 #' @param sigs_b Signatures estimate as for \code{sigs_a}.
 #' @return A numeric vector containing, for each signature in \code{sigs_a}, the index 
 #' of the closest match in \code{sigs_b}.
 #' @importFrom "clue" solve_LSAP
 #' @export
 match_signatures <- function(sigs_a, sigs_b) {
-    if ("mean" %in% names(sigs_a)) a <- sigs_a$mean
-    else a <- sigs_a
-    
-    if ("mean" %in% names(sigs_b)) b <- sigs_b$mean
-    else b <- sigs_b
-    
+    a <- to_matrix(sigs_a)
+    b <- to_matrix(sigs_b)
     nA <- nrow(a)
     nB <- nrow(b)
     stopifnot(nA == nB)
@@ -33,11 +29,14 @@ match_signatures <- function(sigs_a, sigs_b) {
 #' Initial coercion to matrix for signatures/exposures/counts
 to_matrix <- function(x) {
     # If x is coming from retrieve_pars, get mean
-    if (is.list(x) & "mean" %in% names(x))  x <- x$mean
+    if (is.list(x) & "mean" %in% names(x))
+        x <- x$mean
     # If x is a vector, transform to 1-row matrix
-    if (is.vector(x))  x <- matrix(x, nrow = 1)
+    if (is.vector(x))
+        x <- matrix(x, nrow = 1)
     # Otherwise, try coercing to matrix
-    if (!is.matrix(x))  x <- as.matrix(x)
+    if (!is.matrix(x))
+        x <- as.matrix(x)
     x
 }
 
@@ -101,10 +100,10 @@ default_sig_palette <- function(n) {
     rep(c("#1B9E77", "#D95F02", "#7570B3", "#E7298A", "#66A61E", "#E6AB02", 
           "#A6761D", "#666666", "#E41A1C", "#377EB8", "#4DAF4A", "#984EA3", 
           "#FF7F00", "#FFFF33", "#A65628", "#F781BF", "#999999"), 
-        5)[1:n]
+        10)[1:n]
 }
 
-#' Generates character vector of 96 (or 192, if strand=T) trinucleotide mutation types
+#' Generates character vector of 96 (or 192, if strand=TRUE) trinucleotide mutation types
 mut_types <- function(strand = FALSE) {
     bases <- c("A", "C", "G", "T")
     muts <- paste0(rep(rep(bases, each = 4), 6),
@@ -223,7 +222,7 @@ human_trinuc_freqs <- function(type = "human-genome", strand = FALSE) {
 #'  catalogues will be used.}
 #' }
 #' @return An integer matrix of mutation counts, where each row corresponds to a sample and each column
-#' corresponds to one of the 96 trinucleotide mutation types.
+#' corresponds to one of the 96 (or 192) trinucleotide mutation types.
 #' @examples
 #' # Load example mutation data
 #' data("variants_21breast")
@@ -246,6 +245,9 @@ build_catalogues <- function(variants) {
     }
     else {
         strand <- FALSE
+    }
+    if (!is.matrix(variants)) {
+        variants <- as.matrix(variants)
     }
     
     # Check that REF base coincides with middle base in trinucleotide
@@ -325,7 +327,7 @@ fetch_cosmic_data <- function(reorder = TRUE, remove_zeros = TRUE) {
 #' This is done by multiplying or dividing each signature by the average mutational opportunities
 #' of the samples, or by the human genome/exome reference trinucleotide frequencies.
 #' @param signatures Either a numeric matrix of mutational signatures, with one row per signature and one
-#' column for each of the 96 (or 192) mutation types, or a list of signatures generated via
+#' column for each of the 96 (or 192) mutation types, or a list of matrices generated via
 #' \code{\link{retrieve_pars}}.
 #' @param ref_opportunities Numeric vector of reference or average mutational opportunities, with 
 #' one element for each of the 96 (or 192) mutation types. It can also take values \code{"human-genome"} or 
@@ -354,13 +356,13 @@ fetch_cosmic_data <- function(reorder = TRUE, remove_zeros = TRUE) {
 #' @export
 convert_signatures <- function(signatures, ref_opportunities, model_to) {
     signatures <- to_matrix(signatures)
-    stopifnot(ncol(signatures) %in% c(96, 192))
-    strand <- ncol(signatures) == 192
-    if (strand) {
-        cat("'signatures' contains 192 mutations types: using strand-bias opportunities.\n")
-    }
     
-    if (ref_opportunities %in% c("human-genome", "human-exome")) {
+    if (ref_opportunities[1] %in% c("human-genome", "human-exome")) {
+        stopifnot(ncol(signatures) %in% c(96, 192))
+        strand <- ncol(signatures) == 192
+        if (strand) {
+            cat("'signatures' contains 192 mutations types: using strand-bias opportunities.\n")
+        }
         ref_opportunities <- human_trinuc_freqs(type = ref_opportunities, strand = strand)
     }
     ref_opportunities <- as.numeric(ref_opportunities)
@@ -388,14 +390,12 @@ convert_signatures <- function(signatures, ref_opportunities, model_to) {
 #' Retrieve model parameters
 #' 
 #' \code{retrieve_pars} obtains summary values for a set of model parameters (signatures or exposures) from a stanfit object.
-#' @param mcmc_samples Object of class stanfit, generated via either \code{\link{fit_signatures}}
-#' or \code{\link{extract_signatures}}.
-#' @param feature Character; name of the parameter set to extract. Can take values: \code{"signatures"}, 
+#' @param mcmc_samples List with elements \code{$data} and \code{$results}, produced via either 
+#' \code{\link{fit_signatures}}, \code{\link{extract_signatures}} or \code{\link{fit_extract_signatures}}.
+#' @param par Character; name of the parameter set to extract. Can take values: \code{"signatures"}, 
 #' \code{"exposures"}, \code{"activities"} or \code{"reconstructions"}.
 #' @param hpd_prob Numeric; a value in the interval (0, 1), giving the target probability content of 
-#' the HPD intervals.
-#' @param signature_names Character vector containing the names of the signatures used for fitting. Used only when 
-#' retrieving exposures from fitted signatures.
+#' the HPD intervals. (Default is 0.95.)
 #' @return A list of three matrices, which respectively contain the values corresponding to the
 #' mean of the model parameter of interest, and those corresponding to the lower and upper ends of its HPD interval.
 #' @examples
@@ -424,71 +424,65 @@ convert_signatures <- function(signatures, ref_opportunities, model_to) {
 #' @importFrom "coda" HPDinterval
 #' @importFrom "coda" as.mcmc
 #' @export
-retrieve_pars <- function(mcmc_samples, feature, hpd_prob = 0.95, counts = NULL, signatures = NULL, opportunities = NULL, signature_names = NULL) {
-    if (feature == "reconstructions") {
-        if (is.null(counts)) {
-            stop("'counts' must be provided to retrieve reconstructions.")
-        }
-        
-        NSAMP <- nrow(counts)
-        NCAT <- ncol(counts)
-        strand <- NCAT == 192  # strand bias indicator
-        
-        if (is.null(opportunities) | is.character(opportunities)) {
-            opportunities <- build_opps_matrix(NSAMP, opportunities, strand)
-        }
-        else if (!is.matrix(opportunities)) {
-            opportunities <- as.matrix(opportunities)
-        }
-        l <- get_reconstructions(counts, mcmc_samples, signatures, opportunities)
-        feat_summ <- list(mean = apply(l$reconstructions, c(1, 3), sum),
-                          lower = l$hpds[, 1, ],
-                          upper = l$hpds[, 2, ])
+retrieve_pars <- function(mcmc_samples, par, hpd_prob = 0.95) {
+    if (!par %in% c("signatures", "exposures", "activities", "reconstructions")) {
+        stop("'par' only admits the values \"signatures\", \"exposures\", \"activities\" or \"reconstructions\".")
+    }
+    if (par == "reconstructions") {
+        p <- get_reconstructions(mcmc_samples)
+        par_summ <- list(mean = apply(p$reconstructions, c(1, 3), sum),
+                         lower = p$hpds[, 1, ],
+                         upper = p$hpds[, 2, ])
     }
     else {
-        feat <- extract(mcmc_samples, pars = feature)[[feature]]
-        strand <- dim(feat)[3] == 192  # strand bias indicator
+        p <- extract(mcmc_samples$result, pars = par)[[par]]
+        if ("signatures" %in% names(mcmc_samples$data)) {
+            signature_names <- rownames(mcmc_samples$data$signatures)
+        }
+        else {
+            signature_names <- NULL
+        }
         
         # Multi-sample case
-        if (length(dim(feat)) > 2) {
+        if (length(dim(p)) > 2) {
             # Assign dimension names
-            if (feature == "signatures") {
-                names2 <- mut_types(strand)
-                if (is.null(signature_names)) {
-                    LETTERLABELS <- letterwrap(dim(feat)[2])
-                    names1 <- paste("Signature", LETTERLABELS[1:dim(feat)[2]])
+            if (par == "signatures") {
+                if (dim(p)[3] %in% c(96, 192)) {
+                    strand <- dim(p)[3] == 192  # strand bias indicator
+                    names2 <- mut_types(strand)
                 }
                 else {
-                    if (dim(feat)[2] != length(signature_names)) {
-                        stop("'signature_names' must have length equal to the number of signatures.")
-                    }
+                    names2 <- NULL
+                }
+                if (is.null(signature_names)) {
+                    LETTERLABELS <- letterwrap(dim(p)[2])
+                    names1 <- paste("Signature", LETTERLABELS[1:dim(p)[2]])
+                }
+                else {
                     names1 <- signature_names
                 }
             }
-            else if (feature %in% c("exposures", "activities")) {
+            else if (par %in% c("exposures", "activities")) {
                 names1 <- NULL
                 if (is.null(signature_names)) {
-                    LETTERLABELS <- letterwrap(dim(feat)[3])
-                    names2 <- paste("Signature", LETTERLABELS[1:dim(feat)[3]])
+                    LETTERLABELS <- letterwrap(dim(p)[3])
+                    names2 <- paste("Signature", LETTERLABELS[1:dim(p)[3]])
                 }
                 else {
-                    if (dim(feat)[3] != length(signature_names))  {
-                        stop("'signature_names' must have length equal to the number of signatures.")
-                    }
                     names2 <- signature_names
                 }
             }
             # for signatures: Signatures x Categories matrix
             # for exposures: Samples x Signatures matrix
-            feat_summ <- list(matrix(NA, nrow = dim(feat)[2], ncol = dim(feat)[3], dimnames = list(names1, names2)),
-                              matrix(NA, nrow = dim(feat)[2], ncol = dim(feat)[3], dimnames = list(names1, names2)),
-                              matrix(NA, nrow = dim(feat)[2], ncol = dim(feat)[3], dimnames = list(names1, names2)))
-            names(feat_summ) <- c("mean", paste0(c("lower_", "upper_"), hpd_prob * 100))
-            for (i in 1:nrow(feat_summ[[1]])) {
-                hpd <- HPDinterval(as.mcmc(feat[,i,]), prob = hpd_prob)
-                feat_summ[[1]][i,] <- colMeans(feat[,i,])
-                feat_summ[[2]][i,] <- hpd[,1]
-                feat_summ[[3]][i,] <- hpd[,2]
+            par_summ <- list(matrix(NA, nrow = dim(p)[2], ncol = dim(p)[3], dimnames = list(names1, names2)),
+                             matrix(NA, nrow = dim(p)[2], ncol = dim(p)[3], dimnames = list(names1, names2)),
+                             matrix(NA, nrow = dim(p)[2], ncol = dim(p)[3], dimnames = list(names1, names2)))
+            names(par_summ) <- c("mean", paste0(c("lower_", "upper_"), hpd_prob * 100))
+            for (i in 1:nrow(par_summ[[1]])) {
+                hpd <- HPDinterval(as.mcmc(p[,i,]), prob = hpd_prob)
+                par_summ[[1]][i,] <- colMeans(p[,i,])
+                par_summ[[2]][i,] <- hpd[,1]
+                par_summ[[3]][i,] <- hpd[,2]
             }
         }
         
@@ -496,51 +490,46 @@ retrieve_pars <- function(mcmc_samples, feature, hpd_prob = 0.95, counts = NULL,
         else {
             names1 <- NULL
             if (is.null(signature_names)) {
-                LETTERLABELS <- letterwrap(dim(feat)[3])
-                names2 <- paste("Signature", LETTERLABELS[1:dim(feat)[3]])
+                LETTERLABELS <- letterwrap(dim(p)[3])
+                names2 <- paste("Signature", LETTERLABELS[1:dim(p)[3]])
             }
             else {
-                if (dim(feat)[3] != length(signature_names)) {
-                    stop("'signature_names' must have length equal to the number of signatures.")
-                }
                 names2 <- signature_names
             }
-            feat_summ <- list(matrix(NA, nrow = 1, ncol = dim(feat)[2], dimnames = list(names1, names2)),
-                              matrix(NA, nrow = 1, ncol = dim(feat)[2], dimnames = list(names1, names2)),
-                              matrix(NA, nrow = 1, ncol = dim(feat)[2], dimnames = list(names1, names2)))
-            names(feat_summ) <- c("mean", paste0(c("lower_", "upper_"), hpd_prob * 100))
-            for (i in 1:nrow(feat_summ[[1]])) {
-                hpd <- HPDinterval(as.mcmc(feat), prob = hpd_prob)
-                feat_summ[[1]][1,] <- colMeans(feat)
-                feat_summ[[2]][1,] <- hpd[,1]
-                feat_summ[[3]][1,] <- hpd[,2]
+            par_summ <- list(matrix(NA, nrow = 1, ncol = dim(p)[2], dimnames = list(names1, names2)),
+                              matrix(NA, nrow = 1, ncol = dim(p)[2], dimnames = list(names1, names2)),
+                              matrix(NA, nrow = 1, ncol = dim(p)[2], dimnames = list(names1, names2)))
+            names(par_summ) <- c("mean", paste0(c("lower_", "upper_"), hpd_prob * 100))
+            for (i in 1:nrow(par_summ[[1]])) {
+                hpd <- HPDinterval(as.mcmc(p), prob = hpd_prob)
+                par_summ[[1]][1,] <- colMeans(p)
+                par_summ[[2]][1,] <- hpd[,1]
+                par_summ[[3]][1,] <- hpd[,2]
             }
         }
     }
-    feat_summ
+    par_summ
 }
 
 #' Generate posterior predictive check values from a model
-#' @param counts Integer matrix of observed mutation counts, with one row per sample and 
-#' column for each of the 96 mutation types.
-#' @param mcmc_samples Object of class stanfit, generated via either \code{\link{fit_signatures}}
-#' or \code{\link{extract_signatures}}.
+#' @param mcmc_samples List with elements \code{$data} and \code{$results}, produced via either 
+#' \code{\link{fit_signatures}}, \code{\link{extract_signatures}} or \code{\link{fit_extract_signatures}}. 
 #' @importFrom "stats" rmultinom rpois
 #' @export
-simulate_ppc <- function(counts, mcmc_samples) {
-    if (grepl("nmf", mcmc_samples@model_name)) {
-        e <- extract(mcmc_samples, pars = "probs")
+simulate_ppc <- function(mcmc_samples) {
+    if (grepl("nmf", mcmc_samples$result@model_name)) {
+        e <- extract(mcmc_samples$result, pars = "probs")
         ppc <- array(0, dim(e$probs))
         for (i in 1:dim(e$probs)[1]) {
             for (j in 1:dim(e$probs)[2]) {
                 ppc[i, j, ] <- t(
-                    rmultinom(1, sum(counts[j, ]), e$probs[i, j, ])
+                    rmultinom(1, sum(mcmc_samples$data$counts[j, ]), e$probs[i, j, ])
                 )
             }
         }
     }
     else {
-        e <- extract(mcmc_samples, pars = "expected_counts")
+        e <- extract(mcmc_samples$result, pars = "expected_counts")
         ppc <- array(0, dim(e$expected_counts))
         for (i in 1:dim(e$expected_counts)[1]) {
             for (j in 1:dim(e$expected_counts)[2]) {
@@ -554,33 +543,32 @@ simulate_ppc <- function(counts, mcmc_samples) {
 }
 
 #' Generate log likelihood values from a model
-#' @param counts Integer matrix of observed mutation counts, with one row per sample and 
-#' column for each of the 96 mutation types.
-#' @param mcmc_samples Object of class stanfit, generated via either \code{\link{fit_signatures}}
-#' or \code{\link{extract_signatures}}.
+#' @param mcmc_samples List with elements \code{$data} and \code{$results}, produced via either 
+#' \code{\link{fit_signatures}}, \code{\link{extract_signatures}} or \code{\link{fit_extract_signatures}}. 
 #' @importFrom "stats" dmultinom dpois
 #' @export
-get_loglik <- function(counts, mcmc_samples) {
+get_loglik <- function(mcmc_samples) {
+    counts <- mcmc_samples$data$counts
     dnames <- list(NULL, NULL)
     names(dnames) <- c("iterations", "")
-    if (grepl("nmf", mcmc_samples@model_name)) {
-        e <- extract(mcmc_samples, pars = "probs")
-        nrep <- dim(e$probs)[1]
-        nsamples <- dim(e$probs)[2]
-        log_lik <- matrix(0, nrow = nrep, ncol = nsamples, dimnames = dnames)
-        for (i in 1:nrep) {
-            for (j in 1:nsamples) {
+    if (grepl("nmf", mcmc_samples$result@model_name)) {
+        e <- extract(mcmc_samples$result, pars = "probs")
+        NREP <- dim(e$probs)[1]
+        NSAMP <- dim(e$probs)[2]
+        log_lik <- matrix(0, nrow = NREP, ncol = NSAMP, dimnames = dnames)
+        for (i in 1:NREP) {
+            for (j in 1:NSAMP) {
                 log_lik[i, j] <- dmultinom(counts[j, ], prob = e$probs[i, j, ], log = TRUE)
             }
         }
     }
     else {
-        e <- extract(mcmc_samples, pars = "expected_counts")
-        nrep <- dim(e$expected_counts)[1]
-        nsamples <- dim(e$expected_counts)[2]
-        log_lik <- matrix(0, nrow = nrep, ncol = nsamples, dimnames = dnames)
-        for (i in 1:nrep) {
-            for (j in 1:nsamples) {
+        e <- extract(mcmc_samples$result, pars = "expected_counts")
+        NREP <- dim(e$expected_counts)[1]
+        NSAMP <- dim(e$expected_counts)[2]
+        log_lik <- matrix(0, nrow = NREP, ncol = NSAMP, dimnames = dnames)
+        for (i in 1:NREP) {
+            for (j in 1:NSAMP) {
                 log_lik[i, j] <- sum(dpois(counts[j, ], e$expected_counts[i, j, ], log = TRUE))
             }
         }
@@ -589,27 +577,23 @@ get_loglik <- function(counts, mcmc_samples) {
 }
 
 #' Generate reconstructed mutation catalogues from parameters estimated from MCMC samples
-#' @param counts Integer matrix of observed mutation counts, with one row per sample and 
-#' column for each of the 96 mutation types.
-#' @param mcmc_samples Object of class stanfit, generated via either \code{\link{fit_signatures}}
-#' or \code{\link{extract_signatures}}.
-#' @param signatures Numeric matrix of signatures to use for fitting models, which produce no estimate of signatures.
+#' @param mcmc_samples List with elements \code{$data} and \code{$results}, produced via either 
+#' \code{\link{fit_signatures}}, \code{\link{extract_signatures}} or \code{\link{fit_extract_signatures}}. 
 #' @importFrom "rstan" extract
 #' @importFrom "coda" HPDinterval
 #' @export
-get_reconstructions <- function(counts, mcmc_samples, signatures = NULL, opportunities = NULL) {
+get_reconstructions <- function(mcmc_samples) {
+    counts <- mcmc_samples$data$counts
     NCAT <- ncol(counts)   # number of categories
     NSAMP <- nrow(counts)  # number of samples
     
-    e <- extract(mcmc_samples)
+    e <- extract(mcmc_samples$result)
     NREP <- dim(e$exposures)[1]
     stopifnot(NSAMP == dim(e$exposures)[2])
     NSIG <- dim(e$exposures)[3]
 
     if (!"signatures" %in% names(e)) {
-        if (is.null(signatures)) {
-            stop("No signatures found in MCMC samples and no matrix of signatures provided.")
-        }
+        signatures <- mcmc_samples$data$signatures
         e$signatures <- aperm(
             sapply(1:NREP, function(i) as.matrix(signatures), simplify = "array"),
             c(3, 1, 2)
@@ -619,10 +603,8 @@ get_reconstructions <- function(counts, mcmc_samples, signatures = NULL, opportu
     reconstructions <- array(NA, dim = c(NSAMP, NSIG, NCAT))
     hpds <- array(NA, dim = c(NSAMP, 2, NCAT))
     for (sample in 1:NSAMP) {
-        if (grepl("emu", mcmc_samples@model_name)) {
-            if (is.null(opportunities)) {
-                stop("Opportunities required to reconstruct counts modelled using the EMu method")
-            }
+        if (grepl("emu", mcmc_samples$result@model_name)) {
+            opportunities <- mcmc_samples$data$opps
             arr <- aperm(
                 sapply(1:NREP, function(i) {      
                     sweep(e$activities[i, sample, ] * e$signatures[i, , ],
@@ -647,6 +629,9 @@ get_reconstructions <- function(counts, mcmc_samples, signatures = NULL, opportu
         hpds[sample, , ] <- t(HPDinterval(
             as.mcmc(apply(arr, c(1, 3), sum))
         ))
+    }
+    if ("signatures" %in% names(mcmc_samples$data)) {
+        dimnames(reconstructions)[[2]] <- rownames(mcmc_samples$data$signatures)
     }
     list(reconstructions = reconstructions, hpds = hpds, exposures = t(apply(e$exposures, 2, colMeans)))
 }

@@ -4,17 +4,11 @@
 \alias{get_reconstructions}
 \title{Generate reconstructed mutation catalogues from parameters estimated from MCMC samples}
 \usage{
-get_reconstructions(counts, mcmc_samples, signatures = NULL,
-  opportunities = NULL)
+get_reconstructions(mcmc_samples)
 }
 \arguments{
-\item{counts}{Integer matrix of observed mutation counts, with one row per sample and 
-column for each of the 96 mutation types.}
-
-\item{mcmc_samples}{Object of class stanfit, generated via either \code{\link{fit_signatures}}
-or \code{\link{extract_signatures}}.}
-
-\item{signatures}{Numeric matrix of signatures to use for fitting models, which produce no estimate of signatures.}
+\item{mcmc_samples}{List with elements \code{$data} and \code{$results}, produced via either 
+\code{\link{fit_signatures}}, \code{\link{extract_signatures}} or \code{\link{fit_extract_signatures}}.}
 }
 \description{
 Generate reconstructed mutation catalogues from parameters estimated from MCMC samples

@@ -4,44 +4,64 @@
 \alias{plot_exposures}
 \title{Plot signature exposures}
 \usage{
-plot_exposures(counts, exposures = NULL, mcmc_samples = NULL,
-  pdf_path = NULL, signature_names = NULL, thresh = 0.01,
+plot_exposures(mcmc_samples = NULL, pdf_path = NULL, counts = NULL,
+  exposures = NULL, signature_names = NULL, thresh = 0.01,
   hpd_prob = 0.95, horiz_labels = FALSE, legend_pos = "topright",
   sig_color_palette = NULL)
 }
 \arguments{
+\item{mcmc_samples}{List with elements \code{$data} and \code{$results}, produced via either 
+\code{\link{fit_signatures}}, \code{\link{extract_signatures}} or \code{\link{fit_extract_signatures}}. 
+This should be the preferred option for supplying data and results, but can be replaced by the 
+combination of arguments \code{counts}, \code{exposures} and \code{signature_names}.}
+
+\item{pdf_path}{Character; if provided, the plots will be output to a PDF file with this path. The PDF 
+size and graphical parameters will be automatically set to appropriate values.}
+
 \item{counts}{Integer matrix of observed mutation counts, with one row per sample and 
-column for each of the 96 mutation types.}
+column for each of the 96 (or 192) mutation types. Only needed if \code{mcmc_samples} is not provided.}
 
 \item{exposures}{Either a numeric matrix of signature exposures, with one row per sample and one column 
 per signature, or a list of exposures as produced by \code{\link{retrieve_pars}}. 
 Only needed if \code{mcmc_samples} is not provided.}
 
-\item{mcmc_samples}{Object of class stanfit, generated via either \code{\link{fit_signatures}}
-or \code{\link{extract_signatures}}. Only needed if \code{exposures} is not provided.}
-
-\item{pdf_path}{Character; if provided, the plots will be output to a PDF file with this path. The PDF 
-size and graphical parameters will be automatically set to appropriate values.}
-
-\item{signature_names}{Character vector containing the names of the signatures. Only used when plotting
-exposures obtained through signature fitting (not extraction).}
+\item{signature_names}{Character vector containing the signature names. Only needed if \code{mcmc_samples}
+is not provided and the exposures were obtained through signature fitting (not extraction).}
 
 \item{thresh}{Numeric; minimum probability value that should be reached by the lower end of exposure HPD
-intervals. The exposures for which the lower HPD bound is below this value will be colored in grey.}
+intervals. The exposures for which the lower HPD bound is below this value will be colored in grey.
+(Default is 0.01.)}
 
 \item{hpd_prob}{Numeric; a value in the interval (0, 1), giving the target probability content of 
-the HPD intervals.}
+the HPD intervals. (Default is 0.95.)}
 
 \item{horiz_labels}{Logical; if \code{TRUE}, sample name labels will be displayed horizontally in the
-barplots.}
+barplots. (Default is \code{FALSE}.)}
 
 \item{legend_pos}{Character indicating the position of the legend in the exposures barplot. Admits values
 \code{"bottomright"}, \code{"bottom"}, \code{"bottomleft"}, \code{"left"}, \code{"topleft"}, \code{"top"}, 
-\code{"topright"}, \code{"right"} and \code{"center"}.}
+\code{"topright"} (default), \code{"right"} and \code{"center"}.}
 
 \item{sig_color_palette}{Character vector of color names or hexadecimal codes to use for each signature.
 Must have at least as many elements as the number of signatures.}
 }
 \description{
 \code{plot_exposures} plots the distribution of signature exposures across the samples.
+}
+\examples{
+# Load example mutational catalogues and COSMIC signatures
+data("counts_21breast")
+data("cosmic_signatures")
+
+# Fit signatures and retrieve exposures
+samples <- fit_signatures(counts_21breast, cosmic_signatures)
+exposures <- retrieve_pars(samples, "exposures")
+
+# Plot exposures using MCMC samples
+plot_exposures(mcmc_samples = samples, pdf_path = "Exposures.pdf")
+
+# Plot exposures using retrieved exposures matrix
+plot_exposures(counts = counts_21breast, exposures = exposures,
+               signature_names = rownames(cosmic_signatures),
+               pdf_path = "Exposures.pdf")
 }

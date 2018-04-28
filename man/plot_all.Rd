@@ -4,38 +4,38 @@
 \alias{plot_all}
 \title{Plot all results from signature fitting or extraction}
 \usage{
-plot_all(counts, out_path, prefix = NULL, mcmc_samples = NULL,
+plot_all(mcmc_samples = NULL, out_path, prefix = NULL, counts = NULL,
   signatures = NULL, exposures = NULL, opportunities = NULL,
   thresh = 0.01, horiz_labels = FALSE, hpd_prob = 0.95,
   signature_names = NULL, exp_legend_pos = "topright",
   rec_legend_pos = "topright", sig_color_palette = NULL)
 }
 \arguments{
-\item{counts}{Integer matrix of observed mutation counts, with one row per sample and 
-column for each of the 96 mutation types.}
+\item{mcmc_samples}{List with elements \code{$data} and \code{$results}, produced via either 
+\code{\link{fit_signatures}}, \code{\link{extract_signatures}} or \code{\link{fit_extract_signatures}}. 
+This should be the preferred option for supplying data and results, but can be replaced by the 
+combination of arguments \code{counts}, \code{signatures}, \code{exposures} and \code{opportunities}.}
 
 \item{out_path}{Character; path to the directory where the output PDF files will be stored.
 Will be created if it does not exist.}
 
 \item{prefix}{Character; optional prefix to be added to the output file names.}
 
-\item{mcmc_samples}{Object of class stanfit, generated via either \code{\link{fit_signatures}}
-or \code{\link{extract_signatures}}. Only needed if \code{signatures} or \code{exposures}
-are not provided.}
+\item{counts}{Integer matrix of observed mutation counts, with one row per sample and 
+column for each of the 96 (or 192) mutation types. Only needed if \code{mcmc_samples} is not provided.}
 
 \item{signatures}{Either a numeric matrix of mutational signatures, with one row per signature and one
-column for each of the 96 mutation types, or a list of signatures generated via
-\code{\link{retrieve_pars}}. Only needed if \code{mcmc_samples} is not provided, or if it
-contains signature fitting (instead of signature extraction) results.}
+column for each of the 96 (or 192) mutation types, or a list of matrices generated via
+\code{\link{retrieve_pars}}. Only needed if \code{mcmc_samples} is not provided.}
 
 \item{exposures}{Either a numeric matrix of signature exposures, with one row per sample and one column 
 per signature, or a list of exposures as produced by \code{\link{retrieve_pars}}. 
 Only needed if \code{mcmc_samples} is not provided.}
 
 \item{opportunities}{Integer matrix; it also admits values \code{"human-genome"} and \code{"human-exome"}.
-If \code{signatures} and/or \code{exposures} were obtained by extracting or fitting
-signatures using the "EMu" model (\code{method = "emu"}), these should be the same opportunities used 
-for extraction/fitting.}
+Only needed if \code{mcmc_samples} is not provided and \code{signatures} and/or \code{exposures} were 
+obtained using the "EMu" model (\code{method = "emu"}). In that case, these should 
+be the mutational opportunities used for extraction/fitting.}
 
 \item{thresh}{Numeric; minimum probability value that should be reached by the lower end of exposure HPD
 intervals. The exposures for which the lower HPD bound is below this value will be colored in grey.
@@ -80,12 +80,11 @@ samples <- extract_signatures(counts_21breast, nsignatures = 2, method = "emu",
 signatures <- retrieve_pars(samples, "signatures")
 exposures <- retrieve_pars(samples, "exposures")
 
-# Plot results using stanfit object
-plot_all(counts_21breast, out_path = ".", prefix = "Test1", 
-         mcmc_samples = samples, opportunities = "human-genome")
+# Plot results using MCMC samples
+plot_all(mcmc_samples = samples, out_path = ".", prefix = "Test1")
                     
 # Plot results using retrieved signatures and exposures
-plot_all(counts_21breast, out_path = ".", prefix = "Test2", 
-         signatures = signatures, exposures = exposures, 
-         opportunities = "human-genome")
+plot_all(counts = counts_21breast, signatures = signatures, 
+         exposures = exposures, opportunities = "human-genome", 
+         out_path = ".", prefix = "Test2")
 }
