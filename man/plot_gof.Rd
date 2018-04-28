@@ -7,10 +7,8 @@
 plot_gof(sample_list, stat = "cosine")
 }
 \arguments{
-\item{sample_list}{List with elements \code{$data} and \code{$results}, produced via 
-\code{\link{extract_signatures}}. Must contain the results of signature extraction using
-multiple numbers of signatures; i.e. the \code{nsignature} argument must have contained
-multiple values when \code{\link{extract_signatures}} was run.}
+\item{sample_list}{List containing the results of signature extraction 
+(\code{\link{extract_signatures}}) using  multiple numbers of signatures.}
 
 \item{stat}{Character; function for measuring goodness of fit. Admits values \code{"cosine"} 
 (default, cosine similarity) or \code{"L2"} (L2 norm or Euclidean distance).}

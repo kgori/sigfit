@@ -23,11 +23,9 @@ Dirichlet priors for the additional signatures to be extracted. Default priors a
 
 \item{exp_prior}{Numeric; hyperparameter of the Dirichlet prior given to the exposures. Default value is 1 (uniform, uninformative).}
 
-\item{stanfunc}{\code{"sampling"}|\code{"optimizing"}|\code{"vb"} Choice of rstan 
-inference strategy. \code{"sampling"} is the full Bayesian MCMC approach, and is the 
-default. \code{"optimizing"} returns the Maximum a Posteriori (MAP) point estimates 
-via numerical optimization. \code{"vb"} uses Variational Bayes to approximate the 
-full posterior.}
+\item{stanfunc}{Character; choice of rstan inference strategy. Admits values \code{"sampling"}, \code{"optimizing"} and \code{"vb"}. 
+\code{"sampling"} is the full Bayesian MCMC approach, and is the default. \code{"optimizing"} returns the Maximum a 
+Posteriori (MAP) point estimates via numerical optimization. \code{"vb"} uses Variational Bayes to approximate the full posterior.}
 
 \item{...}{Any other parameters to pass to the sampling function (by default, \code{\link{rstan::sampling}}).
 (The number of chains is set to 1 and cannot be changed, to prevent 'label switching' problems.)}
@@ -43,7 +41,7 @@ object using \code{\link{retrieve_parameters}}.
 }
 \description{
 \code{fit_extract_signatures} fits signatures to estimate exposures in a set of mutation counts
-and extracts additional signatures present in the samples.
+and simultaneously extracts additional signatures present in the samples.
 }
 \examples{
 # Fetch COSMIC signatures 
@@ -58,7 +56,7 @@ mutations <- rbind(t(rmultinom(1, 20000, probs[1, ])),
 
 # Assuming that we do not know signature 7 a priori, but we know the others
 # to be present, extract 1 signature while fitting signatures 1, 4 and 5.
-# (400 warmup iterations + 400 sampling iterations -- use more in practice)
+# (400 warmup iterations + 400 sampling iterations - use more in practice)
 mcmc_samples <- fit_extract_signatures(mutations, signatures = signatures[c(1, 4, 5), ],
                                        num_extra_sigs = 1, method = "nmf", iter = 800)
 
