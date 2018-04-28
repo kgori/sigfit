@@ -1,0 +1,11 @@
+CHANGE LOG
+
+Major changes introduced in v1.1
+
+ * Objects returned by `sigfit::fit_signatures`, `sigfit::extract_signatures` and
+   `sigfit::fit_extract_signatures` are now lists containing both input data and output results.
+ * Argument `signature_names` has been removed in function `sigfit::retrieve_pars`.
+ * Arguments `counts` and `signature_names` have been removed in function `sigfit::plot_exposures`.
+ * Arguments `counts` and `signatures` have been removed in function `sigfit::plot_reconstruction`.
+ * Arguments `counts` and `signatures` have been removed in function `sigfit::plot_all`.
+ * Argument `feature` has been renamed to `par` in `sigfit::retrieve_pars`.
