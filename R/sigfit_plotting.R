@@ -450,10 +450,10 @@ plot_reconstruction <- function(mcmc_samples = NULL, counts = NULL, signatures =
     else {
         for (i in 1:NSAMP) {
             if (is.null(mcmc_samples)) {
-                max_y <- max(c(counts[i, ], colSums(reconstructions[i, , ]))) * 1.1
+                max_y <- max(c(counts[i, ], colSums(reconstructions[i, , ]))) * 1.15
             }
             else {
-                max_y <- max(c(counts[i, ], hpds[i, , ])) * 1.1
+                max_y <- max(c(counts[i, ], hpds[i, , ])) * 1.15
             }
             
             # Plot original catalogue
