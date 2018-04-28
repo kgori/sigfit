@@ -151,7 +151,7 @@ unique(variants_21breast[, 1])
 The first step is to transform these variants into mutational catalogues, which is done by the ```build_catalogues``` function. (You can skip this step if you already have mutational catalogues for each of your samples.)
 
 ```{r build_catalogues}
-counts_21breast <- build_catalogues(variants_21breast)
+counts_21breast <- sigfit::build_catalogues(variants_21breast)
 dim(counts_21breast)
 counts_21breast[1:5, 1:8]
 ```

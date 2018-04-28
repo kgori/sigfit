@@ -57,7 +57,7 @@ head(variants_21breast)
 unique(variants_21breast[, 1])
 
 ## ----build_catalogues----------------------------------------------------
-counts_21breast <- build_catalogues(variants_21breast)
+counts_21breast <- sigfit::build_catalogues(variants_21breast)
 dim(counts_21breast)
 counts_21breast[1:5, 1:8]
 
