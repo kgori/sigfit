@@ -10,9 +10,9 @@
 #' \code{\link{retrieve_pars}}.
 #' @param exp_prior Numeric vector with one element per signature, to be used as the Dirichlet prior for 
 #' the signature exposures in the sampling chain. Default prior is uniform (uninformative).
-#' @param method Character; model to sample from. Admits values \code{"nmf"} (default) or \code{"emu"}.
+#' @param model Character; model to sample from. Admits values \code{"nmf"} (default) or \code{"emu"}.
 #' @param opportunities Numeric matrix of optional mutational opportunities for the "EMu" model 
-#' (\code{method = "emu"}) method. Must be a matrix with same dimension as \code{counts}. 
+#' (\code{model = "emu"}). Must be a matrix with same dimension as \code{counts}. 
 #' Alternatively, it also admits character values \code{"human-genome"} or \code{"human-exome"}, 
 #' in which case the reference human genome/exome opportunities will be used for every sample.
 #' @param ... Arguments to pass to \code{rstan::sampling}.
@@ -40,7 +40,7 @@
 #' @useDynLib sigfit, .registration = TRUE
 #' @importFrom "rstan" sampling
 #' @export
-fit_signatures <- function(counts, signatures, exp_prior = NULL, method = "nmf",
+fit_signatures <- function(counts, signatures, exp_prior = NULL, model = "nmf",
                            opportunities = NULL, ...) {
     
     # Force counts and signatures to matrix
@@ -66,9 +66,9 @@ fit_signatures <- function(counts, signatures, exp_prior = NULL, method = "nmf",
     stopifnot(ncol(signatures) == NCAT)
     stopifnot(length(exp_prior) == NSIG)
     
-    if (method == "emu") {
+    if (model == "emu") {
         if (is.null(opportunities)) {
-            warning("Extracting with EMu model, but no opportunities provided.")
+            warning("Fitting with EMu model, but no opportunities provided.")
         }
         
         if (is.null(opportunities) | is.character(opportunities)) {
@@ -103,6 +103,7 @@ fit_signatures <- function(counts, signatures, exp_prior = NULL, method = "nmf",
         model <- stanmodels$sigfit_fit_nmf
     }
     
+    cat("Fitting", NSIG, "signatures\n")
     out <- sampling(model, data = dat, pars = "multiplier", include = FALSE, ...)
     
     list("data" = dat,
@@ -114,9 +115,9 @@ fit_signatures <- function(counts, signatures, exp_prior = NULL, method = "nmf",
 #' @param counts Integer matrix of observed mutation counts, with one row per sample and 
 #' one column per mutation type.
 #' @param nsignatures Integer or integer vector; number(s) of signatures to extract.
-#' @param method Character; model to sample from. Admits values \code{"nmf"} (default) or \code{"emu"}.
+#' @param model Character; model to sample from. Admits values \code{"nmf"} (default) or \code{"emu"}.
 #' @param opportunities Numeric matrix of optional mutational opportunities for the "EMu" model 
-#' (\code{method = "emu"}) method. Must be a matrix with same dimension as \code{counts}. 
+#' (\code{model = "emu"}). Must be a matrix with same dimension as \code{counts}. 
 #' Alternatively, it also admits character values \code{"human-genome"} or \code{"human-exome"}, 
 #' in which case the reference human genome/exome opportunities will be used for every sample.
 #' @param sig_prior Numeric matrix with one row per signature and one column per category, to be used as the Dirichlet 
@@ -127,10 +128,10 @@ fit_signatures <- function(counts, signatures, exp_prior = NULL, method = "nmf",
 #' @return List of initial values to be passed to \code{\link{extract_signatures}} via the
 #' \code{init} argument.
 #' @export
-extract_signatures_initialiser <- function(counts, nsignatures, method = "emu", opportunities = NULL, 
+extract_signatures_initialiser <- function(counts, nsignatures, model = "emu", opportunities = NULL, 
                                            sig_prior = NULL, chains = 1, ...) {
     
-    opt <- extract_signatures(counts, nsignatures, method, opportunities, 
+    opt <- extract_signatures(counts, nsignatures, model, opportunities, 
                               sig_prior, "optimizing", FALSE, ...)
     
     if (is.null(opt)) {
@@ -156,9 +157,9 @@ extract_signatures_initialiser <- function(counts, nsignatures, method = "emu", 
 #' @param counts Integer matrix of observed mutation counts, with one row per sample and 
 #' one column per mutation type.
 #' @param nsignatures Integer or integer vector; number(s) of signatures to extract.
-#' @param method Character; model to sample from. Admits values \code{"nmf"} (default) or \code{"emu"}.
+#' @param model Character; model to sample from. Admits values \code{"nmf"} (default) or \code{"emu"}.
 #' @param opportunities Numeric matrix of optional mutational opportunities for the "EMu" model 
-#' (\code{method = "emu"}) method. Must be a matrix with same dimension as \code{counts}. 
+#' (\code{model = "emu"}). Must be a matrix with same dimension as \code{counts}. 
 #' Alternatively, it also admits character values \code{"human-genome"} or \code{"human-exome"}, 
 #' in which case the reference human genome/exome opportunities will be used for every sample.
 #' @param sig_prior Numeric matrix with one row per signature and one column per category, to be used as the Dirichlet 
@@ -187,11 +188,11 @@ extract_signatures_initialiser <- function(counts, nsignatures, method = "emu", 
 #' # Extract 2 to 6 signatures using the NMF (multinomial) model
 #' # (400 warmup iterations + 400 sampling iterations - use more in practice)
 #' samples_nmf <- extract_signatures(counts_21breast, nsignatures = 2:6, 
-#'                                   method = "nmf", iter = 800)
+#'                                   model = "nmf", iter = 800)
 #' 
 #' # Extract 4 signatures using the EMu (Poisson) model
 #' # (400 warmup iterations + 800 sampling iterations - use more in practice)
-#' samples_emu <- extract_signatures(counts_21breast, nsignatures = 4, method = "emu", 
+#' samples_emu <- extract_signatures(counts_21breast, nsignatures = 4, model = "emu", 
 #'                                   opportunities = "human-genome",
 #'                                   iter = 1200, warmup = 400)
 #' @useDynLib sigfit, .registration = TRUE
@@ -200,7 +201,7 @@ extract_signatures_initialiser <- function(counts, nsignatures, method = "emu", 
 #' @importFrom "rstan" vb
 #' @importFrom "rstan" extract
 #' @export
-extract_signatures <- function(counts, nsignatures, method = "nmf", opportunities = NULL, 
+extract_signatures <- function(counts, nsignatures, model = "nmf", opportunities = NULL, 
                                sig_prior = NULL, exp_prior = 1, stanfunc = "sampling", ...) {
     
     if (!is.null(sig_prior) & length(nsignatures) > 1) {
@@ -217,7 +218,7 @@ extract_signatures <- function(counts, nsignatures, method = "nmf", opportunitie
     strand <- NCAT == 192  # strand bias indicator
     
     # EMu model
-    if (method == "emu") {
+    if (model == "emu") {
         if (is.null(opportunities)) {
             warning("Extracting with EMu model, but no opportunities provided.")
         }
@@ -244,7 +245,7 @@ extract_signatures <- function(counts, nsignatures, method = "nmf", opportunitie
     }
     
     # NMF model
-    else if (method == "nmf") {
+    else if (model == "nmf") {
         if (!is.null(opportunities)) {
             warning("Extracting with NMF model: 'opportunities' will not be used.")
         }
@@ -261,7 +262,7 @@ extract_signatures <- function(counts, nsignatures, method = "nmf", opportunitie
         )
     }
     else {
-        stop("'method' must be either \"emu\" or \"nmf\".")
+        stop("'model' must be either \"emu\" or \"nmf\".")
     }
     
     # Extract signatures for each nsignatures value
@@ -369,7 +370,7 @@ extract_signatures <- function(counts, nsignatures, method = "nmf", opportunitie
 #' # to be present, extract 1 signature while fitting signatures 1, 4 and 5.
 #' # (400 warmup iterations + 400 sampling iterations - use more in practice)
 #' mcmc_samples <- fit_extract_signatures(mutations, signatures = signatures[c(1, 4, 5), ],
-#'                                        num_extra_sigs = 1, method = "nmf", iter = 800)
+#'                                        num_extra_sigs = 1, model = "nmf", iter = 800)
 #' 
 #' # Plot original and extracted signature 7
 #' extr_sigs <- retrieve_pars(mcmc_samples, "signatures")
@@ -381,10 +382,10 @@ extract_signatures <- function(counts, nsignatures, method = "nmf", opportunitie
 #' @importFrom "rstan" vb
 #' @export
 fit_extract_signatures <- function(counts, signatures, num_extra_sigs, 
-                                   method = "nmf", opportunities = NULL, sig_prior = NULL, exp_prior = 1,
+                                   model = "nmf", opportunities = NULL, sig_prior = NULL, exp_prior = 1,
                                    stanfunc = "sampling", ...) {
     # Check that num_extra_sigs is scalar
-    if (length(num_extra_sigs) > 1) {
+    if (length(num_extra_sigs) != 1) {
         stop("'num_extra_sigs' must be an integer scalar.")
     }
     
@@ -415,7 +416,7 @@ fit_extract_signatures <- function(counts, signatures, num_extra_sigs,
     stopifnot(ncol(sig_prior) == NCAT)
     
     # EMu model
-    if (method == "emu") {
+    if (model == "emu") {
         # Build opportunities matrix
         if (is.null(opportunities) | is.character(opportunities)) {
             opportunities <- build_opps_matrix(NSAMP, opportunities, strand)
@@ -439,7 +440,7 @@ fit_extract_signatures <- function(counts, signatures, num_extra_sigs,
     }
     
     # NMF model
-    else if (method == "nmf") {
+    else if (model == "nmf") {
         model <- stanmodels$sigfit_fitex_nmf
         dat <- list(
             C = NCAT,
@@ -453,6 +454,7 @@ fit_extract_signatures <- function(counts, signatures, num_extra_sigs,
         )
     }
     
+    cat("Fit-Ext: Fitting", NSIG, "signatures, extracting", num_extra_sigs, "signatures\n")
     if (stanfunc == "sampling") {
         cat("Stan sampling:")
         out <- sampling(model, data = dat, chains = 1,
