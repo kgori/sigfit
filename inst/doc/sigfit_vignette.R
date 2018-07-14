@@ -38,7 +38,7 @@ exposures$mean
 par(mar=c(7,4,3,0))
 sigfit::plot_exposures(mcmc_samples = mcmc_samples_fit)
 
-## ----reconstruct, fig.width=25, fig.height=17, out.width='100%', warning=FALSE, results="hide", echo=-1----
+## ----reconstruct, fig.width=20, fig.height=17, out.width='100%', warning=FALSE, results="hide", echo=-1----
 par(mar=c(6.5,6,5.5,2))
 sigfit::plot_reconstruction(mcmc_samples = mcmc_samples_fit,
                             pdf_path = NULL)
@@ -61,7 +61,7 @@ counts_21breast <- sigfit::build_catalogues(variants_21breast)
 dim(counts_21breast)
 counts_21breast[1:5, 1:8]
 
-## ----plot_spectra, fig.width=22, fig.height=25, out.width='100%', fig.align="center", echo=-1----
+## ----plot_spectra, fig.width=22, fig.height=23, out.width='100%', fig.align="center", echo=-1----
 par(mar = c(5,6,7,2))
 par(mfrow = c(7, 3))
 sigfit::plot_spectrum(counts_21breast)
@@ -75,6 +75,7 @@ sigfit::plot_spectrum(counts_21breast)
 ## ----plot_gof_silent, echo=FALSE, fig.width=9, fig.height=6, out.width="100%"----
 ## Plot precalculated GOF in order to avoid running the model
 data("sigfit_vignette_data", package = "sigfit")
+genome_signatures <- extr_signatures
 plot(nS, gof, type = "o", lty = 3, pch = 16, col = "dodgerblue4",
      main = paste0("Goodness of fit (", stat, ")\nmodel: NMF"),
      xlab = "Number of signatures", 
@@ -94,4 +95,27 @@ rownames(extr_signatures$mean)
 par(mar = c(6,7,6,1))
 par(mfrow = c(2, 2))
 sigfit::plot_spectrum(extr_signatures)
+
+## ----convert_sigs, eval=F------------------------------------------------
+#  # Following from the signature extraction example above
+#  genome_signatures <- sigfit::retrieve_pars(mcmc_samples_extr[[4]],
+#                                             par = "signatures")
+#  normalised_signatures <- sigfit::convert_signatures(genome_signatures,
+#                                                      ref_opportunities = "human-genome",
+#                                                      model_to = "emu")
+#  exome_signatures <- sigfit::convert_signatures(normalised_signatures,
+#                                                 ref_opportunities = "human-exome",
+#                                                 model_to = "nmf")
+#  
+#  par(mfrow = c(2, 1))
+#  sigfit::plot_spectrum(genome_signatures$mean[4,], name = "Signature D, Genome-relative probabilities")
+#  sigfit::plot_spectrum(exome_signatures[4,], name = "Signature D, Exome-relative probabilities")
+
+## ----convert_sigs_silent, echo=F, fig.width=20, fig.height=12, out.width="100%"----
+genome_signatures <- extr_signatures
+normalised_signatures <- sigfit::convert_signatures(genome_signatures, ref_opportunities="human-genome", model_to="emu")
+exome_signatures <- sigfit::convert_signatures(normalised_signatures, ref_opportunities="human-exome", model_to="nmf")
+par(mfrow = c(2, 1), mar = c(6,4,5,1))
+sigfit::plot_spectrum(genome_signatures$mean[4,], name="Signature D, Genome-relative probabilities")
+sigfit::plot_spectrum(exome_signatures[4,], name="Signature D, Exome-relative probabilities")
 

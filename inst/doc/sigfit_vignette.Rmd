@@ -16,11 +16,11 @@ par(mar = c(6, 4, 6, 4))
 
 ## Introduction
 
-```sigfit``` is used to estimate signatures of mutational processes and their degree of activity on a collection of cancer (or normal) samples. Starting from a set of single-nucleotide variants (SNVs), it allows both estimation of the exposure of samples to predefined mutational signatures (including whether the signatures are present at all), and identification signatures _de novo_ from the mutation counts. These two procedures are often called, respectively, signature fitting and signature extraction. Furthermore, the signature fitting and extraction methods in ```sigfit``` can be seamlessly applied to mutational profiles beyond SNV data, including insertion/deletion (indel) or rearrangement count data. The package also provides a range of functions to generate publication-quality graphics of the corresponding mutational catalogues, signatures and exposures.
+sigfit is used to estimate signatures of mutational processes and their degree of activity on a collection of cancer (or normal) samples. Starting from a set of single-nucleotide variants (SNVs), it allows both estimation of the exposure of samples to predefined mutational signatures (including whether the signatures are present at all), and identification signatures _de novo_ from the mutation counts. These two procedures are often called, respectively, signature fitting and signature extraction. In addition, sigfit includes 'Fit-Ext' models that allow combining signature fitting and extraction in a single inference process. Furthermore, the signature analysis methods in sigfit can be seamlessly applied to mutational profiles beyond SNV data, including insertion/deletion (indel) or rearrangement count data. The package also provides a range of functions to generate publication-quality graphics of the corresponding mutational catalogues, signatures and exposures.
 
 ## Installation
 
-```sigfit``` is an R package. As it is in early development it is not yet on CRAN, but can be installed from GitHub using the ```devtools``` library
+sigfit is an R package. As it is in early development it is not yet on CRAN, but can be installed from GitHub using the devtools package.
 
 ```{r devtools_instructions, eval=FALSE}
 devtools::install_github("kgori/sigfit", args = "--preclean", build_vignettes = TRUE)
@@ -30,7 +30,7 @@ devtools::install_github("kgori/sigfit", args = "--preclean", build_vignettes = 
 
 ### Example 1: fitting signatures to a single simulated sample
 
-This example will use the mutational signatures from [COSMIC](http://cancer.sanger.ac.uk/cosmic/signatures) to generate simulated mutation counts, and then use ```sigfit``` to fit the signatures back to the simulated data.
+This example will use the mutational signatures from [COSMIC](http://cancer.sanger.ac.uk/cosmic/signatures) to generate simulated mutation counts, and then use sigfit to fit the signatures back to the simulated data.
 
 First of all we need some mutational signatures to fit to our data. The line below loads the mutational signatures published in COSMIC.
 
@@ -55,7 +55,7 @@ sigfit::plot_spectrum(mutations)
 
 #### Fitting signatures
 
-Next, we can estimate the exposure of the data to each signature (pretending we ignore that it was generated from signatures 1, 3, 7 and 11). ```sigfit``` uses [Stan](http://mc-stan.org/) to run a Bayesian model that produces Markov chain Monte Carlo (MCMC) samples. Arguments to the ```rstan::sampling``` function, such as ```iter```, ```warmup```, etc., can be passed through. For further sampling options, type ```?rstan::sampling``` to read the documentation.
+Next, we can estimate the exposure of the data to each signature (pretending we ignore that it was generated from signatures 1, 3, 7 and 11). sigfit uses [Stan](http://mc-stan.org/) to run a Bayesian model that produces Markov chain Monte Carlo (MCMC) samples. Arguments to the ```rstan::sampling``` function, such as ```iter```, ```warmup```, etc., can be passed through. For further sampling options, type ```?rstan::sampling``` to read the documentation.
 
 __In general, one should run as many MCMC iterations (```iter``` argument) as one's computer and patience allow, runtime being the major constraint.__
 
@@ -86,11 +86,11 @@ names(exposures)
 exposures$mean
 ```
 
-The entire posterior distribution of the signature exposures and other model parameters in the ```mcmc_samples_fit``` object can be further explored by means of the functions provided by the ```rstan``` package. In addition, [ShinyStan](http://mc-stan.org/users/interfaces/shinystan) can be easily used in R for visual exploration of the MCMC samples.
+The entire posterior distribution of the signature exposures and other model parameters in the ```mcmc_samples_fit``` object can be further explored by means of the functions provided by the [rstan](http://mc-stan.org/rstan) package. In addition, [ShinyStan](http://mc-stan.org/users/interfaces/shinystan) can be easily used in R for visual exploration of the MCMC samples.
 
 #### Visualisation
 
-```sigfit``` provides several easy-to-use plotting functions. As seen in the previous section, the ```plot_spectrum``` function allows visualisation of both mutational catalogues and mutational signatures (assuming that these are defined over the same 96 trinucleotide mutation types as in [COSMIC](http://cancer.sanger.ac.uk/cosmic/signatures)).
+sigfit provides several easy-to-use plotting functions. As seen in the previous section, the ```plot_spectrum``` function allows visualisation of both mutational catalogues and mutational signatures (assuming that these are defined over the same 96 trinucleotide mutation types as in [COSMIC](http://cancer.sanger.ac.uk/cosmic/signatures)).
 
 The ```plot_exposures``` function produces a barplot of the estimated signature exposures in each sample. It needs to be supplied with either the object resulting from MCMC sampling (```mcmc_samples``` argument) or the exposures themselves (```exposures``` argument), the latter being either a matrix, or a list like the one returned by the ```retrieve_pars``` function (above). In the present case, since we have the stanfit object generated by ```fit_signatures```, we will make use of the ```mcmc_samples``` argument.
 
@@ -99,17 +99,17 @@ par(mar=c(7,4,3,0))
 sigfit::plot_exposures(mcmc_samples = mcmc_samples_fit)
 ```
 
-The bars in this plot are coloured blue if the estimated exposure value is 'sufficiently non-zero'. It is difficult for the model to make hard assignments of which signatures are present or absent due to the non-negative constraint on the estimate, which means that the range of values in the sample will not normally include zero. In practice, 'sufficiently non-zero' means that the lower end of the Bayesian HPD credible interval is above a threshold value close to zero (by default 0.01, and adjustable via the ```thresh``` argument). In this example, ```sigfit``` has identified the 4 signatures used to construct the sample.
+The bars in this plot are coloured blue if the estimated exposure value is 'sufficiently non-zero'. It is difficult for the model to make hard assignments of which signatures are present or absent due to the non-negative constraint on the estimate, which means that the range of values in the sample will not normally include zero. In practice, 'sufficiently non-zero' means that the lower end of the Bayesian HPD credible interval is above a threshold value close to zero (by default 0.01, and adjustable via the ```thresh``` argument). In this example, sigfit has identified the 4 signatures used to construct the sample.
 
 Next, we would recommend running ```fit_signatures``` again, this time to fit only those signatures (i.e. those rows of the ```cosmic_signatures``` matrix) which have been highlighted as 'sufficiently non-zero' in the plot above, in order to obtain more accurate estimates. We will skip this step in the present example.
 
 We can also examine how effectively the estimated signatures and/or exposures can reconstruct the original count data, using the ```plot_reconstruction``` function. 
 
-__Note that the plotting functions in ```sigfit``` are designed with a preference for plotting directly to a PDF file__.
+__Note that the plotting functions in sigfit are designed with a preference for plotting directly to a PDF file__.
 
 The path to our desired output PDF can be provided using the ```pdf_path``` argument, and each function will automatically select the most appropriate size and graphical parameters for the plot. (We will not make use of this option in the present example, however.) The ```sig_color_palette``` argument can be used to specify custom colours for the signatures in the reconstructed spectrum.
 
-```{r reconstruct, fig.width=25, fig.height=17, out.width='100%', warning=FALSE, results="hide", echo=-1}
+```{r reconstruct, fig.width=20, fig.height=17, out.width='100%', warning=FALSE, results="hide", echo=-1}
 par(mar=c(6.5,6,5.5,2))
 sigfit::plot_reconstruction(mcmc_samples = mcmc_samples_fit,
                             pdf_path = NULL)
@@ -136,11 +136,11 @@ head(variants_21breast)
 
 This table illustrates the structure of the variant data that can be used as input for the package (unless you already have mutational catalogues for your samples). It is a matrix with one row per variant, and four (or five) columns:
 
-* __Sample ID__ (character, e.g. "Sample 1").
-* __Reference base__ (character: "A", "C", "G", or "T").
-* __Mutated base__ (character: "A", "C", "G", or "T").
-* __Trinucleotide context__ of the variant (character; reference sequence between the positions immediately before (-1) and after (+1) the variant, e.g. "TCA"). This can be obtained from the reference genome that was used to call the variants, using an R package like ```BSgenome```; however, sequence context information is sometimes provided by variant callers within the INFO field of the VCF file.
-* __Optionally__: if there is information available about the transcriptional strand in which each mutation occurred, this can be incorporated as a fifth column taking character values "U" (for untranscribed strand) or "T" (for transcribed strand). If this column is present in the table, all the estimation and plotting functions will automatically incorporate transcriptional strand information.
+* __Sample ID__ (character, e.g. ```"Sample 1"```).
+* __Reference base__ (character: ```"A"```, ```"C"```, ```"G"```, or ```"T"```).
+* __Mutated base__ (character: ```"A"```, ```"C"```, ```"G"```, or ```"T"```).
+* __Trinucleotide context__ of the variant (character; reference sequence between the positions immediately before (-1) and after (+1) the variant, e.g. ```"TCA"```). This can be obtained from the reference genome that was used to call the variants, using an R package like [BSgenome](https://bioconductor.org/packages/release/bioc/html/BSgenome.html); however, sequence context information is sometimes provided by variant callers within the 'INFO' field of the VCF file.
+* __Optionally__: if there is information available about the transcriptional strand in which each mutation occurred, this can be incorporated as a fifth column taking character values ```"U"``` (for untranscribed strand) or ```"T"``` (for transcribed strand). If this column is present in the table, all the estimation and plotting functions will automatically incorporate transcriptional strand information.
 
 Importantly, since a variant can only have a single sample ID, variants which are found in more than one sample need to be included multiple times in the table, using different sample IDs. The order in which the samples are found in this table is the order in which they will be displayed thereafter. In this case, the samples are already sorted alphabetically:
  
@@ -162,13 +162,13 @@ The mutational catalogues are stored as a matrix of mutation counts, where each 
 
 We can plot the spectrum of all the mutational catalogues using the ```plot_spectrum``` function, as in the previous example. For tables containing more than one catalogue, this function will produce one plot per catalogue, which makes using an output PDF file (```pdf_path``` argument) more convenient. In this example, however, we will plot all the catalogues together.
 
-```{r plot_spectra, fig.width=22, fig.height=25, out.width='100%', fig.align="center", echo=-1}
+```{r plot_spectra, fig.width=22, fig.height=23, out.width='100%', fig.align="center", echo=-1}
 par(mar = c(5,6,7,2))
 par(mfrow = c(7, 3))
 sigfit::plot_spectrum(counts_21breast)
 ```
 
-To extract signatures from this set of catalogues, we use the ```extract_signatures``` function, specifying the number of signatures to extract via the ```nsignatures``` argument; this can be a single integer or a range, e.g. ```3:6```. Our recommended approach is first running the function for a small number of iterations and a reasonably wide range of numbers of signatures (e.g. ```nsignatures = 2:8```). When ```nsignatures``` is a range of values, ```sigfit``` will automatically determine the most plausible number of signatures present in the data (which is done by assessing goodness of fit through the ```plot_gof``` function). Also, for ranges of ```nsignatures``` the result will be a list, where element ```[[N]]``` in the list corresponds to the extraction results for ```nsignatures = N```.
+To extract signatures from this set of catalogues, we use the ```extract_signatures``` function, specifying the number of signatures to extract via the ```nsignatures``` argument; this can be a single integer or a range, e.g. ```3:6```. Our recommended approach is first running the function for a small number of iterations and a reasonably wide range of numbers of signatures (e.g. ```nsignatures = 2:8```). When ```nsignatures``` is a range of values, sigfit will automatically determine the most plausible number of signatures present in the data (which is done by assessing goodness of fit through the ```plot_gof``` function). Also, for ranges of ```nsignatures``` the result will be a list, where element ```[[N]]``` in the list corresponds to the extraction results for ```nsignatures = N```.
 
 ```{r extraction, eval=FALSE}
 mcmc_samples_extr <- sigfit::extract_signatures(counts = counts_21breast,
@@ -180,6 +180,7 @@ mcmc_samples_extr <- sigfit::extract_signatures(counts = counts_21breast,
 ```{r plot_gof_silent, echo=FALSE, fig.width=9, fig.height=6, out.width="100%"}
 ## Plot precalculated GOF in order to avoid running the model
 data("sigfit_vignette_data", package = "sigfit")
+genome_signatures <- extr_signatures
 plot(nS, gof, type = "o", lty = 3, pch = 16, col = "dodgerblue4",
      main = paste0("Goodness of fit (", stat, ")\nmodel: NMF"),
      xlab = "Number of signatures", 
@@ -213,20 +214,51 @@ par(mfrow = c(2, 2))
 sigfit::plot_spectrum(extr_signatures)
 ```
 
-These are a combination of COSMIC signatures 1, 2, 3, 5 and 13. Note that the signatures published in [COSMIC](http://cancer.sanger.ac.uk/cosmic/signatures) were obtained using a collection of hundreds of catalogues across many cancer types, which offered much higher statistical power than the 21 breast cancer catalogues employed here. Furthermore, the signatures obtained by ```sigfit``` show high similarity to those originally reported by [Nik-Zainal _et al._ (2012)](http://dx.doi.org/10.1016/j.cell.2012.04.024) (Fig. 2A). Note that signatures C and D in Nik-Zainal _et al._, which are very similar, have been identified by ```sigfit``` as a single signature (Signature B in the plot above).
+These are a combination of COSMIC signatures 1, 2, 3, 5 and 13. Note that the signatures published in [COSMIC](http://cancer.sanger.ac.uk/cosmic/signatures) were obtained using a collection of hundreds of catalogues across many cancer types, which offered much higher statistical power than the 21 breast cancer catalogues employed here. Furthermore, the signatures obtained by sigfit show high similarity to those originally reported by [Nik-Zainal _et al._ (2012)](http://dx.doi.org/10.1016/j.cell.2012.04.024) (Fig. 2A). Note that signatures C and D in Nik-Zainal _et al._, which are very similar, have been identified by sigfit as a single signature (Signature B in the plot above).
 
 ### Using the EMu (Poisson) signature model
 
-By default, both ```fit_signatures``` and ```extract_signatures``` make use of a 'multinomial-NMF' model of signatures, which is equivalent to the non-negative matrix factorisation approach adopted by [Alexandrov _et al._ (2013)](https://www.nature.com/articles/nature12477). Alternatively, users who are interested in the Poisson model presented by [Fischer _et al._ (2013)](https://doi.org/10.1186/gb-2013-14-4-r39) can use the ```method = "emu"``` option to select this model, which is able to account for variation in mutational opportunity (the opportunity for each mutation type to occur in each sample's genome; this is specified via the ```opportunities``` argument). For further details, type ```?extract_signatures``` to read the documentation.
+By default, both ```fit_signatures``` and ```extract_signatures``` make use of an NMF-inspired Dirichlet–Multinomial model of signatures, which is equivalent to the non-negative matrix factorisation (NMF) approach adopted by [Alexandrov _et al._ (2013)](https://www.nature.com/articles/nature12477). Alternatively, users who are interested in the Poisson model presented by [Fischer _et al._ (2013)](https://doi.org/10.1186/gb-2013-14-4-r39) can use the ```model = "emu"``` option to select this model, which is able to account for variation in mutational opportunity (the opportunity for each mutation type to occur in each sample's genome; this is specified via the ```opportunities``` argument). For further details, type ```?extract_signatures``` to read the documentation.
 
 Although signature representations differ between the NMF model and the EMu model (insofar as signatures obtained through the latter are not relative to the mutational opportunities of a specific genome/exome), signatures can be converted between both model representations by means of the ```convert_signatures``` function. For further details, type ```?convert_signatures``` to read the documentation.
 
-### Using 'fit-extract' models to discover rare signatures
+### Converting between genome- and exome-relative representations of signatures
 
-One novelty in ```sigfit``` is the use of 'fit-extract' models, which are able to extract novel signatures while fitting a set of predefined signatures which are already known to be present in the samples. Such models are useful for the discovery of rare or weak signatures for which there is some prior intuition, but insufficient support as to deconvolute them using traditional signature extraction.
+In some analyses, signatures that have been inferred from whole-genome mutation data need to be fitted to mutation data from whole-exome sequencing samples. For instance, if the cohort of samples includes both whole genomes and exomes, it is normally advisable to extract signatures from the whole-genome samples (provided that there are enough of them) and re-fit the resulting signatures to the whole-exome samples. (An alternative approach would be using the EMu/Poisson model mentioned above, with a matrix of sample-specific mutational opportunities that reflects the origin of each catalogue.)
 
-The 'fit-extract' models can be accessed via the ```fit_extract_signatures``` function. This is used similarly to ```extract_signatures```, with the exception that a matrix of known signatures to be fitted needs to be provided via the ```signatures``` argument (as in ```fit_signatures```), and that the number of additional signatures to extract is provided via the ```num_extra_sigs``` argument. Unlike the ```nsignatures``` argument in ```extract_signatures```, ```num_extra_sigs``` currently admits only scalar values and not ranges. For further details, type ```?fit_extract_signatures``` to read the documentation.
+To convert a matrix of genome-derived mutational signatures into their exome-relative representations, the ```convert_signatures``` function needs to be applied twice: once to normalise the signatures by the whole-genome mutational opportunities (using arguments ```ref_opportunities = "human-genome", model_to = "emu"```), and once again to impose whole-exome opportunities (using ```ref_opportunities = "human-exome", model_to = "nmf"```). An example is shown below.
+
+```{r convert_sigs, eval=F}
+# Following from the signature extraction example above
+genome_signatures <- sigfit::retrieve_pars(mcmc_samples_extr[[4]],
+                                           par = "signatures")
+normalised_signatures <- sigfit::convert_signatures(genome_signatures, 
+                                                    ref_opportunities = "human-genome",
+                                                    model_to = "emu")
+exome_signatures <- sigfit::convert_signatures(normalised_signatures, 
+                                               ref_opportunities = "human-exome",
+                                               model_to = "nmf")
+
+par(mfrow = c(2, 1))
+sigfit::plot_spectrum(genome_signatures$mean[4,], name = "Signature D, Genome-relative probabilities")
+sigfit::plot_spectrum(exome_signatures[4,], name = "Signature D, Exome-relative probabilities")
+```
+
+```{r convert_sigs_silent, echo=F, fig.width=20, fig.height=12, out.width="100%"}
+genome_signatures <- extr_signatures
+normalised_signatures <- sigfit::convert_signatures(genome_signatures, ref_opportunities="human-genome", model_to="emu")
+exome_signatures <- sigfit::convert_signatures(normalised_signatures, ref_opportunities="human-exome", model_to="nmf")
+par(mfrow = c(2, 1), mar = c(6,4,5,1))
+sigfit::plot_spectrum(genome_signatures$mean[4,], name="Signature D, Genome-relative probabilities")
+sigfit::plot_spectrum(exome_signatures[4,], name="Signature D, Exome-relative probabilities")
+```
+
+### Using Fit-Ext models to discover rare or novel signatures
+
+One novelty in sigfit is the introduction of Fit-Ext models, which are able to extract mutational signatures while fitting a set of predefined signatures which are already known to be present in the samples. Such models are useful for the discovery of rare signatures for which there is some qualitative evidence, but insufficient support as to deconvolute them using conventional extraction methods; or in cases where only signature fitting is possible, yet the data feature a mutational pattern which cannot be captured by the available signatures.
+
+The Fit-Ext models can be accessed via the ```fit_extract_signatures``` function. This is used similarly to ```extract_signatures```, with the exception that a matrix of known signatures to be fitted needs to be provided via the ```signatures``` argument (as in ```fit_signatures```), and that the number of additional signatures to extract is provided via the ```num_extra_sigs``` argument. Unlike the ```nsignatures``` argument in ```extract_signatures```, ```num_extra_sigs``` currently admits only scalar values. For further details, type ```?fit_extract_signatures``` to read the documentation.
 
 ___
 
-```sigfit``` is an R package developed by the [Transmissible Cancer Group](http://www.tcg.vet.cam.ac.uk/) in the University of Cambridge Department of Veterinary Medicine.
+sigfit is an R package developed by the [Transmissible Cancer Group](http://www.tcg.vet.cam.ac.uk/) in the University of Cambridge Department of Veterinary Medicine.
