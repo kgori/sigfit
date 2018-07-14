@@ -218,7 +218,7 @@ human_trinuc_freqs <- function(type = "human-genome", strand = FALSE) {
 #'  \item{Trinucleotide context of the variant (character; the reference sequence between the positions 
 #'  immediately before and after the variant; e.g. "TCA").}
 #'  \item{Optional: transcriptional strand of the variant (character: "T" for transcribed,
-#'  or "U" for untranscribed). If this column is included, a strandwise representation of
+#'  or "U" for untranscribed). If this column is included, a transcriptional-strand-wise representation of
 #'  catalogues will be used.}
 #' }
 #' @return An integer matrix of mutation counts, where each row corresponds to a sample and each column
@@ -240,7 +240,7 @@ build_catalogues <- function(variants) {
         if (!all(unique(variants[, 5] %in% c("T", "U")))) {
             stop("The fifth column of 'variants' (transcriptional strand) can only contain \"T\" or \"U\" values.\nType ?build_catalogues to see the documentation.")
         }
-        cat("'variants' has 5 columns: strand-bias catalogues will be generated\n")
+        cat("'variants' has 5 columns: transcriptional-strand-wise catalogues will be generated\n")
         strand <- TRUE
     }
     else {
@@ -291,6 +291,7 @@ build_catalogues <- function(variants) {
             sum(grepl(type, vars_collapsed, fixed = TRUE))
         })
     }))
+    catalogues
 }
 
 #' Fetch COSMIC mutational signatures
@@ -361,7 +362,7 @@ convert_signatures <- function(signatures, ref_opportunities, model_to) {
         stopifnot(ncol(signatures) %in% c(96, 192))
         strand <- ncol(signatures) == 192
         if (strand) {
-            cat("'signatures' contains 192 mutations types: using strand-bias opportunities.\n")
+            cat("'signatures' contains 192 mutations types: using transcriptional-strand-wise opportunities.\n")
         }
         ref_opportunities <- human_trinuc_freqs(type = ref_opportunities, strand = strand)
     }
@@ -403,7 +404,7 @@ convert_signatures <- function(signatures, ref_opportunities, model_to) {
 #' data("counts_21breast")
 #' 
 #' # Extract signatures using the EMu (Poisson) model
-#' samples <- extract_signatures(counts_21breast, nsignatures = 2, method = "emu",
+#' samples <- extract_signatures(counts_21breast, nsignatures = 2, model = "emu",
 #'                               opportunities = "human-genome", iter = 800)
 #' 
 #' # Retrieve signatures
@@ -463,7 +464,7 @@ retrieve_pars <- function(mcmc_samples, par, hpd_prob = 0.95) {
                 }
             }
             else if (par %in% c("exposures", "activities")) {
-                names1 <- NULL
+                names1 <- rownames(mcmc_samples$data$counts)
                 if (is.null(signature_names)) {
                     LETTERLABELS <- letterwrap(dim(p)[3])
                     names2 <- paste("Signature", LETTERLABELS[1:dim(p)[3]])
@@ -474,9 +475,9 @@ retrieve_pars <- function(mcmc_samples, par, hpd_prob = 0.95) {
             }
             # for signatures: Signatures x Categories matrix
             # for exposures: Samples x Signatures matrix
-            par_summ <- list(matrix(NA, nrow = dim(p)[2], ncol = dim(p)[3], dimnames = list(names1, names2)),
-                             matrix(NA, nrow = dim(p)[2], ncol = dim(p)[3], dimnames = list(names1, names2)),
-                             matrix(NA, nrow = dim(p)[2], ncol = dim(p)[3], dimnames = list(names1, names2)))
+            par_summ <- list(as.data.frame(matrix(NA, nrow = dim(p)[2], ncol = dim(p)[3], dimnames = list(names1, names2))),
+                             as.data.frame(matrix(NA, nrow = dim(p)[2], ncol = dim(p)[3], dimnames = list(names1, names2))),
+                             as.data.frame(matrix(NA, nrow = dim(p)[2], ncol = dim(p)[3], dimnames = list(names1, names2))))
             names(par_summ) <- c("mean", paste0(c("lower_", "upper_"), hpd_prob * 100))
             for (i in 1:nrow(par_summ[[1]])) {
                 hpd <- HPDinterval(as.mcmc(p[,i,]), prob = hpd_prob)
@@ -496,9 +497,9 @@ retrieve_pars <- function(mcmc_samples, par, hpd_prob = 0.95) {
             else {
                 names2 <- signature_names
             }
-            par_summ <- list(matrix(NA, nrow = 1, ncol = dim(p)[2], dimnames = list(names1, names2)),
-                              matrix(NA, nrow = 1, ncol = dim(p)[2], dimnames = list(names1, names2)),
-                              matrix(NA, nrow = 1, ncol = dim(p)[2], dimnames = list(names1, names2)))
+            par_summ <- list(as.data.frame(matrix(NA, nrow = 1, ncol = dim(p)[2], dimnames = list(names1, names2))),
+                             as.data.frame(matrix(NA, nrow = 1, ncol = dim(p)[2], dimnames = list(names1, names2))),
+                             as.data.frame(matrix(NA, nrow = 1, ncol = dim(p)[2], dimnames = list(names1, names2))))
             names(par_summ) <- c("mean", paste0(c("lower_", "upper_"), hpd_prob * 100))
             for (i in 1:nrow(par_summ[[1]])) {
                 hpd <- HPDinterval(as.mcmc(p), prob = hpd_prob)
