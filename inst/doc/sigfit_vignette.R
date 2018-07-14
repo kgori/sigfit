@@ -75,13 +75,18 @@ sigfit::plot_spectrum(counts_21breast)
 ## ----plot_gof_silent, echo=FALSE, fig.width=9, fig.height=6, out.width="100%"----
 ## Plot precalculated GOF in order to avoid running the model
 data("sigfit_vignette_data", package = "sigfit")
-genome_signatures <- extr_signatures
 plot(nS, gof, type = "o", lty = 3, pch = 16, col = "dodgerblue4",
      main = paste0("Goodness of fit (", stat, ")\nmodel: NMF"),
      xlab = "Number of signatures", 
      ylab = paste0("Goodness of fit (", stat, ")"))
 points(nS[best], gof[best], pch = 16, col = "orangered", cex = 1.1)
 cat("Estimated best number of signatures:", nS[best], "\n")
+
+## ----extr_names, eval=FALSE----------------------------------------------
+#  names(mcmc_samples_extr)
+
+## ----extr_names_silent, echo=FALSE---------------------------------------
+print(c("nsignatures=1", "nsignatures=2", "nsignatures=3", "nsignatures=4", "nsignatures=5", "nsignatures=6", "nsignatures=7", "best"))
 
 ## ----retrieve_sigs, eval=FALSE-------------------------------------------
 #  ## Note: mcmc_samples_extr[[N]] contains the extraction results for N signatures

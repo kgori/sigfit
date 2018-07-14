@@ -112,8 +112,8 @@ mutations &lt;-<span class="st"> </span><span class="kw">matrix</span>(<span cla
 ## 
 ## SAMPLING FOR MODEL 'sigfit_fit_nmf' NOW (CHAIN 1).
 ## 
-## Gradient evaluation took 6.2e-05 seconds
-## 1000 transitions using 10 leapfrog steps per transition would take 0.62 seconds.
+## Gradient evaluation took 5.9e-05 seconds
+## 1000 transitions using 10 leapfrog steps per transition would take 0.59 seconds.
 ## Adjust your expectations accordingly!
 ## 
 ## 
@@ -130,9 +130,9 @@ mutations &lt;-<span class="st"> </span><span class="kw">matrix</span>(<span cla
 ## Iteration: 1800 / 2000 [ 90%]  (Sampling)
 ## Iteration: 2000 / 2000 [100%]  (Sampling)
 ## 
-##  Elapsed Time: 1.06128 seconds (Warm-up)
-##                0.457674 seconds (Sampling)
-##                1.51896 seconds (Total)</code></pre>
+##  Elapsed Time: 1.06523 seconds (Warm-up)
+##                0.482891 seconds (Sampling)
+##                1.54812 seconds (Total)</code></pre>
 </div>
 <div id="retrieving-signature-exposures" class="section level4">
 <h4>Retrieving signature exposures</h4>
@@ -233,6 +233,9 @@ sigfit<span class="op">::</span><span class="kw">plot_spectrum</span>(counts_21b
 <p>The plot above shows that the most plausible number of signatures is four, based on the evolution of the goodness of fit (reconstruction accuracy measured through cosine similarity).</p>
 <p>Next, we would recommend running <code>extract_signatures</code> again, this time with <code>nsignatures = 4</code> and a much greater number of iterations, in order to obtain more accurate estimates. We will skip this step in the present example.</p>
 <p>As in the case of signature fitting (Example 1 above), the extracted signatures and exposures can be retrieved using the <code>retrieve_pars</code> function with <code>par = &quot;signatures&quot;</code> or <code>par = &quot;exposures&quot;</code>. However, because the output is a list containing the results for each value in <code>nsignatures</code>, <strong>we need to specify which number of signatures we are interested in, using the <code>[[ ]]</code> operator</strong>. Note that this is not necessary if a single value of <code>nsignatures</code> was used for extraction.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">names</span>(mcmc_samples_extr)</code></pre></div>
+<pre><code>## [1] &quot;nsignatures=1&quot; &quot;nsignatures=2&quot; &quot;nsignatures=3&quot; &quot;nsignatures=4&quot;
+## [5] &quot;nsignatures=5&quot; &quot;nsignatures=6&quot; &quot;nsignatures=7&quot; &quot;best&quot;</code></pre>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">## Note: mcmc_samples_extr[[N]] contains the extraction results for N signatures
 extr_signatures &lt;-<span class="st"> </span>sigfit<span class="op">::</span><span class="kw">retrieve_pars</span>(mcmc_samples_extr[[<span class="dv">4</span>]],
                                          <span class="dt">par =</span> <span class="st">&quot;signatures&quot;</span>)</code></pre></div>

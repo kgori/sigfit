@@ -180,7 +180,6 @@ mcmc_samples_extr <- sigfit::extract_signatures(counts = counts_21breast,
 ```{r plot_gof_silent, echo=FALSE, fig.width=9, fig.height=6, out.width="100%"}
 ## Plot precalculated GOF in order to avoid running the model
 data("sigfit_vignette_data", package = "sigfit")
-genome_signatures <- extr_signatures
 plot(nS, gof, type = "o", lty = 3, pch = 16, col = "dodgerblue4",
      main = paste0("Goodness of fit (", stat, ")\nmodel: NMF"),
      xlab = "Number of signatures", 
@@ -195,6 +194,12 @@ Next, we would recommend running ```extract_signatures``` again, this time with 
 
 As in the case of signature fitting (Example 1 above), the extracted signatures and exposures can be retrieved using the ```retrieve_pars``` function with ```par = "signatures"``` or ```par = "exposures"```. However, because the output is a list containing the results for each value in ```nsignatures```, __we need to specify which  number of signatures we are interested in, using the ```[[ ]]``` operator__. Note that this is not necessary if a single value of ```nsignatures``` was used for extraction.
 
+```{r extr_names, eval=FALSE}
+names(mcmc_samples_extr)
+```
+```{r extr_names_silent, echo=FALSE}
+print(c("nsignatures=1", "nsignatures=2", "nsignatures=3", "nsignatures=4", "nsignatures=5", "nsignatures=6", "nsignatures=7", "best"))
+```
 ```{r retrieve_sigs, eval=FALSE}
 ## Note: mcmc_samples_extr[[N]] contains the extraction results for N signatures
 extr_signatures <- sigfit::retrieve_pars(mcmc_samples_extr[[4]],
