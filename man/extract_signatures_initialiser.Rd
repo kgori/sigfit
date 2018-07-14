@@ -4,7 +4,7 @@
 \alias{extract_signatures_initialiser}
 \title{Use optimization to generate initial parameter values for MCMC sampling}
 \usage{
-extract_signatures_initialiser(counts, nsignatures, method = "emu",
+extract_signatures_initialiser(counts, nsignatures, model = "emu",
   opportunities = NULL, sig_prior = NULL, chains = 1, ...)
 }
 \arguments{
@@ -13,10 +13,10 @@ one column per mutation type.}
 
 \item{nsignatures}{Integer or integer vector; number(s) of signatures to extract.}
 
-\item{method}{Character; model to sample from. Admits values \code{"nmf"} (default) or \code{"emu"}.}
+\item{model}{Character; model to sample from. Admits values \code{"nmf"} (default) or \code{"emu"}.}
 
 \item{opportunities}{Numeric matrix of optional mutational opportunities for the "EMu" model 
-(\code{method = "emu"}) method. Must be a matrix with same dimension as \code{counts}. 
+(\code{model = "emu"}). Must be a matrix with same dimension as \code{counts}. 
 Alternatively, it also admits character values \code{"human-genome"} or \code{"human-exome"}, 
 in which case the reference human genome/exome opportunities will be used for every sample.}
 

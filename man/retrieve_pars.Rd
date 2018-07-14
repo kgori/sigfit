@@ -28,7 +28,7 @@ mean of the model parameter of interest, and those corresponding to the lower an
 data("counts_21breast")
 
 # Extract signatures using the EMu (Poisson) model
-samples <- extract_signatures(counts_21breast, nsignatures = 2, method = "emu",
+samples <- extract_signatures(counts_21breast, nsignatures = 2, model = "emu",
                               opportunities = "human-genome", iter = 800)
 
 # Retrieve signatures

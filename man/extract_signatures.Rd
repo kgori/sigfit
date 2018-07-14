@@ -4,9 +4,8 @@
 \alias{extract_signatures}
 \title{Extract signatures from a set of mutation counts}
 \usage{
-extract_signatures(counts, nsignatures, method = "nmf",
-  opportunities = NULL, sig_prior = NULL, exp_prior = 1,
-  stanfunc = "sampling", ...)
+extract_signatures(counts, nsignatures, model = "nmf", opportunities = NULL,
+  sig_prior = NULL, exp_prior = 1, stanfunc = "sampling", ...)
 }
 \arguments{
 \item{counts}{Integer matrix of observed mutation counts, with one row per sample and 
@@ -14,10 +13,10 @@ one column per mutation type.}
 
 \item{nsignatures}{Integer or integer vector; number(s) of signatures to extract.}
 
-\item{method}{Character; model to sample from. Admits values \code{"nmf"} (default) or \code{"emu"}.}
+\item{model}{Character; model to sample from. Admits values \code{"nmf"} (default) or \code{"emu"}.}
 
 \item{opportunities}{Numeric matrix of optional mutational opportunities for the "EMu" model 
-(\code{method = "emu"}) method. Must be a matrix with same dimension as \code{counts}. 
+(\code{model = "emu"}). Must be a matrix with same dimension as \code{counts}. 
 Alternatively, it also admits character values \code{"human-genome"} or \code{"human-exome"}, 
 in which case the reference human genome/exome opportunities will be used for every sample.}
 
@@ -57,11 +56,11 @@ data("counts_21breast")
 # Extract 2 to 6 signatures using the NMF (multinomial) model
 # (400 warmup iterations + 400 sampling iterations - use more in practice)
 samples_nmf <- extract_signatures(counts_21breast, nsignatures = 2:6, 
-                                  method = "nmf", iter = 800)
+                                  model = "nmf", iter = 800)
 
 # Extract 4 signatures using the EMu (Poisson) model
 # (400 warmup iterations + 800 sampling iterations - use more in practice)
-samples_emu <- extract_signatures(counts_21breast, nsignatures = 4, method = "emu", 
+samples_emu <- extract_signatures(counts_21breast, nsignatures = 4, model = "emu", 
                                   opportunities = "human-genome",
                                   iter = 1200, warmup = 400)
 }

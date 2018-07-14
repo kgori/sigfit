@@ -35,7 +35,7 @@ data("counts_21breast")
 plot_spectrum(counts_21breast, pdf_path = "Catalogues.pdf")
 
 # Extract signatures using the EMu (Poisson) model
-samples <- extract_signatures(counts_21breast, nsignatures = 2, method = "emu",
+samples <- extract_signatures(counts_21breast, nsignatures = 2, model = "emu",
                               opportunities = "human-genome", iter = 800)
 
 # Retrieve extracted signatures

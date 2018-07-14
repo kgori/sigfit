@@ -4,7 +4,7 @@
 \alias{fit_extract_signatures}
 \title{Fit-and-extract mutational signatures}
 \usage{
-fit_extract_signatures(counts, signatures, num_extra_sigs, method = "nmf",
+fit_extract_signatures(counts, signatures, num_extra_sigs, model = "nmf",
   opportunities = NULL, sig_prior = NULL, exp_prior = 1,
   stanfunc = "sampling", ...)
 }
@@ -58,7 +58,7 @@ mutations <- rbind(t(rmultinom(1, 20000, probs[1, ])),
 # to be present, extract 1 signature while fitting signatures 1, 4 and 5.
 # (400 warmup iterations + 400 sampling iterations - use more in practice)
 mcmc_samples <- fit_extract_signatures(mutations, signatures = signatures[c(1, 4, 5), ],
-                                       num_extra_sigs = 1, method = "nmf", iter = 800)
+                                       num_extra_sigs = 1, model = "nmf", iter = 800)
 
 # Plot original and extracted signature 7
 extr_sigs <- retrieve_pars(mcmc_samples, "signatures")

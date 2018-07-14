@@ -27,7 +27,7 @@ Only needed if \code{mcmc_samples} is not provided.}
 
 \item{opportunities}{Integer matrix; it also admits values \code{"human-genome"} and \code{"human-exome"}.
 Only needed if \code{mcmc_samples} is not provided and \code{signatures} and/or \code{exposures} were 
-obtained using the "EMu" model (\code{method = "emu"}). In that case, these should 
+obtained using the "EMu" model (\code{model = "emu"}). In that case, these should 
 be the mutational opportunities used for extraction/fitting.}
 
 \item{pdf_path}{Character; if provided, the plots will be output to a PDF file with this path. The PDF 
@@ -53,7 +53,7 @@ Only the former option allows the incorporation of HPD intervals to the reconstr
 data("counts_21breast")
 
 # Extract signatures using the EMu (Poisson) model
-samples <- extract_signatures(counts_21breast, nsignatures = 2, method = "emu",
+samples <- extract_signatures(counts_21breast, nsignatures = 2, model = "emu",
                               opportunities = "human-genome", iter = 800)
 
 # Retrieve signatures and exposures

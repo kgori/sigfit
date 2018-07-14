@@ -15,7 +15,7 @@ build_catalogues(variants)
  \item{Trinucleotide context of the variant (character; the reference sequence between the positions 
  immediately before and after the variant; e.g. "TCA").}
  \item{Optional: transcriptional strand of the variant (character: "T" for transcribed,
- or "U" for untranscribed). If this column is included, a strandwise representation of
+ or "U" for untranscribed). If this column is included, a transcriptional-strand-wise representation of
  catalogues will be used.}
 }}
 }
