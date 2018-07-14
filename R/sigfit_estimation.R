@@ -68,7 +68,7 @@ fit_signatures <- function(counts, signatures, exp_prior = NULL, model = "nmf",
     
     if (model == "emu") {
         if (is.null(opportunities)) {
-            warning("Fitting with EMu model, but no opportunities provided.")
+            warning("Using EMu model, but no opportunities were provided.")
         }
         
         if (is.null(opportunities) | is.character(opportunities)) {
@@ -221,7 +221,7 @@ extract_signatures <- function(counts, nsignatures, model = "nmf", opportunities
     # EMu model
     if (model == "emu") {
         if (is.null(opportunities)) {
-            warning("Extracting with EMu model, but no opportunities provided.")
+            warning("Using EMu model, but no opportunities provided.")
         }
         
         # Build opportunities matrix
@@ -418,6 +418,10 @@ fit_extract_signatures <- function(counts, signatures, num_extra_sigs,
     
     # EMu model
     if (model == "emu") {
+        if (is.null(opportunities)) {
+            warning("Using EMu model, but no opportunities were provided.")
+        }
+        
         # Build opportunities matrix
         if (is.null(opportunities) | is.character(opportunities)) {
             opportunities <- build_opps_matrix(NSAMP, opportunities, strand)
@@ -455,7 +459,7 @@ fit_extract_signatures <- function(counts, signatures, num_extra_sigs,
         )
     }
     
-    cat("Fit-Ext: Fitting", NSIG, "signatures, extracting", num_extra_sigs, "signatures\n")
+    cat("Fit-Ext: Fitting", NSIG, "signatures, extracting", num_extra_sigs, "signature(s)\n")
     if (stanfunc == "sampling") {
         cat("Stan sampling:")
         out <- sampling(model, data = dat, chains = 1,
