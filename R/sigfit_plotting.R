@@ -78,7 +78,7 @@ plot_ppc <- function(c, c_ppc, sample = 1) {
 #' Only needed if \code{mcmc_samples} is not provided.
 #' @param opportunities Integer matrix; it also admits values \code{"human-genome"} and \code{"human-exome"}.
 #' Only needed if \code{mcmc_samples} is not provided and \code{signatures} and/or \code{exposures} were 
-#' obtained using the "EMu" model (\code{method = "emu"}). In that case, these should 
+#' obtained using the "EMu" model (\code{model = "emu"}). In that case, these should 
 #' be the mutational opportunities used for extraction/fitting.
 #' @param thresh Numeric; minimum probability value that should be reached by the lower end of exposure HPD
 #' intervals. The exposures for which the lower HPD bound is below this value will be colored in grey.
@@ -101,7 +101,7 @@ plot_ppc <- function(c, c_ppc, sample = 1) {
 #' data("counts_21breast")
 #' 
 #' # Extract signatures using the EMu (Poisson) model
-#' samples <- extract_signatures(counts_21breast, nsignatures = 2, method = "emu",
+#' samples <- extract_signatures(counts_21breast, nsignatures = 2, model = "emu",
 #'                               opportunities = "human-genome", iter = 800)
 #' 
 #' # Retrieve signatures and exposures
@@ -211,13 +211,13 @@ plot_gof <- function(sample_list, stat = "cosine") {
         counts <- samples$data$counts
         
         if (grepl("emu", samples$result@model_name)) {
-            method <- "EMu"
+            model <- "EMu"
             e <- extract(samples$result, pars = c("expected_counts", "signatures"))
             reconstructed <- apply(e$expected_counts, c(2, 3), mean)
         }
         
         else {
-            method <- "NMF"
+            model <- "NMF"
             e <- extract(samples$result, pars = c("probs", "signatures"))
             reconstructed <- apply(e$probs, c(2, 3), mean) * rowSums(counts)
         }
@@ -238,7 +238,7 @@ plot_gof <- function(sample_list, stat = "cosine") {
                    which.max(deriv) + 1)  # highest positive curvature
     
     plot(nS, gof, type = "o", lty = 3, pch = 16, col = "dodgerblue4",
-         main = paste0("Goodness of fit (", stat, ")\nmodel: ", method),
+         main = paste0("Goodness of fit (", stat, ")\nmodel: ", model),
          xlab = "Number of signatures", 
          ylab = paste0("Goodness of fit (", stat, ")"))
     points(nS[best], gof[best], pch = 16, col = "orangered", cex = 1.1)
@@ -269,7 +269,7 @@ plot_gof <- function(sample_list, stat = "cosine") {
 #' Only needed if \code{mcmc_samples} is not provided.
 #' @param opportunities Integer matrix; it also admits values \code{"human-genome"} and \code{"human-exome"}.
 #' Only needed if \code{mcmc_samples} is not provided and \code{signatures} and/or \code{exposures} were 
-#' obtained using the "EMu" model (\code{method = "emu"}). In that case, these should 
+#' obtained using the "EMu" model (\code{model = "emu"}). In that case, these should 
 #' be the mutational opportunities used for extraction/fitting.
 #' @param pdf_path Character; if provided, the plots will be output to a PDF file with this path. The PDF 
 #' size and graphical parameters will be automatically set to appropriate values.
@@ -283,7 +283,7 @@ plot_gof <- function(sample_list, stat = "cosine") {
 #' data("counts_21breast")
 #' 
 #' # Extract signatures using the EMu (Poisson) model
-#' samples <- extract_signatures(counts_21breast, nsignatures = 2, method = "emu",
+#' samples <- extract_signatures(counts_21breast, nsignatures = 2, model = "emu",
 #'                               opportunities = "human-genome", iter = 800)
 #' 
 #' # Retrieve signatures and exposures
@@ -536,7 +536,7 @@ plot_reconstruction <- function(mcmc_samples = NULL, counts = NULL, signatures =
 #' plot_spectrum(counts_21breast, pdf_path = "Catalogues.pdf")
 #' 
 #' # Extract signatures using the EMu (Poisson) model
-#' samples <- extract_signatures(counts_21breast, nsignatures = 2, method = "emu",
+#' samples <- extract_signatures(counts_21breast, nsignatures = 2, model = "emu",
 #'                               opportunities = "human-genome", iter = 800)
 #' 
 #' # Retrieve extracted signatures
@@ -835,7 +835,7 @@ plot_exposures <- function(mcmc_samples = NULL, pdf_path = NULL, counts = NULL, 
     }
     
     # Plot global exposures
-    colours <- rep("dodgerblue4", NSIG)
+    colours <- rep("skyblue3", NSIG)  #"dodgerblue4"
     if (!is.null(lwr)) {
         colours[lwr_global < thresh] <- "grey"
     }
