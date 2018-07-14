@@ -104,6 +104,7 @@ fit_signatures <- function(counts, signatures, exp_prior = NULL, model = "nmf",
     }
     
     cat("Fitting", NSIG, "signatures\n")
+    cat("Stan sampling:")
     out <- sampling(model, data = dat, pars = "multiplier", include = FALSE, ...)
     
     list("data" = dat,
