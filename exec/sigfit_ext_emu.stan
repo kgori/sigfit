@@ -23,7 +23,7 @@ model {
     // are invariant to perturbations of the columns of
     // exposures and the rows of signatures (the same perturbation
     // applied to both). Avoiding running multiple chains.
-    
+
     for (s in 1:S) {
         // Priors for signatures
         signatures[s] ~ dirichlet(alpha[s]');

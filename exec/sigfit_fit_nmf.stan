@@ -20,7 +20,7 @@ model {
     for (g in 1:G) {
         // Priors
         exposures[g] ~ dirichlet(kappa);
-        
+
         // Likelihood
         counts[g] ~ multinomial(probs[g]');
     }
