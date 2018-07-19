@@ -1,26 +1,35 @@
 #' Find the best matches between two sets of signatures
-#' 
-#' \code{match_signatures} compares two independent estimates of signatures to 
+#'
+#' \code{match_signatures} compares two independent estimates of signatures to
 #' find the closest matches between them.
-#' @param sigs_a Signatures estimate; Either a numeric matrix of mutational signatures, 
-#' with one row per signature and one column per mutation type, or a list of matrices 
+#' @param sigs_a Signatures estimate; Either a numeric matrix of mutational signatures,
+#' with one row per signature and one column per mutation type, or a list of matrices
 #' generated via \code{\link{retrieve_pars}}.
 #' @param sigs_b Signatures estimate as for \code{sigs_a}.
-#' @return A numeric vector containing, for each signature in \code{sigs_a}, the index 
+#' @param stat Similarity metric to use when comparing signaturesd. Admits values \code{"cosine"}
+#' (default, cosine similarity) or \code{"L2"} (L2 norm or Euclidean distance).
+#' @return A numeric vector containing, for each signature in \code{sigs_a}, the index
 #' of the closest match in \code{sigs_b}.
 #' @importFrom "clue" solve_LSAP
 #' @export
-match_signatures <- function(sigs_a, sigs_b) {
+match_signatures <- function(sigs_a, sigs_b, stat = "cosine") {
     a <- to_matrix(sigs_a)
     b <- to_matrix(sigs_b)
     nA <- nrow(a)
     nB <- nrow(b)
-    stopifnot(nA == nB)
-    
+    # stopifnot(nA == nB)
+    sim_fn <- switch(stat,
+                     "cosine" = cosine_sim,
+                     "L2" = l2_norm)
+    if (is.null(sim_fn)) {
+        stop(paste0("'stat' only admits values \"cosine\" and \"L2\".\n",
+                    "Type ?match_signatures to see the documentation."))
+    }
+
     m <- matrix(0.0, nrow = nA, ncol = nB)
     for (i in 1:nA) {
         for (j in 1:nB) {
-            m[i, j] <- cosine_sim(a[i, ], b[j, ])
+            m[i, j] <- sim_fn(a[i, ], b[j, ])
         }
     }
     solve_LSAP(m, maximum = TRUE)
