@@ -7,13 +7,13 @@
 retrieve_pars(mcmc_samples, par, hpd_prob = 0.95)
 }
 \arguments{
-\item{mcmc_samples}{List with elements \code{$data} and \code{$results}, produced via either 
+\item{mcmc_samples}{List with elements \code{$data} and \code{$results}, produced via either
 \code{\link{fit_signatures}}, \code{\link{extract_signatures}} or \code{\link{fit_extract_signatures}}.}
 
-\item{par}{Character; name of the parameter set to extract. Can take values: \code{"signatures"}, 
+\item{par}{Character; name of the parameter set to extract. Can take values: \code{"signatures"},
 \code{"exposures"}, \code{"activities"} or \code{"reconstructions"}.}
 
-\item{hpd_prob}{Numeric; a value in the interval (0, 1), giving the target probability content of 
+\item{hpd_prob}{Numeric; a value in the interval (0, 1), giving the target probability content of
 the HPD intervals. (Default is 0.95.)}
 }
 \value{

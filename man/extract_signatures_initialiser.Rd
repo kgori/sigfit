@@ -8,19 +8,19 @@ extract_signatures_initialiser(counts, nsignatures, model = "emu",
   opportunities = NULL, sig_prior = NULL, chains = 1, ...)
 }
 \arguments{
-\item{counts}{Integer matrix of observed mutation counts, with one row per sample and 
+\item{counts}{Integer matrix of observed mutation counts, with one row per sample and
 one column per mutation type.}
 
 \item{nsignatures}{Integer or integer vector; number(s) of signatures to extract.}
 
 \item{model}{Character; model to sample from. Admits values \code{"nmf"} (default) or \code{"emu"}.}
 
-\item{opportunities}{Numeric matrix of optional mutational opportunities for the "EMu" model 
-(\code{model = "emu"}). Must be a matrix with same dimension as \code{counts}. 
-Alternatively, it also admits character values \code{"human-genome"} or \code{"human-exome"}, 
+\item{opportunities}{Numeric matrix of optional mutational opportunities for the "EMu" model
+(\code{model = "emu"}). Must be a matrix with same dimension as \code{counts}.
+Alternatively, it also admits character values \code{"human-genome"} or \code{"human-exome"},
 in which case the reference human genome/exome opportunities will be used for every sample.}
 
-\item{sig_prior}{Numeric matrix with one row per signature and one column per category, to be used as the Dirichlet 
+\item{sig_prior}{Numeric matrix with one row per signature and one column per category, to be used as the Dirichlet
 priors for the signatures to be extracted. Only used when \code{nsignatures} is a scalar.
 Default priors are uniform (uninformative).}
 

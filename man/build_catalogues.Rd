@@ -12,7 +12,7 @@ build_catalogues(variants)
  \item{Sample ID (character, e.g. "Sample 1").}
  \item{Reference allele (character: "A", "C", "G", or "T").}
  \item{Alternate allele (character: "A", "C", "G", or "T").}
- \item{Trinucleotide context of the variant (character; the reference sequence between the positions 
+ \item{Trinucleotide context of the variant (character; the reference sequence between the positions
  immediately before and after the variant; e.g. "TCA").}
  \item{Optional: transcriptional strand of the variant (character: "T" for transcribed,
  or "U" for untranscribed). If this column is included, a transcriptional-strand-wise representation of
@@ -24,7 +24,7 @@ An integer matrix of mutation counts, where each row corresponds to a sample and
 corresponds to one of the 96 (or 192) trinucleotide mutation types.
 }
 \description{
-\code{build_catalogues} generates a set of mutational catalogues from a table containing 
+\code{build_catalogues} generates a set of mutational catalogues from a table containing
 the base change and trinucleotide context of each single-nucleotide variant in every sample.
 }
 \examples{

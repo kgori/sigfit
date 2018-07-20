@@ -19,6 +19,6 @@ A numeric vector containinig 96 frequency values (one per trinucleotide type), i
 equally distributed between the two strands.
 }
 \description{
-\code{human_trinuc_freqs} returns the reference human genome or exome 
+\code{human_trinuc_freqs} returns the reference human genome or exome
 trinucleotide frequencies.
 }

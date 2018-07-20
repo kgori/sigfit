@@ -7,14 +7,14 @@
 plot_gof(sample_list, stat = "cosine")
 }
 \arguments{
-\item{sample_list}{List containing the results of signature extraction 
+\item{sample_list}{List containing the results of signature extraction
 (\code{\link{extract_signatures}}) using  multiple numbers of signatures.}
 
-\item{stat}{Character; function for measuring goodness of fit. Admits values \code{"cosine"} 
+\item{stat}{Character; function for measuring goodness of fit. Admits values \code{"cosine"}
 (default, cosine similarity) or \code{"L2"} (L2 norm or Euclidean distance).}
 }
 \description{
 \code{plot_gof} plots the goodness of fit of a set of samples, each of which
-has typically been sampled using an extraction model (EMu or NMF) with a 
+has typically been sampled using an extraction model (EMu or NMF) with a
 different number of signatures.
 }
