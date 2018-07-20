@@ -27,12 +27,12 @@ To cite sigfit in publications, please use:
 
 The corresponding BibTeX entry is:
 
-    @Article{,
+    @Article{sigfit,
         title = {sigfit: flexible Bayesian inference of mutational signatures},
-        author = {Kevin Gori and Adrian Baez-Ortega},
+        author = {Gori, Kevin and Baez-Ortega, Adrian},
         journal = {bioRxiv},
         year = {2018},
-        doi = {10.1101/372896},
+        doi = {10.1101/372896}
     }
 
 
