@@ -5,7 +5,7 @@ sigfit is an R package to estimate signatures of mutational processes and their 
 
 
 ## Installation
-sigfit is an R package. As it is in early development it is not yet on CRAN, but can be installed from inside an R session using the `devtools` library.
+sigfit is an R package. As it is in early development it is not yet on CRAN, but can be installed from inside an R session using the [devtools](https://cran.r-project.org/web/packages/devtools/index.html) package.
 
     devtools::install_github("kgori/sigfit", args = "--preclean", build_vignettes = TRUE)
 
@@ -23,8 +23,8 @@ You can also browse the package vignette in [GitHub](http://htmlpreview.github.i
 
 To cite sigfit in publications, please use:
 
-Kevin Gori, Adrian Baez-Ortega. sigfit: flexible Bayesian inference
-of mutational signatures. _bioRxiv_ (2018). doi: 10.1101/372896.
+**Kevin Gori, Adrian Baez-Ortega. sigfit: flexible Bayesian inference
+of mutational signatures. _bioRxiv_ (2018). doi: 10.1101/372896.**
 
 The corresponding BibTeX entry is:
 
