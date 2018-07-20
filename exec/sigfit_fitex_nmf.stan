@@ -22,7 +22,7 @@ parameters {
 transformed parameters {
     matrix[T, C] signatures;
     matrix<lower=0, upper=1>[G, C] probs;
-    
+
     signatures = append_row(fixed_sigs, array_to_matrix(extra_sigs));
     probs = array_to_matrix(exposures) * signatures;
 }
@@ -31,11 +31,11 @@ model {
     for (n in 1:N) {
         extra_sigs[n] ~ dirichlet(alpha[n]');
     }
-    
+
     for (g in 1:G) {
         // Priors for exposures_raw are uniform dirichlet
         exposures[g] ~ dirichlet(kappa_vec);
-        
+
         // Likelihood
         counts[g] ~ multinomial(to_vector(probs[g]));
     }
