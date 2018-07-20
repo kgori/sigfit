@@ -428,12 +428,9 @@ plot_reconstruction <- function(mcmc_samples = NULL, counts = NULL, signatures =
                   line = 1, cex.main = 2)
             # HPD intervals
             if (!is.null(mcmc_samples)) {
-                arrows(bars, colSums(reconstructions[i, , ]),
-                       bars, hpds[i, 1, ],
-                       angle = 90, length = 0, lwd = 2.5, col = LINECOL)
-                arrows(bars, colSums(reconstructions[i, , ]),
+                arrows(bars, hpds[i, 1, ],
                        bars, hpds[i, 2, ],
-                       angle = 90, length = 0, lwd = 2.5, col = LINECOL)
+                       length = 0, lwd = 2.5, col = LINECOL)
             }
             # Mutation type labels
             rect(xleft = XL, xright = XR, ybottom = max_y * 0.95, ytop = max_y,
@@ -492,12 +489,9 @@ plot_reconstruction <- function(mcmc_samples = NULL, counts = NULL, signatures =
             # HPD intervals
             if (!is.null(mcmc_samples)) {
                 bars <- as.numeric(t(bars))
-                arrows(bars, colSums(reconstructions[i, , ]),
-                       bars, hpds[i, 1, ],
-                       angle = 90, length = 0, lwd = 2.5, col = LINECOL)
-                arrows(bars, colSums(reconstructions[i, , ]),
+                arrows(bars, hpds[i, 1, ],
                        bars, hpds[i, 2, ],
-                       angle = 90, length = 0, lwd = 2.5, col = LINECOL)
+                       length = 0, lwd = 2.5, col = LINECOL)
             }
             # Legend
             legend(legend_pos, inset = c(0.01, 0.105), ncol = 2,
@@ -548,17 +542,15 @@ plot_reconstruction <- function(mcmc_samples = NULL, counts = NULL, signatures =
 plot_spectrum <- function(spectra, name = NULL, pdf_path = NULL, max_y = NULL) {
     # Fetch HPD interval values, if present
     if (is.list(spectra) & "mean" %in% names(spectra)) {
-        spec <- spectra$mean
-        lwr <- spectra$lower
-        upr <- spectra$upper
+        spec <- to_matrix(spectra$mean)
+        lwr <- to_matrix(spectra$lower)
+        upr <- to_matrix(spectra$upper)
     }
     else {
-        spec <- spectra
+        spec <- to_matrix(spectra)
         lwr <- NULL
         upr <- NULL
     }
-    # Force spectrum to matrix (96 columns)
-    spec <- to_matrix(spec)
     if (!(ncol(spec) %in% c(96, 192))) {
         stop("This function is only available for data with 96 or 192 mutation types.")
     }
@@ -629,9 +621,8 @@ plot_spectrum <- function(spectra, name = NULL, pdf_path = NULL, max_y = NULL) {
                   line = 1.5, cex.main = 2)
             # Plot HPD intervals
             if (!is.null(lwr)) {
-                arrows(bars, spec[i,], bars, lwr[i,], angle = 90,
-                       length = 0, lwd = 2.5, col = LINECOL)
-                arrows(bars, spec[i,], bars, upr[i,], angle = 90,
+                arrows(bars, upr[i,], 
+                       bars, lwr[i,],
                        length = 0, lwd = 2.5, col = LINECOL)
             }
             # Plot mutation type labels
@@ -703,9 +694,8 @@ plot_spectrum <- function(spectra, name = NULL, pdf_path = NULL, max_y = NULL) {
             # Plot HPD intervals
             if (!is.null(lwr)) {
                 bars <- as.numeric(t(bars))
-                arrows(bars, spec[i,], bars, lwr[i,], angle = 90,
-                       length = 0, lwd = 2.5, col = LINECOL)
-                arrows(bars, spec[i,], bars, upr[i,], angle = 90,
+                arrows(bars, upr[i,], 
+                       bars, lwr[i,],
                        length = 0, lwd = 2.5, col = LINECOL)
             }
         }
@@ -772,12 +762,12 @@ plot_exposures <- function(mcmc_samples = NULL, pdf_path = NULL, counts = NULL, 
     if (!is.null(mcmc_samples)) {
         counts <- mcmc_samples$data$counts
         exposures <- retrieve_pars(mcmc_samples, "exposures", hpd_prob = hpd_prob)
-        lwr <- exposures$lower
-        upr <- exposures$upper
+        lwr <- to_matrix(exposures$lower)
+        upr <- to_matrix(exposures$upper)
     }
     else if (is.list(exposures) & "mean" %in% names(exposures)) {
-        lwr <- exposures$lower
-        upr <- exposures$upper
+        lwr <- to_matrix(exposures$lower)
+        upr <- to_matrix(exposures$upper)
     }
     else {
         lwr <- NULL
@@ -845,10 +835,9 @@ plot_exposures <- function(mcmc_samples = NULL, pdf_path = NULL, counts = NULL, 
     axis(side = 2, cex.axis = 1.1, las = 2, line = -2)
     mtext(text = "Mutation fraction", side = 2, line = 2.5)
     if (!is.null(lwr)) {
-        arrows(bars, exposures_global, bars, lwr_global,
-               angle = 90, length = 0, lwd = 2.5, col = "gray50")
-        arrows(bars, exposures_global, bars, upr_global,
-               angle = 90, length = 0, lwd = 2.5, col = "gray50")
+        arrows(bars, upr_global, 
+               bars, lwr_global,
+               length = 0, lwd = 2.5, col = "gray50")
     }
 
     # If >1 sample: plot exposures per sample
