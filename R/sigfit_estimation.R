@@ -341,6 +341,7 @@ extract_signatures <- function(counts, nsignatures, model = "nmf", opportunities
 #' per signature and one column per mutation type, or a list of matrices generated via
 #' \code{\link{retrieve_pars}}.
 #' @param num_extra_sigs Numeric; number of additional signatures to be extracted.
+#' @param model Character; model to sample from. Admits values \code{"nmf"} (default) or \code{"emu"}.
 #' @param sig_prior Numeric matrix with one row per additional signature and one column per category, to be used as the
 #' Dirichlet priors for the additional signatures to be extracted. Default priors are uniform (uninformative).
 #' @param exp_prior Numeric; hyperparameter of the Dirichlet prior given to the exposures. Default value is 1 (uniform, uninformative).
