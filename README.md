@@ -23,7 +23,7 @@ You can also browse the package vignette in [GitHub](http://htmlpreview.github.i
 
 To cite sigfit in publications, please use:
 
-* **Kevin Gori, Adrian Baez-Ortega. sigfit: flexible Bayesian inference of mutational signatures. _bioRxiv_ (2018). doi: 10.1101/372896.**
+* **Kevin Gori, Adrian Baez-Ortega. sigfit: flexible Bayesian inference of mutational signatures. _bioRxiv_ (2018). doi: [10.1101/372896](http://doi.org/10.1101/372896).**
 
 The corresponding BibTeX entry is:
 
