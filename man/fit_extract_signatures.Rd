@@ -4,27 +4,29 @@
 \alias{fit_extract_signatures}
 \title{Fit-and-extract mutational signatures}
 \usage{
-fit_extract_signatures(counts, signatures, num_extra_sigs, method = "nmf",
+fit_extract_signatures(counts, signatures, num_extra_sigs, model = "nmf",
   opportunities = NULL, sig_prior = NULL, exp_prior = 1,
   stanfunc = "sampling", ...)
 }
 \arguments{
-\item{counts}{Integer matrix of observed mutation counts, with one row per sample and 
+\item{counts}{Integer matrix of observed mutation counts, with one row per sample and
 one column per mutation type.}
 
-\item{signatures}{Fixed mutational signatures to be fitted. Either a numeric matrix with one row 
+\item{signatures}{Fixed mutational signatures to be fitted. Either a numeric matrix with one row
 per signature and one column per mutation type, or a list of matrices generated via
 \code{\link{retrieve_pars}}.}
 
 \item{num_extra_sigs}{Numeric; number of additional signatures to be extracted.}
+
+\item{model}{Character; model to sample from. Admits values \code{"nmf"} (default) or \code{"emu"}.}
 
 \item{sig_prior}{Numeric matrix with one row per additional signature and one column per category, to be used as the
 Dirichlet priors for the additional signatures to be extracted. Default priors are uniform (uninformative).}
 
 \item{exp_prior}{Numeric; hyperparameter of the Dirichlet prior given to the exposures. Default value is 1 (uniform, uninformative).}
 
-\item{stanfunc}{Character; choice of rstan inference strategy. Admits values \code{"sampling"}, \code{"optimizing"} and \code{"vb"}. 
-\code{"sampling"} is the full Bayesian MCMC approach, and is the default. \code{"optimizing"} returns the Maximum a 
+\item{stanfunc}{Character; choice of rstan inference strategy. Admits values \code{"sampling"}, \code{"optimizing"} and \code{"vb"}.
+\code{"sampling"} is the full Bayesian MCMC approach, and is the default. \code{"optimizing"} returns the Maximum a
 Posteriori (MAP) point estimates via numerical optimization. \code{"vb"} uses Variational Bayes to approximate the full posterior.}
 
 \item{...}{Any other parameters to pass to the sampling function (by default, \code{\link{rstan::sampling}}).
@@ -34,9 +36,9 @@ Posteriori (MAP) point estimates via numerical optimization. \code{"vb"} uses Va
 A list with two elements:
 \itemize{
  \item{\code{$data}: list containing the input data supplied to the model.}
- \item{\code{$result}: object of class stanfit, containing the output MCMC samples, 
+ \item{\code{$result}: object of class stanfit, containing the output MCMC samples,
  as well as information about the model and sampling process.}}
-The model parameters (such as signatures and exposures) can be extracted from this 
+The model parameters (such as signatures and exposures) can be extracted from this
 object using \code{\link{retrieve_parameters}}.
 }
 \description{
@@ -44,7 +46,7 @@ object using \code{\link{retrieve_parameters}}.
 and simultaneously extracts additional signatures present in the samples.
 }
 \examples{
-# Fetch COSMIC signatures 
+# Fetch COSMIC signatures
 signatures <- fetch_cosmic_data()
 
 # Simulate two catalogues using signatures 1, 4, 5, 7, with
@@ -52,13 +54,13 @@ signatures <- fetch_cosmic_data()
 probs <- rbind(c(0.4, 0.2, 0.3, 0.1) \%*\% signatures[c(1, 4, 5, 7), ],
                c(0.2, 0.3, 0.4, 0.1) \%*\% signatures[c(1, 4, 5, 7), ])
 mutations <- rbind(t(rmultinom(1, 20000, probs[1, ])),
-                   t(rmultinom(1, 20000, probs[2, ])))  
+                   t(rmultinom(1, 20000, probs[2, ])))
 
 # Assuming that we do not know signature 7 a priori, but we know the others
 # to be present, extract 1 signature while fitting signatures 1, 4 and 5.
 # (400 warmup iterations + 400 sampling iterations - use more in practice)
 mcmc_samples <- fit_extract_signatures(mutations, signatures = signatures[c(1, 4, 5), ],
-                                       num_extra_sigs = 1, method = "nmf", iter = 800)
+                                       num_extra_sigs = 1, model = "nmf", iter = 800)
 
 # Plot original and extracted signature 7
 extr_sigs <- retrieve_pars(mcmc_samples, "signatures")

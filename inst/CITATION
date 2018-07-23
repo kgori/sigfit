@@ -1,0 +1,8 @@
+bibentry(bibtype = "Article",
+         key = "sigfit",
+         title = "sigfit: flexible Bayesian inference of mutational signatures",
+         author = c(person("Kevin", "Gori"),
+                    person("Adrian", "Baez-Ortega")),
+         journal = "bioRxiv",
+         year = 2018,
+         doi = "10.1101/372896")

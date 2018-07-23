@@ -8,23 +8,23 @@ plot_spectrum(spectra, name = NULL, pdf_path = NULL, max_y = NULL)
 }
 \arguments{
 \item{spectra}{Either a numeric vector with one element for each of the 96 (or 192) mutation types,
-or a numeric matrix with 96 (or 192) columns and one row per 
-signature/catalogue, or a list of signature matrices as produced by 
-\code{\link{retrieve_pars}}. In the latter case, HPD intervals will also be plotted. 
+or a numeric matrix with 96 (or 192) columns and one row per
+signature/catalogue, or a list of signature matrices as produced by
+\code{\link{retrieve_pars}}. In the latter case, HPD intervals will also be plotted.
 Row names will be adopted as the sample/signature names.}
 
 \item{name}{Character; name to include in the plot title. Useful when plotting a single spectrum.}
 
-\item{pdf_path}{Character; if provided, the plots will be output to a PDF file with this path. The PDF 
+\item{pdf_path}{Character; if provided, the plots will be output to a PDF file with this path. The PDF
 size and graphical parameters will be automatically set to appropriate values.}
 
 \item{max_y}{Numeric; fixed higher limit of the y-axis (if necessary).}
 }
 \description{
-\code{plot_spectrum} generates plots of one or more spectra, which can be either mutational 
-catalogues or mutational signatures. If the spectra contain values above 1, the values will be 
-interpreted as mutation counts (as in a catalogue); otherwise, they will be interpreted as 
-mutation probabilities (as in a signature). If multiple spectra are provided, one plot per 
+\code{plot_spectrum} generates plots of one or more spectra, which can be either mutational
+catalogues or mutational signatures. If the spectra contain values above 1, the values will be
+interpreted as mutation counts (as in a catalogue); otherwise, they will be interpreted as
+mutation probabilities (as in a signature). If multiple spectra are provided, one plot per
 spectrum is produced.
 }
 \examples{
@@ -35,7 +35,7 @@ data("counts_21breast")
 plot_spectrum(counts_21breast, pdf_path = "Catalogues.pdf")
 
 # Extract signatures using the EMu (Poisson) model
-samples <- extract_signatures(counts_21breast, nsignatures = 2, method = "emu",
+samples <- extract_signatures(counts_21breast, nsignatures = 2, model = "emu",
                               opportunities = "human-genome", iter = 800)
 
 # Retrieve extracted signatures

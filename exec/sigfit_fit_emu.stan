@@ -17,7 +17,7 @@ parameters {
 transformed parameters {
     matrix<lower=0>[G, S] activities;
     matrix[G, C] expected_counts;  // Poisson parameters
-    
+
     for (g in 1:G) {
         activities[g] = exposures[g]' * multiplier[g];
     }
@@ -30,7 +30,7 @@ model {
         // Priors
         exposures[i] ~ dirichlet(kappa);
         multiplier ~ cauchy(0, 1);
-        
+
         // Likelihood
         counts[i] ~ poisson(expected_counts[i]);
     }

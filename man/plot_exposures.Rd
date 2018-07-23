@@ -10,19 +10,19 @@ plot_exposures(mcmc_samples = NULL, pdf_path = NULL, counts = NULL,
   sig_color_palette = NULL)
 }
 \arguments{
-\item{mcmc_samples}{List with elements \code{$data} and \code{$results}, produced via either 
-\code{\link{fit_signatures}}, \code{\link{extract_signatures}} or \code{\link{fit_extract_signatures}}. 
-This should be the preferred option for supplying data and results, but can be replaced by the 
+\item{mcmc_samples}{List with elements \code{$data} and \code{$results}, produced via either
+\code{\link{fit_signatures}}, \code{\link{extract_signatures}} or \code{\link{fit_extract_signatures}}.
+This should be the preferred option for supplying data and results, but can be replaced by the
 combination of arguments \code{counts}, \code{exposures} and \code{signature_names}.}
 
-\item{pdf_path}{Character; if provided, the plots will be output to a PDF file with this path. The PDF 
+\item{pdf_path}{Character; if provided, the plots will be output to a PDF file with this path. The PDF
 size and graphical parameters will be automatically set to appropriate values.}
 
-\item{counts}{Integer matrix of observed mutation counts, with one row per sample and 
+\item{counts}{Integer matrix of observed mutation counts, with one row per sample and
 column for each of the 96 (or 192) mutation types. Only needed if \code{mcmc_samples} is not provided.}
 
-\item{exposures}{Either a numeric matrix of signature exposures, with one row per sample and one column 
-per signature, or a list of exposures as produced by \code{\link{retrieve_pars}}. 
+\item{exposures}{Either a numeric matrix of signature exposures, with one row per sample and one column
+per signature, or a list of exposures as produced by \code{\link{retrieve_pars}}.
 Only needed if \code{mcmc_samples} is not provided.}
 
 \item{signature_names}{Character vector containing the signature names. Only needed if \code{mcmc_samples}
@@ -32,14 +32,14 @@ is not provided and the exposures were obtained through signature fitting (not e
 intervals. The exposures for which the lower HPD bound is below this value will be colored in grey.
 (Default is 0.01.)}
 
-\item{hpd_prob}{Numeric; a value in the interval (0, 1), giving the target probability content of 
+\item{hpd_prob}{Numeric; a value in the interval (0, 1), giving the target probability content of
 the HPD intervals. (Default is 0.95.)}
 
 \item{horiz_labels}{Logical; if \code{TRUE}, sample name labels will be displayed horizontally in the
 barplots. (Default is \code{FALSE}.)}
 
 \item{legend_pos}{Character indicating the position of the legend in the exposures barplot. Admits values
-\code{"bottomright"}, \code{"bottom"}, \code{"bottomleft"}, \code{"left"}, \code{"topleft"}, \code{"top"}, 
+\code{"bottomright"}, \code{"bottom"}, \code{"bottomleft"}, \code{"left"}, \code{"topleft"}, \code{"top"},
 \code{"topright"} (default), \code{"right"} and \code{"center"}.}
 
 \item{sig_color_palette}{Character vector of color names or hexadecimal codes to use for each signature.

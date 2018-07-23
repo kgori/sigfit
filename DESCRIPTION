@@ -1,7 +1,7 @@
 Package: sigfit
 Type: Package
-Title: Discovering mutational signatures through Bayesian inference
-Version: 1.1.0
+Title: Flexible Bayesian inference of mutational signatures
+Version: 1.2.0
 Date: 2017-03-10
 Authors@R: c(person("Kevin", "Gori", email = "kcg25@cam.ac.uk", role = c("aut", "cre")),
              person("Adrian", "Baez-Ortega", email = "ab2324@cam.ac.uk", role = "aut"))

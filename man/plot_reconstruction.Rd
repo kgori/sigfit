@@ -9,43 +9,43 @@ plot_reconstruction(mcmc_samples = NULL, counts = NULL, signatures = NULL,
   legend_pos = "topright", sig_color_palette = NULL)
 }
 \arguments{
-\item{mcmc_samples}{List with elements \code{$data} and \code{$results}, produced via either 
-\code{\link{fit_signatures}}, \code{\link{extract_signatures}} or \code{\link{fit_extract_signatures}}. 
-This should be the preferred option for supplying data and results, but can be replaced by the 
+\item{mcmc_samples}{List with elements \code{$data} and \code{$results}, produced via either
+\code{\link{fit_signatures}}, \code{\link{extract_signatures}} or \code{\link{fit_extract_signatures}}.
+This should be the preferred option for supplying data and results, but can be replaced by the
 combination of arguments \code{counts}, \code{signatures}, \code{exposures} and \code{opportunities}.}
 
-\item{counts}{Integer matrix of observed mutation counts, with one row per sample and 
+\item{counts}{Integer matrix of observed mutation counts, with one row per sample and
 column for each of the 96 (or 192) mutation types. Only needed if \code{mcmc_samples} is not provided.}
 
 \item{signatures}{Either a numeric matrix of mutational signatures, with one row per signature and one
 column for each of the 96 (or 192) mutation types, or a list of matrices generated via
 \code{\link{retrieve_pars}}. Only needed if \code{mcmc_samples} is not provided.}
 
-\item{exposures}{Either a numeric matrix of signature exposures, with one row per sample and one column 
-per signature, or a list of exposures as produced by \code{\link{retrieve_pars}}. 
+\item{exposures}{Either a numeric matrix of signature exposures, with one row per sample and one column
+per signature, or a list of exposures as produced by \code{\link{retrieve_pars}}.
 Only needed if \code{mcmc_samples} is not provided.}
 
 \item{opportunities}{Integer matrix; it also admits values \code{"human-genome"} and \code{"human-exome"}.
-Only needed if \code{mcmc_samples} is not provided and \code{signatures} and/or \code{exposures} were 
-obtained using the "EMu" model (\code{method = "emu"}). In that case, these should 
+Only needed if \code{mcmc_samples} is not provided and \code{signatures} and/or \code{exposures} were
+obtained using the "EMu" model (\code{model = "emu"}). In that case, these should
 be the mutational opportunities used for extraction/fitting.}
 
-\item{pdf_path}{Character; if provided, the plots will be output to a PDF file with this path. The PDF 
+\item{pdf_path}{Character; if provided, the plots will be output to a PDF file with this path. The PDF
 size and graphical parameters will be automatically set to appropriate values.}
 
 \item{legend_pos}{Character indicating the position of the legend in the reconstructed spectrum. Admits values
-\code{"bottomright"}, \code{"bottom"}, \code{"bottomleft"}, \code{"left"}, \code{"topleft"}, \code{"top"}, 
+\code{"bottomright"}, \code{"bottom"}, \code{"bottomleft"}, \code{"left"}, \code{"topleft"}, \code{"top"},
 \code{"topright"} (the default), \code{"right"} and \code{"center"}.}
 
 \item{sig_color_palette}{Character vector of colour names or hexadecimal codes to use for each signature.
 Must have at least as many elements as the number of signatures.}
 }
 \description{
-\code{plot_reconstruction} plots the reconstructions of the original mutational catalogues using the 
-signatures and/or exposures obtained through extraction or fitting. If provided with multiple catalogues, 
-it generates one plot per catalogue. Fitting or extraction results can be provided either as a single 
-stanfit object (generated via \code{\link{fit_signatures}} or \code{\link{extract_signatures}}), 
-or as separate signatures and exposures matrices (or lists produced via \code{\link{retrieve_pars}}). 
+\code{plot_reconstruction} plots the reconstructions of the original mutational catalogues using the
+signatures and/or exposures obtained through extraction or fitting. If provided with multiple catalogues,
+it generates one plot per catalogue. Fitting or extraction results can be provided either as a single
+stanfit object (generated via \code{\link{fit_signatures}} or \code{\link{extract_signatures}}),
+or as separate signatures and exposures matrices (or lists produced via \code{\link{retrieve_pars}}).
 Only the former option allows the incorporation of HPD intervals to the reconstructed catalogue.
 }
 \examples{
@@ -53,7 +53,7 @@ Only the former option allows the incorporation of HPD intervals to the reconstr
 data("counts_21breast")
 
 # Extract signatures using the EMu (Poisson) model
-samples <- extract_signatures(counts_21breast, nsignatures = 2, method = "emu",
+samples <- extract_signatures(counts_21breast, nsignatures = 2, model = "emu",
                               opportunities = "human-genome", iter = 800)
 
 # Retrieve signatures and exposures
@@ -62,7 +62,7 @@ exposures <- retrieve_pars(samples, "exposures")
 
 # Plot reconstructed catalogues using stanfit object
 plot_reconstruction(mcmc_samples = samples, pdf_path = "Reconstructions_1.pdf")
-                    
+
 # Plot reconstructed catalogues using retrieved signatures and exposures
 plot_reconstruction(counts = counts_21breast, signatures = signatures, exposures = exposures,
                     opportunities = "human-genome", pdf_path = "Reconstructions_2.pdf")

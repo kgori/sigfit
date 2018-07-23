@@ -4,20 +4,23 @@
 \alias{match_signatures}
 \title{Find the best matches between two sets of signatures}
 \usage{
-match_signatures(sigs_a, sigs_b)
+match_signatures(sigs_a, sigs_b, stat = "cosine")
 }
 \arguments{
-\item{sigs_a}{Signatures estimate; Either a numeric matrix of mutational signatures, 
-with one row per signature and one column per mutation type, or a list of matrices 
+\item{sigs_a}{Signatures estimate; Either a numeric matrix of mutational signatures,
+with one row per signature and one column per mutation type, or a list of matrices
 generated via \code{\link{retrieve_pars}}.}
 
 \item{sigs_b}{Signatures estimate as for \code{sigs_a}.}
+
+\item{stat}{Similarity metric to use when comparing signaturesd. Admits values \code{"cosine"}
+(default, cosine similarity) or \code{"L2"} (L2 norm or Euclidean distance).}
 }
 \value{
-A numeric vector containing, for each signature in \code{sigs_a}, the index 
+A numeric vector containing, for each signature in \code{sigs_a}, the index
 of the closest match in \code{sigs_b}.
 }
 \description{
-\code{match_signatures} compares two independent estimates of signatures to 
+\code{match_signatures} compares two independent estimates of signatures to
 find the closest matches between them.
 }

@@ -21,7 +21,7 @@ parameters {
 transformed parameters {
     // Full signatures matrix
     matrix[T, C] signatures = append_row(fixed_sigs, array_to_matrix(extra_sigs));
-    
+
     // Poisson parameters
     matrix[G, C] expected_counts = activities * signatures .* opps;
 }
@@ -34,7 +34,7 @@ model {
     for (g in 1:G) {
         // Priors for activities
         activities[g] ~ cauchy(0, 1);
-        
+
         // Likelihood
         counts[g] ~ poisson(expected_counts[g]);
     }

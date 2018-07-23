@@ -1,7 +1,18 @@
 CHANGE LOG
 
+2018/07/14
+Major changes introduced in v1.2.0
+
+* Argument `method` has been renamed `model` in all relevant functions.
+* Implemented data frame compatibility, so that input objects to functions chan be either 
+  matrices or data frames.
+* Tables within the list returned by function `retrieve_pars` are now data frames.
+* New vignette section on how to convert between genome- and exome-relative 
+  representations of signatures.
+
+
 2018/04/28
-Major changes introduced in v1.1
+Major changes introduced in v1.1.0
 
  * Objects returned by `sigfit::fit_signatures`, `sigfit::extract_signatures` and
    `sigfit::fit_extract_signatures` are now lists containing both input data and output results.

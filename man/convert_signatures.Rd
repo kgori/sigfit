@@ -11,8 +11,8 @@ convert_signatures(signatures, ref_opportunities, model_to)
 column for each of the 96 (or 192) mutation types, or a list of matrices generated via
 \code{\link{retrieve_pars}}.}
 
-\item{ref_opportunities}{Numeric vector of reference or average mutational opportunities, with 
-one element for each of the 96 (or 192) mutation types. It can also take values \code{"human-genome"} or 
+\item{ref_opportunities}{Numeric vector of reference or average mutational opportunities, with
+one element for each of the 96 (or 192) mutation types. It can also take values \code{"human-genome"} or
 \code{"human-exome"}, in which case the reference human genome/exome mutational opportunities will be used.}
 
 \item{model_to}{Character; model to convert to: either \code{"nmf"} (in which case the signatures will
@@ -30,7 +30,7 @@ This is done by multiplying or dividing each signature by the average mutational
 of the samples, or by the human genome/exome reference trinucleotide frequencies.
 }
 \examples{
-# Fetch COSMIC signatures 
+# Fetch COSMIC signatures
 # These are in "NMF" format, i.e. they are relative
 # to the human genome mutational opportunities
 signatures <- fetch_cosmic_data()
@@ -38,7 +38,7 @@ signatures <- fetch_cosmic_data()
 # Plot COSMIC signature 1
 barplot(signatures[1,])
 
-# Convert signatures to the "EMu" format, i.e. make 
+# Convert signatures to the "EMu" format, i.e. make
 # them not relative to mutational opportunities
 converted_signatures <- convert_signatures(signatures,
                                            ref_opportunities = "human-genome",

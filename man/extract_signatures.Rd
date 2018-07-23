@@ -4,31 +4,30 @@
 \alias{extract_signatures}
 \title{Extract signatures from a set of mutation counts}
 \usage{
-extract_signatures(counts, nsignatures, method = "nmf",
-  opportunities = NULL, sig_prior = NULL, exp_prior = 1,
-  stanfunc = "sampling", ...)
+extract_signatures(counts, nsignatures, model = "nmf", opportunities = NULL,
+  sig_prior = NULL, exp_prior = 1, stanfunc = "sampling", ...)
 }
 \arguments{
-\item{counts}{Integer matrix of observed mutation counts, with one row per sample and 
+\item{counts}{Integer matrix of observed mutation counts, with one row per sample and
 one column per mutation type.}
 
 \item{nsignatures}{Integer or integer vector; number(s) of signatures to extract.}
 
-\item{method}{Character; model to sample from. Admits values \code{"nmf"} (default) or \code{"emu"}.}
+\item{model}{Character; model to sample from. Admits values \code{"nmf"} (default) or \code{"emu"}.}
 
-\item{opportunities}{Numeric matrix of optional mutational opportunities for the "EMu" model 
-(\code{method = "emu"}) method. Must be a matrix with same dimension as \code{counts}. 
-Alternatively, it also admits character values \code{"human-genome"} or \code{"human-exome"}, 
+\item{opportunities}{Numeric matrix of optional mutational opportunities for the "EMu" model
+(\code{model = "emu"}). Must be a matrix with same dimension as \code{counts}.
+Alternatively, it also admits character values \code{"human-genome"} or \code{"human-exome"},
 in which case the reference human genome/exome opportunities will be used for every sample.}
 
-\item{sig_prior}{Numeric matrix with one row per signature and one column per category, to be used as the Dirichlet 
+\item{sig_prior}{Numeric matrix with one row per signature and one column per category, to be used as the Dirichlet
 priors for the signatures to be extracted. Only used when \code{nsignatures} is a scalar.
 Default priors are uniform (uninformative).}
 
 \item{exp_prior}{Numeric; hyperparameter of the Dirichlet prior given to the exposures. Default value is 1 (uniform, uninformative).}
 
 \item{stanfunc}{Character; choice of rstan inference strategy. Admits values \code{"sampling"}, \code{"optimizing"}
-and \code{"vb"}. \code{"sampling"} is the full Bayesian MCMC approach, and is the default. 
+and \code{"vb"}. \code{"sampling"} is the full Bayesian MCMC approach, and is the default.
 \code{"optimizing"} returns the Maximum a Posteriori (MAP) point estimates via numerical optimization.
 \code{"vb"} uses Variational Bayes to approximate the full posterior.}
 
@@ -39,15 +38,15 @@ and \code{"vb"}. \code{"sampling"} is the full Bayesian MCMC approach, and is th
 A list with two elements:
 \itemize{
  \item{\code{$data}: list containing the input data supplied to the model.}
- \item{\code{$result}: object of class stanfit, containing the output MCMC samples, 
+ \item{\code{$result}: object of class stanfit, containing the output MCMC samples,
  as well as information about the model and sampling process.}}
-The model parameters (such as signatures and exposures) can be extracted from this 
+The model parameters (such as signatures and exposures) can be extracted from this
 object using \code{\link{retrieve_parameters}}.
 If a range of numbers of signatures is provided via the \code{nsignatures} argument, a list is returned where
 the N-th element contains the extraction results for N signatures, as a list with the structure described above.
 }
 \description{
-\code{extract_signatures} runs MCMC sampling to extract a set of mutational signatures 
+\code{extract_signatures} runs MCMC sampling to extract a set of mutational signatures
 and their exposures from a collection of mutational catalogues.
 }
 \examples{
@@ -56,12 +55,12 @@ data("counts_21breast")
 
 # Extract 2 to 6 signatures using the NMF (multinomial) model
 # (400 warmup iterations + 400 sampling iterations - use more in practice)
-samples_nmf <- extract_signatures(counts_21breast, nsignatures = 2:6, 
-                                  method = "nmf", iter = 800)
+samples_nmf <- extract_signatures(counts_21breast, nsignatures = 2:6,
+                                  model = "nmf", iter = 800)
 
 # Extract 4 signatures using the EMu (Poisson) model
 # (400 warmup iterations + 800 sampling iterations - use more in practice)
-samples_emu <- extract_signatures(counts_21breast, nsignatures = 4, method = "emu", 
+samples_emu <- extract_signatures(counts_21breast, nsignatures = 4, model = "emu",
                                   opportunities = "human-genome",
                                   iter = 1200, warmup = 400)
 }
