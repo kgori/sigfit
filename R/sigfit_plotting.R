@@ -313,8 +313,8 @@ plot_reconstruction <- function(mcmc_samples = NULL, counts = NULL, signatures =
         }
     }
 
-    # Force counts to matrix
-    counts <- to_matrix(counts)
+    # Force counts to (integer) matrix
+    counts <- to_matrix(counts, int = TRUE)
     if (!(ncol(counts) %in% c(96, 192))) {
         stop("This function is only available for data with 96 or 192 mutation types.")
     }

@@ -44,7 +44,7 @@ fit_signatures <- function(counts, signatures, exp_prior = NULL, model = "nmf",
                            opportunities = NULL, ...) {
 
     # Force counts and signatures to matrix
-    counts <- to_matrix(counts)
+    counts <- to_matrix(counts, int = TRUE)
     signatures <- to_matrix(signatures)
 
     # Add pseudocounts to signatures
@@ -211,8 +211,8 @@ extract_signatures <- function(counts, nsignatures, model = "nmf", opportunities
 
     stopifnot(is.numeric(exp_prior) & exp_prior > 0)
 
-    # Force counts to matrix
-    counts <- to_matrix(counts)
+    # Force counts to (integer) matrix
+    counts <- to_matrix(counts, int = TRUE)
 
     NSAMP <- nrow(counts)
     NCAT <- ncol(counts)
@@ -394,7 +394,7 @@ fit_extract_signatures <- function(counts, signatures, num_extra_sigs,
     stopifnot(is.numeric(exp_prior) & exp_prior > 0)
 
     # Force counts and signatures to matrix
-    counts <- to_matrix(counts)
+    counts <- to_matrix(counts, int = TRUE)
     signatures <- to_matrix(signatures)
 
     # Add pseudocounts to signatures
