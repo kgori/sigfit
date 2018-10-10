@@ -36,7 +36,7 @@ match_signatures <- function(sigs_a, sigs_b, stat = "cosine") {
 }
 
 #' Initial coercion to matrix for signatures/exposures/counts
-to_matrix <- function(x) {
+to_matrix <- function(x, int = FALSE) {
     # If x is coming from retrieve_pars, get mean
     if (is.list(x) & "mean" %in% names(x))
         x <- x$mean
@@ -46,6 +46,11 @@ to_matrix <- function(x) {
     # Otherwise, try coercing to matrix
     if (!is.matrix(x))
         x <- as.matrix(x)
+    # For counts matrix: if real-valued, round
+    if (int & !all(x == round(x))) {
+        x <- round(x)
+        warning("Non-integer values in 'counts' have been rounded.")
+    }
     x
 }
 
