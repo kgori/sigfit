@@ -597,7 +597,7 @@ plot_spectrum <- function(spectra, name = NULL, pdf_path = NULL, max_y = NULL) {
             if (counts) {
                 axis(side = 2, las = 2, cex.axis = 1.25)
                 label <- "Mutations"
-                n_text <- paste0(" (", sum(spec[i,]), " mutations)")
+                n_text <- paste0(" (", prettyNum(sum(spec[i,]), big.mark = ","), " mutations)")
             }
             else {
                 axis(side = 2, at = seq(0, samp_max_y, 0.05), las = 2, cex.axis = 1.25)
@@ -669,7 +669,7 @@ plot_spectrum <- function(spectra, name = NULL, pdf_path = NULL, max_y = NULL) {
             if (counts) {
                 axis(side = 2, las = 2, cex.axis = 1.25)
                 label <- "Mutations"
-                n_text <- paste0(" (", sum(spec[i,]), " mutations)")
+                n_text <- paste0(" (", prettyNum(sum(spec[i,]), big.mark = ","), " mutations)")
             }
             else {
                 axis(side = 2, at = seq(0, samp_max_y, 0.05), las = 2, cex.axis = 1.25)
