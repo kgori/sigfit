@@ -263,10 +263,17 @@ build_catalogues <- function(variants) {
     if (!is.matrix(variants)) {
         variants <- as.matrix(variants)
     }
-
+    
+    # Exclude any trinucleotides containing undefined bases
+    idx <- !grepl("(A|C|G|T){3}", variants[, 4])
+    if (any(idx)) {
+        warning(sum(idx), " variants have an invalid trinucleotide context and will be omitted.")
+        variants <- variants[!idx, ]
+    }
+    
     # Check that REF base coincides with middle base in trinucleotide
     if (any(variants[, 2] != substr(variants[, 4], 2, 2))) {
-        stop("REF base (column 2) is not equal to middle base of the trinucleotide (column 4).")
+        stop("Reference allele (column 2) does not match the middle base of the trinucleotide context (column 4) in some variant(s).")
     }
 
     # Make catalogue matrix with one row per sample
