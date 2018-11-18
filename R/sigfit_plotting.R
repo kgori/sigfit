@@ -273,6 +273,10 @@ plot_gof <- function(sample_list, stat = "cosine") {
 #' be the mutational opportunities used for extraction/fitting.
 #' @param pdf_path Character; if provided, the plots will be output to a PDF file with this path. The PDF
 #' size and graphical parameters will be automatically set to appropriate values.
+#' @param pdf_width Integer indicating the width (in inches) of the output PDF. Only used if \code{pdf_path}
+#' is provided; the default value is 24.
+#' @param pdf_height Integer indicating the height (in inches) of the output PDF. Only used if \code{pdf_path}
+#' is provided; the default value is 18.
 #' @param legend_pos Character indicating the position of the legend in the reconstructed spectrum. Admits values
 #' \code{"bottomright"}, \code{"bottom"}, \code{"bottomleft"}, \code{"left"}, \code{"topleft"}, \code{"top"},
 #' \code{"topright"} (the default), \code{"right"} and \code{"center"}.
@@ -301,8 +305,8 @@ plot_gof <- function(sample_list, stat = "cosine") {
 #' @export
 plot_reconstruction <- function(mcmc_samples = NULL, counts = NULL, signatures = NULL,
                                 exposures = NULL, opportunities = NULL, pdf_path = NULL,
-                                legend_pos = "topright", sig_color_palette = NULL) {
-
+                                pdf_width = 24, pdf_height = 18, legend_pos = "topright", 
+                                sig_color_palette = NULL) {
     if (!is.null(mcmc_samples)) {
         counts <- mcmc_samples$data$counts
         opportunities <- mcmc_samples$data$opps
@@ -397,11 +401,11 @@ plot_reconstruction <- function(mcmc_samples = NULL, counts = NULL, signatures =
 
     if (!is.null(pdf_path)) {
         stopifnot(is.character(pdf_path))
-        pdf(pdf_path, width = 24, height = 18)
+        cairo_pdf(pdf_path, width = pdf_width, height = pdf_height, onefile = TRUE)
         par(mar = c(6, 8, 6, 2.75), oma = c(3, 0, 2, 0))
     }
     par(mfrow = c(2, 1))
-
+    
     # Default spectrum (NCAT=96)
     if (!strand) {
         for (i in 1:NSAMP) {
@@ -502,7 +506,7 @@ plot_reconstruction <- function(mcmc_samples = NULL, counts = NULL, signatures =
 
     par(mfrow = c(1, 1))
     if (!is.null(pdf_path)) {
-        dev.off()
+        invisible(dev.off())
     }
 }
 
@@ -521,6 +525,10 @@ plot_reconstruction <- function(mcmc_samples = NULL, counts = NULL, signatures =
 #' @param name Character; name to include in the plot title. Useful when plotting a single spectrum.
 #' @param pdf_path Character; if provided, the plots will be output to a PDF file with this path. The PDF
 #' size and graphical parameters will be automatically set to appropriate values.
+#' @param pdf_width Integer indicating the width (in inches) of the output PDF. Only used if \code{pdf_path}
+#' is provided; the default value is 24.
+#' @param pdf_height Integer indicating the height (in inches) of the output PDF. Only used if \code{pdf_path}
+#' is provided; the default value is 10.
 #' @param max_y Numeric; fixed higher limit of the y-axis (if necessary).
 #' @examples
 #' # Load example mutational catalogues
@@ -539,7 +547,8 @@ plot_reconstruction <- function(mcmc_samples = NULL, counts = NULL, signatures =
 #' # Plot signatures
 #' plot_spectrum(sigs, pdf_path = "Signatures.pdf")
 #' @export
-plot_spectrum <- function(spectra, name = NULL, pdf_path = NULL, max_y = NULL) {
+plot_spectrum <- function(spectra, name = NULL, pdf_path = NULL, 
+                          pdf_width = 24, pdf_height = 10, max_y = NULL) {
     # Fetch HPD interval values, if present
     if (is.list(spectra) & "mean" %in% names(spectra)) {
         spec <- to_matrix(spectra$mean)
@@ -571,7 +580,7 @@ plot_spectrum <- function(spectra, name = NULL, pdf_path = NULL, max_y = NULL) {
     BACKLIM <- c(0, 46.5, 93, 139.5, 186, 232.5, 279)
 
     if (!is.null(pdf_path)) {
-        pdf(pdf_path, width = 24, height = 10.5)
+        cairo_pdf(pdf_path, width = pdf_width, height = pdf_height, onefile = TRUE)
         par(mar = c(9, 8, 6, 2.75))
     }
 
@@ -702,7 +711,7 @@ plot_spectrum <- function(spectra, name = NULL, pdf_path = NULL, max_y = NULL) {
     }
 
     if (!is.null(pdf_path)) {
-        dev.off()
+        invisible(dev.off())
     }
 }
 
@@ -715,6 +724,10 @@ plot_spectrum <- function(spectra, name = NULL, pdf_path = NULL, max_y = NULL) {
 #' combination of arguments \code{counts}, \code{exposures} and \code{signature_names}.
 #' @param pdf_path Character; if provided, the plots will be output to a PDF file with this path. The PDF
 #' size and graphical parameters will be automatically set to appropriate values.
+#' @param pdf_width Integer indicating the width (in inches) of the output PDF. Only used if \code{pdf_path}
+#' is provided; the default value depends on the number of samples.
+#' @param pdf_height Integer indicating the height (in inches) of the output PDF. Only used if \code{pdf_path}
+#' is provided; the default value depends on the number of samples.
 #' @param counts Integer matrix of observed mutation counts, with one row per sample and
 #' column for each of the 96 (or 192) mutation types. Only needed if \code{mcmc_samples} is not provided.
 #' @param exposures Either a numeric matrix of signature exposures, with one row per sample and one column
@@ -753,9 +766,10 @@ plot_spectrum <- function(spectra, name = NULL, pdf_path = NULL, max_y = NULL) {
 #'                signature_names = rownames(cosmic_signatures),
 #'                pdf_path = "Exposures.pdf")
 #' @export
-plot_exposures <- function(mcmc_samples = NULL, pdf_path = NULL, counts = NULL, exposures = NULL,
-                           signature_names = NULL, thresh = 0.01, hpd_prob = 0.95,
-                           horiz_labels = FALSE, legend_pos = "topright", sig_color_palette = NULL) {
+plot_exposures <- function(mcmc_samples = NULL, pdf_path = NULL, pdf_width = 12, pdf_height = 12,
+                           counts = NULL, exposures = NULL, signature_names = NULL, thresh = 0.01, 
+                           hpd_prob = 0.95, horiz_labels = FALSE, legend_pos = "topright", 
+                           sig_color_palette = NULL) {
     if (is.null(mcmc_samples) & (is.null(counts) | is.null(exposures))) {
         stop("Either 'mcmc_samples', or both 'counts' and 'exposures', must be provided.")
     }
@@ -804,7 +818,13 @@ plot_exposures <- function(mcmc_samples = NULL, pdf_path = NULL, counts = NULL, 
 
     if (!is.null(pdf_path)) {
         # PDF width increases with number of samples
-        pdf(pdf_path, width = max(NSAMP * 0.13, 12), height = ifelse(NSAMP > 1, 12, 7))
+        if (pdf_width == 12) {
+            pdf_width <- max(pdf_width, NSAMP * 0.13)
+        }
+        if (pdf_height == 12 & NSAMP == 1) {
+            pdf_height <- 7
+        }
+        cairo_pdf(pdf_path, width = pdf_width, height = pdf_height, onefile = TRUE)
         par(mar = c(6, 0, 4, 0), oma = c(1, 6, 1, 0))
     }
 
@@ -872,6 +892,6 @@ plot_exposures <- function(mcmc_samples = NULL, pdf_path = NULL, counts = NULL, 
 
     par(mfrow = c(1, 1), lwd = 1)
     if (!is.null(pdf_path)) {
-        dev.off()
+        invisible(dev.off())
     }
 }
