@@ -4,10 +4,10 @@
 \alias{plot_exposures}
 \title{Plot signature exposures}
 \usage{
-plot_exposures(mcmc_samples = NULL, pdf_path = NULL, counts = NULL,
-  exposures = NULL, signature_names = NULL, thresh = 0.01,
-  hpd_prob = 0.95, horiz_labels = FALSE, legend_pos = "topright",
-  sig_color_palette = NULL)
+plot_exposures(mcmc_samples = NULL, pdf_path = NULL, pdf_width = 12,
+  pdf_height = 12, counts = NULL, exposures = NULL,
+  signature_names = NULL, thresh = 0.01, hpd_prob = 0.95,
+  horiz_labels = FALSE, legend_pos = "topright", sig_color_palette = NULL)
 }
 \arguments{
 \item{mcmc_samples}{List with elements \code{$data} and \code{$results}, produced via either
@@ -17,6 +17,12 @@ combination of arguments \code{counts}, \code{exposures} and \code{signature_nam
 
 \item{pdf_path}{Character; if provided, the plots will be output to a PDF file with this path. The PDF
 size and graphical parameters will be automatically set to appropriate values.}
+
+\item{pdf_width}{Integer indicating the width (in inches) of the output PDF. Only used if \code{pdf_path}
+is provided; the default value depends on the number of samples.}
+
+\item{pdf_height}{Integer indicating the height (in inches) of the output PDF. Only used if \code{pdf_path}
+is provided; the default value depends on the number of samples.}
 
 \item{counts}{Integer matrix of observed mutation counts, with one row per sample and
 column for each of the 96 (or 192) mutation types. Only needed if \code{mcmc_samples} is not provided.}

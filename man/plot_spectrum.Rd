@@ -4,7 +4,8 @@
 \alias{plot_spectrum}
 \title{Plot mutational spectra}
 \usage{
-plot_spectrum(spectra, name = NULL, pdf_path = NULL, max_y = NULL)
+plot_spectrum(spectra, name = NULL, pdf_path = NULL, pdf_width = 24,
+  pdf_height = 10, max_y = NULL)
 }
 \arguments{
 \item{spectra}{Either a numeric vector with one element for each of the 96 (or 192) mutation types,
@@ -17,6 +18,12 @@ Row names will be adopted as the sample/signature names.}
 
 \item{pdf_path}{Character; if provided, the plots will be output to a PDF file with this path. The PDF
 size and graphical parameters will be automatically set to appropriate values.}
+
+\item{pdf_width}{Integer indicating the width (in inches) of the output PDF. Only used if \code{pdf_path}
+is provided; the default value is 24.}
+
+\item{pdf_height}{Integer indicating the height (in inches) of the output PDF. Only used if \code{pdf_path}
+is provided; the default value is 10.}
 
 \item{max_y}{Numeric; fixed higher limit of the y-axis (if necessary).}
 }

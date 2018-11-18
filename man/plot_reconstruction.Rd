@@ -6,7 +6,8 @@
 \usage{
 plot_reconstruction(mcmc_samples = NULL, counts = NULL, signatures = NULL,
   exposures = NULL, opportunities = NULL, pdf_path = NULL,
-  legend_pos = "topright", sig_color_palette = NULL)
+  pdf_width = 24, pdf_height = 18, legend_pos = "topright",
+  sig_color_palette = NULL)
 }
 \arguments{
 \item{mcmc_samples}{List with elements \code{$data} and \code{$results}, produced via either
@@ -32,6 +33,12 @@ be the mutational opportunities used for extraction/fitting.}
 
 \item{pdf_path}{Character; if provided, the plots will be output to a PDF file with this path. The PDF
 size and graphical parameters will be automatically set to appropriate values.}
+
+\item{pdf_width}{Integer indicating the width (in inches) of the output PDF. Only used if \code{pdf_path}
+is provided; the default value is 24.}
+
+\item{pdf_height}{Integer indicating the height (in inches) of the output PDF. Only used if \code{pdf_path}
+is provided; the default value is 18.}
 
 \item{legend_pos}{Character indicating the position of the legend in the reconstructed spectrum. Admits values
 \code{"bottomright"}, \code{"bottom"}, \code{"bottomleft"}, \code{"left"}, \code{"topleft"}, \code{"top"},
