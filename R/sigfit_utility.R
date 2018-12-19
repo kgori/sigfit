@@ -23,7 +23,7 @@ match_signatures <- function(sigs_a, sigs_b, stat = "cosine") {
                      "L2" = l2_norm)
     if (is.null(sim_fn)) {
         stop(paste0("'stat' only admits values \"cosine\" and \"L2\".\n",
-                    "Type ?match_signatures to see the documentation."))
+                    "Type ?match_signatures to read the documentation."))
     }
 
     m <- matrix(0.0, nrow = nA, ncol = nB)
@@ -224,16 +224,17 @@ human_trinuc_freqs <- function(type = "human-genome", strand = FALSE) {
 #'
 #' \code{build_catalogues} generates a set of mutational catalogues from a table containing
 #' the base change and trinucleotide context of each single-nucleotide variant in every sample.
-#' @param variants Character matrix with one row per single-nucleotide variant, and four (or five) columns:
+#' @param variants Character matrix or data frame with one row per single-nucleotide variant,
+#' and four/five columns:
 #' \itemize{
 #'  \item{Sample ID (character, e.g. "Sample 1").}
 #'  \item{Reference allele (character: "A", "C", "G", or "T").}
 #'  \item{Alternate allele (character: "A", "C", "G", or "T").}
-#'  \item{Trinucleotide context of the variant (character; the reference sequence between the positions
-#'  immediately before and after the variant; e.g. "TCA").}
-#'  \item{Optional: transcriptional strand of the variant (character: "T" for transcribed,
-#'  or "U" for untranscribed). If this column is included, a transcriptional-strand-wise representation of
-#'  catalogues will be used.}
+#'  \item{Trinucleotide context of the variant (character; the reference sequence between the
+#'  positions immediately before and after the variant; e.g. "TCA").}
+#'  \item{Optional: transcriptional strand of the variant (character/numeric: 1 or "1" or "U" for 
+#'  untranscribed; -1 or "-1" or "T" for transcribed). If this column is included, a 
+#'  transcriptional-strand-wise representation of catalogues will be used.}
 #' }
 #' @return An integer matrix of mutation counts, where each row corresponds to a sample and each column
 #' corresponds to one of the 96 (or 192) trinucleotide mutation types.
@@ -248,13 +249,15 @@ human_trinuc_freqs <- function(type = "human-genome", strand = FALSE) {
 #' @export
 build_catalogues <- function(variants) {
     if (!(ncol(variants) %in% c(4, 5))) {
-        stop("'variants' must be a matrix with 4 or 5 columns and one row per variant.\nType ?build_catalogues to see the documentation.")
+        stop("'variants' must be a matrix or data frame with four/five columns and one row per variant.\nType ?build_catalogues to read the documentation.")
     }
     if (ncol(variants) == 5) {
+        variants[, 5] <- gsub("1", "U",
+                              gsub("-1", "T", as.character(variants[, 5])))
         if (!all(unique(variants[, 5] %in% c("T", "U")))) {
-            stop("The fifth column of 'variants' (transcriptional strand) can only contain \"T\" or \"U\" values.\nType ?build_catalogues to see the documentation.")
+            stop("The fifth column of 'variants' (transcriptional strand) can only contain values: 1, -1, \"1\", \"-1\", \"T\", \"U\".\nType ?build_catalogues to read the documentation.")
         }
-        cat("'variants' has 5 columns: transcriptional-strand-wise catalogues will be generated\n")
+        cat("'variants' has 5 columns: transcriptional-strand-wise catalogues will be generated.\n")
         strand <- TRUE
     }
     else {
@@ -281,7 +284,7 @@ build_catalogues <- function(variants) {
     catalogues <- t(sapply(samples, function(sample) {
         # Select mutations from sample
         idx <- variants[, 1] == sample
-
+        
         # Obtain mutation types, collapsed such that they refer to pyrimidine bases
         vars_collapsed <- apply(variants[idx, ], 1, function(var) {
             if (var[2] %in% c("C", "T")) {
@@ -305,7 +308,7 @@ build_catalogues <- function(variants) {
                 paste0(paste(trinuc, collapse=""), ">", trinuc[1], alt, trinuc[3])
             }
         })
-
+        
         # Count number of occurrences of each mutation type
         stopifnot(all(vars_collapsed %in% mut_types(strand)))
         sapply(mut_types(strand), function(type) {
@@ -349,10 +352,10 @@ fetch_cosmic_data <- function(reorder = TRUE, remove_zeros = TRUE) {
 #' This is done by multiplying or dividing each signature by the average mutational opportunities
 #' of the samples, or by the human genome/exome reference trinucleotide frequencies.
 #' @param signatures Either a numeric matrix of mutational signatures, with one row per signature and one
-#' column for each of the 96 (or 192) mutation types, or a list of matrices generated via
+#' one column per mutation type, or a list of matrices generated via
 #' \code{\link{retrieve_pars}}.
 #' @param ref_opportunities Numeric vector of reference or average mutational opportunities, with
-#' one element for each of the 96 (or 192) mutation types. It can also take values \code{"human-genome"} or
+#' one element per mutation type. It can also take character values \code{"human-genome"} or
 #' \code{"human-exome"}, in which case the reference human genome/exome mutational opportunities will be used.
 #' @param model_to Character; model to convert to: either \code{"nmf"} (in which case the signatures will
 #' be multiplied by the opportunities) or \code{"emu"} (in which case the signatures will be divided
@@ -411,13 +414,14 @@ convert_signatures <- function(signatures, ref_opportunities, model_to) {
 
 #' Retrieve model parameters
 #'
-#' \code{retrieve_pars} obtains summary values for a set of model parameters (signatures or exposures) from a stanfit object.
-#' @param mcmc_samples List with elements \code{$data} and \code{$results}, produced via either
+#' \code{retrieve_pars} obtains summary values for a set of model parameters (signatures or exposures) 
+#' from a stanfit object.
+#' @param mcmc_samples List with elements \code{\`data\`} and \code{\`results\`}, produced via either
 #' \code{\link{fit_signatures}}, \code{\link{extract_signatures}} or \code{\link{fit_extract_signatures}}.
 #' @param par Character; name of the parameter set to extract. Can take values: \code{"signatures"},
 #' \code{"exposures"}, \code{"activities"} or \code{"reconstructions"}.
-#' @param hpd_prob Numeric; a value in the interval (0, 1), giving the target probability content of
-#' the HPD intervals. (Default is 0.95.)
+#' @param hpd_prob Numeric; a value in the interval (0, 1), indicating the desired probability content of
+#' the HPD intervals (default is 0.95).
 #' @return A list of three matrices, which respectively contain the values corresponding to the
 #' mean of the model parameter of interest, and those corresponding to the lower and upper ends of its HPD interval.
 #' @examples
@@ -534,7 +538,7 @@ retrieve_pars <- function(mcmc_samples, par, hpd_prob = 0.95) {
 }
 
 #' Generate posterior predictive check values from a model
-#' @param mcmc_samples List with elements \code{$data} and \code{$results}, produced via either
+#' @param mcmc_samples List with elements \code{\`data\`} and \code{\`results\`}, produced via either
 #' \code{\link{fit_signatures}}, \code{\link{extract_signatures}} or \code{\link{fit_extract_signatures}}.
 #' @importFrom "stats" rmultinom rpois
 #' @export
@@ -565,7 +569,7 @@ simulate_ppc <- function(mcmc_samples) {
 }
 
 #' Generate log likelihood values from a model
-#' @param mcmc_samples List with elements \code{$data} and \code{$results}, produced via either
+#' @param mcmc_samples List with elements \code{\`data\`} and \code{\`results\`}, produced via either
 #' \code{\link{fit_signatures}}, \code{\link{extract_signatures}} or \code{\link{fit_extract_signatures}}.
 #' @importFrom "stats" dmultinom dpois
 #' @export
@@ -599,7 +603,7 @@ get_loglik <- function(mcmc_samples) {
 }
 
 #' Generate reconstructed mutation catalogues from parameters estimated from MCMC samples
-#' @param mcmc_samples List with elements \code{$data} and \code{$results}, produced via either
+#' @param mcmc_samples List with elements \code{\`data\`} and \code{\`results\`}, produced via either
 #' \code{\link{fit_signatures}}, \code{\link{extract_signatures}} or \code{\link{fit_extract_signatures}}.
 #' @importFrom "rstan" extract
 #' @importFrom "coda" HPDinterval
