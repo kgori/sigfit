@@ -9,7 +9,7 @@ fit_signatures(counts, signatures, exp_prior = NULL, model = "nmf",
 }
 \arguments{
 \item{counts}{Integer matrix of observed mutation counts, with one row per sample and
-one column per mutation type.}
+one column per mutation type. Any decimal values will be rounded to integers.}
 
 \item{signatures}{Mutational signatures to be fitted. Either a numeric matrix with one row per signature
 and one column per mutation type, or a list of matrices generated via

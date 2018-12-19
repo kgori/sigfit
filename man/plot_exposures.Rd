@@ -4,52 +4,53 @@
 \alias{plot_exposures}
 \title{Plot signature exposures}
 \usage{
-plot_exposures(mcmc_samples = NULL, pdf_path = NULL, pdf_width = 12,
-  pdf_height = 12, counts = NULL, exposures = NULL,
+plot_exposures(mcmc_samples = NULL, counts = NULL, exposures = NULL,
   signature_names = NULL, thresh = 0.01, hpd_prob = 0.95,
-  horiz_labels = FALSE, legend_pos = "topright", sig_color_palette = NULL)
+  pdf_path = NULL, pdf_width = 24, pdf_height = 10,
+  margin_bottom = 10.5, legend_pos = "topright", sig_color_palette = NULL)
 }
 \arguments{
-\item{mcmc_samples}{List with elements \code{$data} and \code{$results}, produced via either
+\item{mcmc_samples}{List with elements \code{\`data\`} and \code{\`results\`}, produced via either
 \code{\link{fit_signatures}}, \code{\link{extract_signatures}} or \code{\link{fit_extract_signatures}}.
-This should be the preferred option for supplying data and results, but can be replaced by the
+This is the preferred option for supplying data and results, but can be replaced by the
 combination of arguments \code{counts}, \code{exposures} and \code{signature_names}.}
 
-\item{pdf_path}{Character; if provided, the plots will be output to a PDF file with this path. The PDF
-size and graphical parameters will be automatically set to appropriate values.}
-
-\item{pdf_width}{Integer indicating the width (in inches) of the output PDF. Only used if \code{pdf_path}
-is provided; the default value depends on the number of samples.}
-
-\item{pdf_height}{Integer indicating the height (in inches) of the output PDF. Only used if \code{pdf_path}
-is provided; the default value depends on the number of samples.}
-
 \item{counts}{Integer matrix of observed mutation counts, with one row per sample and
-column for each of the 96 (or 192) mutation types. Only needed if \code{mcmc_samples} is not provided.}
+column for each mutation type. Only needed if \code{mcmc_samples} is not provided.}
 
 \item{exposures}{Either a numeric matrix of signature exposures, with one row per sample and one column
 per signature, or a list of exposures as produced by \code{\link{retrieve_pars}}.
 Only needed if \code{mcmc_samples} is not provided.}
 
 \item{signature_names}{Character vector containing the signature names. Only needed if \code{mcmc_samples}
-is not provided and the exposures were obtained through signature fitting (not extraction).}
+is not provided and the exposures were obtained through signature fitting (as opposed to extraction).}
 
-\item{thresh}{Numeric; minimum probability value that should be reached by the lower end of exposure HPD
-intervals. The exposures for which the lower HPD bound is below this value will be colored in grey.
-(Default is 0.01.)}
+\item{thresh}{Numeric; minimum required value for the lower bound of HPD intervals of signature
+exposures (default is 0.01). Those exposures for which the lower bound is below this value will be 
+colored in grey.}
 
-\item{hpd_prob}{Numeric; a value in the interval (0, 1), giving the target probability content of
-the HPD intervals. (Default is 0.95.)}
+\item{hpd_prob}{Numeric; a value in the interval (0, 1), indicating the desired probability content of
+the HPD intervals (default is 0.95).}
 
-\item{horiz_labels}{Logical; if \code{TRUE}, sample name labels will be displayed horizontally in the
-barplots. (Default is \code{FALSE}.)}
+\item{pdf_path}{Character; if provided, the plots will be output to a PDF file with the provided 
+path. The PDF dimensions and graphical parameters will be automatically set to appropriate values,
+unless custom dimensions are specified via the arguments \code{pdf_width} and \code{pdf_height}.}
 
-\item{legend_pos}{Character indicating the position of the legend in the exposures barplot. Admits values
-\code{"bottomright"}, \code{"bottom"}, \code{"bottomleft"}, \code{"left"}, \code{"topleft"}, \code{"top"},
-\code{"topright"} (default), \code{"right"} and \code{"center"}.}
+\item{pdf_width}{Integer indicating the width of the output PDF (in inches; default value depends
+on the number of samples). Only used if \code{pdf_path} is provided.}
 
-\item{sig_color_palette}{Character vector of color names or hexadecimal codes to use for each signature.
-Must have at least as many elements as the number of signatures.}
+\item{pdf_height}{Integer indicating the height of the output PDF (in inches, default is 8). 
+Only used if \code{pdf_path} is provided.}
+
+\item{margin_bottom}{Numeric; bottom margin of the plot (in inches, default is 10.5).
+Only used if \code{pdf_path} is provided.}
+
+\item{legend_pos}{Character indicating the position of the legend in the exposures barplot. Admits 
+values \code{"top"}, \code{"bottom"}, \code{"center"}, \code{"left"}, \code{"right"}, 
+\code{"topleft"}, \code{"topright"} (the default), \code{"bottomleft"} and \code{"bottomright"}.}
+
+\item{sig_color_palette}{Character vector of custom color names or hexadecimal codes to use for 
+each signature. Must have at least as many elements as the number of signatures.}
 }
 \description{
 \code{plot_exposures} plots the distribution of signature exposures across the samples.

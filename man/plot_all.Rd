@@ -6,14 +6,14 @@
 \usage{
 plot_all(mcmc_samples = NULL, out_path, prefix = NULL, counts = NULL,
   signatures = NULL, exposures = NULL, opportunities = NULL,
-  thresh = 0.01, horiz_labels = FALSE, hpd_prob = 0.95,
+  thresh = 0.01, hpd_prob = 0.95, exp_margin_bottom = 10.5,
   signature_names = NULL, exp_legend_pos = "topright",
   rec_legend_pos = "topright", sig_color_palette = NULL)
 }
 \arguments{
-\item{mcmc_samples}{List with elements \code{$data} and \code{$results}, produced via either
+\item{mcmc_samples}{List with elements \code{\`data\`} and \code{\`results\`}, produced via either
 \code{\link{fit_signatures}}, \code{\link{extract_signatures}} or \code{\link{fit_extract_signatures}}.
-This should be the preferred option for supplying data and results, but can be replaced by the
+This is the preferred option for supplying data and results, but can be replaced by the
 combination of arguments \code{counts}, \code{signatures}, \code{exposures} and \code{opportunities}.}
 
 \item{out_path}{Character; path to the directory where the output PDF files will be stored.
@@ -22,42 +22,48 @@ Will be created if it does not exist.}
 \item{prefix}{Character; optional prefix to be added to the output file names.}
 
 \item{counts}{Integer matrix of observed mutation counts, with one row per sample and
-column for each of the 96 (or 192) mutation types. Only needed if \code{mcmc_samples} is not provided.}
+one column per mutation type. Only needed if \code{mcmc_samples} is not provided.}
 
-\item{signatures}{Either a numeric matrix of mutational signatures, with one row per signature and one
-column for each of the 96 (or 192) mutation types, or a list of matrices generated via
+\item{signatures}{Either a numeric matrix of mutational signatures, with one row per signature and
+one column per mutation type, or a list of matrices generated via
 \code{\link{retrieve_pars}}. Only needed if \code{mcmc_samples} is not provided.}
 
-\item{exposures}{Either a numeric matrix of signature exposures, with one row per sample and one column
-per signature, or a list of exposures as produced by \code{\link{retrieve_pars}}.
+\item{exposures}{Either a numeric matrix of signature exposures, with one row per sample and one
+column per signature, or a list of exposures as produced by \code{\link{retrieve_pars}}.
 Only needed if \code{mcmc_samples} is not provided.}
 
-\item{opportunities}{Integer matrix; it also admits values \code{"human-genome"} and \code{"human-exome"}.
-Only needed if \code{mcmc_samples} is not provided and \code{signatures} and/or \code{exposures} were
-obtained using the "EMu" model (\code{model = "emu"}). In that case, these should
-be the mutational opportunities used for extraction/fitting.}
+\item{opportunities}{Integer matrix of mutational opportunities; it also admits character values 
+\code{"human-genome"} and \code{"human-exome"}. Only needed if \code{mcmc_samples} is not provided 
+and \code{signatures} and/or \code{exposures} were obtained using the "EMu" model (\code{model = "emu"}).
+In that case, these should be the mutational opportunities used for extraction/fitting.}
 
-\item{thresh}{Numeric; minimum probability value that should be reached by the lower end of exposure HPD
-intervals. The exposures for which the lower HPD bound is below this value will be colored in grey.
-This value is passed to the \code{plot_exposures} function.}
+\item{thresh}{Numeric; minimum required value for the lower bound of HPD intervals of signature
+exposures. Those exposures for which the lower bound is below this value will be colored in grey.
+This value is passed to the \code{\link{plot_exposures}} function.}
 
-\item{horiz_labels}{Logical; if \code{TRUE}, sample name labels will be displayed horizontally in the
-barplots. This value is passed to the \code{plot_exposures} function.}
+\item{hpd_prob}{Numeric; a value in the interval (0, 1), indicating the desired probability content of
+the HPD intervals. This value is passed to the \code{\link{plot_exposures}} function.}
 
-\item{hpd_prob}{Numeric; a value in the interval (0, 1), giving the target probability content of
-the HPD intervals. This value is passed to the \code{plot_exposures} function.}
+\item{exp_margin_bottom}{Numeric; bottom margin of the exposures barplots (in inches, default is 10.5). 
+This value is passed to the \code{\link{plot_exposures}} function.}
 
-\item{exp_legend_pos}{Character indicating the position of the legend in the exposures barplot. Admits values
-\code{"bottomright"}, \code{"bottom"}, \code{"bottomleft"}, \code{"left"}, \code{"topleft"}, \code{"top"},
-\code{"topright"}, \code{"right"} and \code{"center"}. This value is passed to the \code{plot_exposures} function.}
+\item{signature_names}{Character vector containing the signature names. Only needed if \code{mcmc_samples}
+is not provided and the exposures were obtained through signature fitting (as opposed to extraction).
+This value is passed to the \code{\link{plot_exposures}} function.}
 
-\item{rec_legend_pos}{Character indicating the position of the legend in the reconstructed spectrum. Admits values
-\code{"bottomright"}, \code{"bottom"}, \code{"bottomleft"}, \code{"left"}, \code{"topleft"}, \code{"top"},
-\code{"topright"}, \code{"right"} and \code{"center"}. This value is passed to the \code{plot_reconstruction} function.}
+\item{exp_legend_pos}{Character indicating the position of the legend in the exposures barplot. Admits 
+values \code{"top"}, \code{"bottom"}, \code{"center"}, \code{"left"}, \code{"right"}, 
+\code{"topleft"}, \code{"topright"} (the default), \code{"bottomleft"} and \code{"bottomright"}. 
+This value is passed to the \code{\link{plot_exposures}} function.}
 
-\item{sig_color_palette}{Character vector of colour names or hexadecimal codes to use for each signature.
-Must have at least as many elements as the number of signatures. This value is passed to the
-\code{plot_exposures} and \code{plot_reconstruction} functions.}
+\item{rec_legend_pos}{Character indicating the position of the legend in the reconstructed spectrum. 
+Admits values \code{"top"}, \code{"bottom"}, \code{"center"}, \code{"left"}, \code{"right"}, 
+\code{"topleft"}, \code{"topright"} (the default), \code{"bottomleft"} and \code{"bottomright"}. 
+This value is passed to the \code{\link{plot_reconstruction}} function.}
+
+\item{sig_color_palette}{Character vector of custom color names or hexadecimal codes to use for 
+each signature. Must have at least as many elements as the number of signatures. This value is passed 
+to the \code{\link{plot_exposures}} and \code{\link{plot_reconstruction}} functions.}
 }
 \description{
 For a given set of signature fitting or extraction results, \code{plot_all} plots, in PDF format:
