@@ -252,12 +252,15 @@ build_catalogues <- function(variants) {
         stop("'variants' must be a matrix or data frame with four/five columns and one row per variant.\nType ?build_catalogues to read the documentation.")
     }
     if (ncol(variants) == 5) {
+        cat("'variants' has five columns: generating transcriptional-strand-wise catalogues.\n")
         variants[, 5] <- gsub("1", "U",
                               gsub("-1", "T", as.character(variants[, 5])))
-        if (!all(unique(variants[, 5] %in% c("T", "U")))) {
-            stop("The fifth column of 'variants' (transcriptional strand) can only contain values: 1, -1, \"1\", \"-1\", \"T\", \"U\".\nType ?build_catalogues to read the documentation.")
+        idx <- !(variants[, 5] %in% c("T", "U"))
+        if (any(idx)) {
+            warning(sum(idx), " variants have an invalid strand value and have been omitted.\n",
+                    "Transcriptional strand (column 5) admits only values 1, -1, \"1\", \"-1\", \"T\" and \"U\".\nType ?build_catalogues to read the documentation.")
+            variants <- variants[!idx, ]
         }
-        cat("'variants' has 5 columns: transcriptional-strand-wise catalogues will be generated.\n")
         strand <- TRUE
     }
     else {
@@ -270,7 +273,7 @@ build_catalogues <- function(variants) {
     # Exclude any trinucleotides containing undefined bases
     idx <- !grepl("(A|C|G|T){3}", variants[, 4])
     if (any(idx)) {
-        warning(sum(idx), " variants have an invalid trinucleotide context and will be omitted.")
+        warning(sum(idx), " variants have an invalid trinucleotide context and have been omitted.")
         variants <- variants[!idx, ]
     }
     
@@ -478,7 +481,12 @@ retrieve_pars <- function(mcmc_samples, par, hpd_prob = 0.95) {
                     names2 <- mut_types(strand)
                 }
                 else {
-                    names2 <- NULL
+                    if (is.null(colnames(mcmc_samples$data$counts))) {
+                        names2 <- paste("Mutation type", 1:ncol(mcmc_samples$data$counts))
+                    }
+                    else {
+                        names2 <- colnames(mcmc_samples$data$counts)
+                    }
                 }
                 if (is.null(signature_names)) {
                     LETTERLABELS <- letterwrap(dim(p)[2])
