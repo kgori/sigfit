@@ -28,7 +28,7 @@ devtools::install_github("kgori/sigfit", args = "--preclean", build_vignettes = 
 
 ## Usage guide
 
-## Example 1: fitting signatures to a single simulated sample
+## Example 1: Fitting mutational signatures to a single simulated sample
 
 This example will use the mutational signatures from [COSMIC](http://cancer.sanger.ac.uk/cosmic/signatures) to generate simulated mutation counts, and then use sigfit to fit the signatures back to the simulated data.
 
@@ -53,7 +53,7 @@ par(mar = c(4.5,5.5,6.5,1))
 sigfit::plot_spectrum(mutations, name = "Simulated counts")
 ```
 
-### Fitting signatures
+### Fitting mutational signatures
 
 Next, we can estimate the exposure of the data to each signature (pretending we ignore that it was generated from signatures 1, 3, 7 and 11). sigfit uses [Stan](http://mc-stan.org/) to run a Bayesian model that produces Markov chain Monte Carlo (MCMC) samples. Arguments to the ```rstan::sampling``` function, such as ```iter```, ```warmup```, etc., can be passed through. For further sampling options, type ```?rstan::sampling``` to read the documentation.
 
@@ -124,7 +124,7 @@ sigfit::plot_all(mcmc_samples = mcmc_samples_fit,
 ```
 
 
-## Example 2: Extracting mutational signatures from multiple breast cancer samples
+## Example 2: Extracting signatures from multiple breast cancer samples
 
 ### Generating mutational catalogues
 
@@ -169,7 +169,7 @@ par(mfrow = c(7, 3))
 sigfit::plot_spectrum(counts_21breast)
 ```
 
-### Extracting signatures _de novo_
+### Extracting mutational signatures _de novo_
 
 To extract signatures from this set of catalogues, we use the ```extract_signatures``` function, specifying the number of signatures to extract via the ```nsignatures``` argument; this can be a single integer or a range, e.g. ```3:6```. Our recommended approach is first running the function for a small number of iterations and a reasonably wide range of numbers of signatures (e.g. ```nsignatures = 2:8```). When ```nsignatures``` is a range of values, sigfit will automatically determine the most plausible number of signatures present in the data (which is done by assessing goodness of fit through the ```plot_gof``` function). Also, for ranges of ```nsignatures``` the result will be a list, where element ```[[N]]``` in the list corresponds to the extraction results for ```nsignatures = N```.
 
@@ -194,6 +194,8 @@ cat("Estimated best number of signatures:", nS[best], "\n")
 The plot above shows that the most plausible number of signatures is four, based on the evolution of the goodness of fit (reconstruction accuracy measured through cosine similarity).
 
 Next, we would recommend running ```extract_signatures``` again, this time with ```nsignatures = 4``` and a much greater number of iterations, in order to obtain more accurate estimates. We will skip this step in the present example.
+
+### Retrieving and plotting extracted signatures
 
 As in the case of signature fitting (Example 1 above), the extracted signatures and exposures can be retrieved using the ```retrieve_pars``` function with ```par = "signatures"``` or ```par = "exposures"```. However, because the output is a list containing the results for each value in ```nsignatures```, __we need to specify which  number of signatures we are interested in, using the ```[[ ]]``` operator__. Note that this is not necessary if a single value of ```nsignatures``` was used for extraction.
 
