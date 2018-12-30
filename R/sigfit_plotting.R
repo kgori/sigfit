@@ -157,6 +157,8 @@ plot_gof <- function(sample_list, stat = "cosine") {
 #' values \code{"top"}, \code{"bottom"}, \code{"center"}, \code{"left"}, \code{"right"}, 
 #' \code{"topleft"}, \code{"topright"} (the default), \code{"bottomleft"} and \code{"bottomright"}. 
 #' This value is passed to the \code{\link{plot_exposures}} function.
+#' @param exp_cex_names Numeric; relative size of sample labels in the exposures barplot (default is 1.9).
+#' This value is passed to the \code{\link{plot_exposures}} function.
 #' @param rec_legend_pos Character indicating the position of the legend in the reconstructed spectrum. 
 #' Admits values \code{"top"}, \code{"bottom"}, \code{"center"}, \code{"left"}, \code{"right"}, 
 #' \code{"topleft"}, \code{"topright"} (the default), \code{"bottomleft"} and \code{"bottomright"}. 
@@ -188,7 +190,7 @@ plot_gof <- function(sample_list, stat = "cosine") {
 plot_all <- function(mcmc_samples = NULL, out_path, prefix = NULL, counts = NULL, signatures = NULL,
                      exposures = NULL, opportunities = NULL, thresh = 0.01, hpd_prob = 0.95, 
                      exp_margin_bottom = 10.5, signature_names = NULL, exp_legend_pos = "topright",
-                     rec_legend_pos = "topright", sig_color_palette = NULL) {
+                     exp_cex_names = 1.9, rec_legend_pos = "topright", sig_color_palette = NULL) {
 
     if (is.null(mcmc_samples) &
         (is.null(counts) | is.null(signatures) | is.null(exposures))) {
@@ -212,8 +214,9 @@ plot_all <- function(mcmc_samples = NULL, out_path, prefix = NULL, counts = NULL
                       pdf_path = file.path(out_path, paste0(prefix, "Signatures_", Sys.Date(), ".pdf")))
 
         cat("Plotting signature exposures...\n")
-        plot_exposures(counts = counts, exposures = exposures, signature_names = signature_names,
-                       thresh = thresh, sig_color_palette = sig_color_palette,
+        plot_exposures(counts = counts, exposures = exposures, 
+                       signature_names = signature_names, thresh = thresh, 
+                       sig_color_palette = sig_color_palette, cex_names = exp_cex_names, 
                        margin_bottom = exp_margin_bottom, legend_pos = exp_legend_pos,
                        pdf_path = file.path(out_path, paste0(prefix, "Exposures_", Sys.Date(), ".pdf")))
 
@@ -241,8 +244,9 @@ plot_all <- function(mcmc_samples = NULL, out_path, prefix = NULL, counts = NULL
 
         cat("Plotting signature exposures...\n")
         plot_exposures(mcmc_samples = mcmc_samples,
-                       thresh = thresh, hpd_prob = hpd_prob, margin_bottom = exp_margin_bottom,
-                       legend_pos = exp_legend_pos, sig_color_palette = sig_color_palette,
+                       thresh = thresh, hpd_prob = hpd_prob, 
+                       margin_bottom = exp_margin_bottom, legend_pos = exp_legend_pos, 
+                       sig_color_palette = sig_color_palette, cex_names = exp_cex_names,
                        pdf_path = file.path(out_path, paste0(prefix, "Exposures_", Sys.Date(), ".pdf")))
 
         plot_reconstruction(mcmc_samples = mcmc_samples,
@@ -670,7 +674,7 @@ plot_spectrum <- function(spectra, pdf_path = NULL, pdf_width = 24,
     # Generic spectrum (NCAT!={96,192})
     if (!(ncol(spec) %in% c(96, 192))) {
         if (is.null(colnames(spec))) {
-            types <- paste0("Mutation type #", 1:ncol(spec))
+            types <- paste("Mutation type", 1:ncol(spec))
         }
         else {
             types <- colnames(spec)
@@ -686,7 +690,7 @@ plot_spectrum <- function(spectra, pdf_path = NULL, pdf_width = 24,
             }
             # Plot spectrum bars
             bars <- barplot(spec[i,], names.arg = types, col = "orangered3",
-                            border = "white", las = 2, cex.names = 0.5,
+                            border = "white", las = 2, cex.names = 0.8,
                             ylim = c(0, samp_max_y), yaxt = "n")
             # Plot axis
             if (counts) {
@@ -891,6 +895,7 @@ plot_spectrum <- function(spectra, pdf_path = NULL, pdf_width = 24,
 #' Only used if \code{pdf_path} is provided.
 #' @param margin_bottom Numeric; bottom margin of the plot (in inches, default is 10.5).
 #' Only used if \code{pdf_path} is provided.
+#' @param cex_names Numeric; relative size of sample labels in the exposures barplot (default is 1.9).
 #' @param legend_pos Character indicating the position of the legend in the exposures barplot. Admits 
 #' values \code{"top"}, \code{"bottom"}, \code{"center"}, \code{"left"}, \code{"right"}, 
 #' \code{"topleft"}, \code{"topright"} (the default), \code{"bottomleft"} and \code{"bottomright"}.
@@ -917,8 +922,8 @@ plot_spectrum <- function(spectra, pdf_path = NULL, pdf_width = 24,
 #' @export
 plot_exposures <- function(mcmc_samples = NULL, pdf_path = NULL, counts = NULL, exposures = NULL,
                            signature_names = NULL, thresh = 0.01, hpd_prob = 0.95, pdf_width = 24,
-                           pdf_height = 10, margin_bottom = 10.5, legend_pos = "topright", 
-                           sig_color_palette = NULL) {
+                           pdf_height = 10, margin_bottom = 10.5, cex_names = 1.9, 
+                           legend_pos = "topright", sig_color_palette = NULL) {
     if (is.null(mcmc_samples) & (is.null(counts) | is.null(exposures))) {
         stop("Either 'mcmc_samples', or both 'counts' and 'exposures', must be provided.")
     }
@@ -993,7 +998,7 @@ plot_exposures <- function(mcmc_samples = NULL, pdf_path = NULL, counts = NULL, 
                         cex.names = 1e-20, cex.main = 2.3, ylim = c(0, max_y), axes = F,
                         main = "Mean signature exposures across sample set")
         text(x = bars, y = par()$usr[3] - 0.05 * (par()$usr[4] - par()$usr[3]),
-             labels = names(exposures_global), cex = 1.9, srt = 45, adj = 1, xpd = TRUE)
+             labels = names(exposures_global), cex = cex_names, srt = 45, adj = 1, xpd = TRUE)
         axis(side = 2, cex.axis = 1.9, lwd = 2, line = -2.5, las = 2)
         mtext("Mutation fraction", side = 2, cex = 2.1, line = 3)
         if (!is.null(lwr)) {
