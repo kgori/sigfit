@@ -28,7 +28,7 @@ devtools::install_github("kgori/sigfit", args = "--preclean", build_vignettes = 
 
 ## Usage guide
 
-### Example 1: fitting signatures to a single simulated sample
+## Example 1: fitting signatures to a single simulated sample
 
 This example will use the mutational signatures from [COSMIC](http://cancer.sanger.ac.uk/cosmic/signatures) to generate simulated mutation counts, and then use sigfit to fit the signatures back to the simulated data.
 
@@ -48,12 +48,12 @@ colnames(mutations) <- colnames(cosmic_signatures)
 ```
 
 Here is what our simulated counts look like:
-```{r plotsim, fig.width=17, fig.height=7, out.width="100%", echo=-1}
+```{r plotsim, fig.width=17, fig.height=6.5, out.width="100%", echo=-1}
 par(mar = c(4.5,5.5,6.5,1))
 sigfit::plot_spectrum(mutations, name = "Simulated counts")
 ```
 
-#### Fitting signatures
+### Fitting signatures
 
 Next, we can estimate the exposure of the data to each signature (pretending we ignore that it was generated from signatures 1, 3, 7 and 11). sigfit uses [Stan](http://mc-stan.org/) to run a Bayesian model that produces Markov chain Monte Carlo (MCMC) samples. Arguments to the ```rstan::sampling``` function, such as ```iter```, ```warmup```, etc., can be passed through. For further sampling options, type ```?rstan::sampling``` to read the documentation.
 
@@ -72,7 +72,7 @@ mcmc_samples_fit <- sigfit::fit_signatures(counts = mutations,
                                            seed = 1)
 ```
 
-#### Retrieving signature exposures
+### Retrieving signature exposures
 
 Once we have the result of the MCMC sampling in ```mcmc_samples_fit```, we can retrieve the estimated exposures from it using the ```retrieve_pars``` function. This returns a named list with three matrices, one containing the mean exposures, and the others containing the values corresponding to the lower and upper limits of the highest posterior density (HPD) interval (the Bayesian alternative to a confidence interval) for each exposure in each sample. The ```prob``` argument can be used to indicate the target probability content of the HPD interval (by default, 95% HPD intervals are returned).
 
@@ -88,7 +88,7 @@ exposures$mean
 
 The entire posterior distribution of the signature exposures and other model parameters in the ```mcmc_samples_fit``` object can be further explored by means of the functions provided by the [rstan](http://mc-stan.org/rstan) package. In addition, [ShinyStan](http://mc-stan.org/users/interfaces/shinystan) can be easily used in R for visual exploration of the MCMC samples.
 
-#### Visualisation
+### Visualisation
 
 sigfit provides several easy-to-use plotting functions. As seen in the previous section, the ```plot_spectrum``` function allows visualisation of both mutational catalogues and mutational signatures. These plots can be produced even for catalogues and signatures with arbitrary mutation types (for example, indel or rearrangement signatures).
 
@@ -124,7 +124,9 @@ sigfit::plot_all(mcmc_samples = mcmc_samples_fit,
 ```
 
 
-### Example 2: Extracting mutational signatures from multiple breast cancer samples
+## Example 2: Extracting mutational signatures from multiple breast cancer samples
+
+### Generating mutational catalogues
 
 In this second example, we will use single-nucleotide variant (SNV) data from the set of 21 breast cancer samples presented by [Nik-Zainal _et al._ (2012)](http://dx.doi.org/10.1016/j.cell.2012.04.024). These data can be accessed using ```data("variants_21breast")```.
 
@@ -166,6 +168,8 @@ par(mar = c(5,6,7,2))
 par(mfrow = c(7, 3))
 sigfit::plot_spectrum(counts_21breast)
 ```
+
+### Extracting signatures _de novo_
 
 To extract signatures from this set of catalogues, we use the ```extract_signatures``` function, specifying the number of signatures to extract via the ```nsignatures``` argument; this can be a single integer or a range, e.g. ```3:6```. Our recommended approach is first running the function for a small number of iterations and a reasonably wide range of numbers of signatures (e.g. ```nsignatures = 2:8```). When ```nsignatures``` is a range of values, sigfit will automatically determine the most plausible number of signatures present in the data (which is done by assessing goodness of fit through the ```plot_gof``` function). Also, for ranges of ```nsignatures``` the result will be a list, where element ```[[N]]``` in the list corresponds to the extraction results for ```nsignatures = N```.
 
