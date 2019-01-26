@@ -289,7 +289,7 @@ build_catalogues <- function(variants) {
         idx <- variants[, 1] == sample
         
         # Obtain mutation types, collapsed such that they refer to pyrimidine bases
-        vars_collapsed <- apply(variants[idx, ], 1, function(var) {
+        vars_collapsed <- apply(variants[idx, , drop = FALSE], 1, function(var) {
             if (var[2] %in% c("C", "T")) {
                 trinuc <- strsplit(var[4], "")[[1]]
                 alt <- var[3]
