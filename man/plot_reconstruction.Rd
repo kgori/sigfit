@@ -4,8 +4,8 @@
 \alias{plot_reconstruction}
 \title{Plot mutational spectrum reconstructions}
 \usage{
-plot_reconstruction(mcmc_samples = NULL, counts = NULL, signatures = NULL,
-  exposures = NULL, opportunities = NULL, pdf_path = NULL,
+plot_reconstruction(mcmc_samples = NULL, pdf_path = NULL, counts = NULL,
+  signatures = NULL, exposures = NULL, opportunities = NULL,
   pdf_width = 24, pdf_height = 17, legend_pos = "topright",
   sig_color_palette = NULL)
 }
@@ -15,6 +15,10 @@ plot_reconstruction(mcmc_samples = NULL, counts = NULL, signatures = NULL,
 This is the preferred option for supplying data and results, but can be replaced by the
 combination of arguments \code{counts}, \code{signatures}, \code{exposures} and \code{opportunities}.}
 
+\item{pdf_path}{Character; if provided, the plots will be output to a PDF file with the provided 
+path. The PDF dimensions and graphical parameters will be automatically set to appropriate values,
+unless custom dimensions are specified via the arguments \code{pdf_width} and \code{pdf_height}.}
+
 \item{counts}{Integer matrix of observed mutation counts, with one row per sample and
 column for each mutation type. Only needed if \code{mcmc_samples} is not provided.}
 
@@ -22,18 +26,14 @@ column for each mutation type. Only needed if \code{mcmc_samples} is not provide
 one column per mutation type, or a list of matrices generated via
 \code{\link{retrieve_pars}}. Only needed if \code{mcmc_samples} is not provided.}
 
-\item{exposures}{Either a numeric matrix of signature exposures, with one row per sample and one column
-per signature, or a list of exposures as produced by \code{\link{retrieve_pars}}.
+\item{exposures}{Either a numeric matrix of signature exposures, with one row per sample and one
+column per signature, or a list of exposures as produced by \code{\link{retrieve_pars}}.
 Only needed if \code{mcmc_samples} is not provided.}
 
 \item{opportunities}{Integer matrix of mutational opportunities; it also admits character values 
 \code{"human-genome"} and \code{"human-exome"}. Only needed if \code{mcmc_samples} is not provided 
 and \code{signatures} and/or \code{exposures} were obtained using the "EMu" model (\code{model = "emu"}).
 In that case, these should be the mutational opportunities used for extraction/fitting.}
-
-\item{pdf_path}{Character; if provided, the plots will be output to a PDF file with the provided 
-path. The PDF dimensions and graphical parameters will be automatically set to appropriate values,
-unless custom dimensions are specified via the arguments \code{pdf_width} and \code{pdf_height}.}
 
 \item{pdf_width}{Integer indicating the width of the output PDF (in inches, default is 24). 
 Only used if \code{pdf_path} is provided.}

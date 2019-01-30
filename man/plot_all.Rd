@@ -8,7 +8,8 @@ plot_all(mcmc_samples = NULL, out_path, prefix = NULL, counts = NULL,
   signatures = NULL, exposures = NULL, opportunities = NULL,
   thresh = 0.01, hpd_prob = 0.95, exp_margin_bottom = 10.5,
   signature_names = NULL, exp_legend_pos = "topright",
-  rec_legend_pos = "topright", sig_color_palette = NULL)
+  exp_cex_names = 1.9, rec_legend_pos = "topright",
+  sig_color_palette = NULL)
 }
 \arguments{
 \item{mcmc_samples}{List with elements \code{\`data\`} and \code{\`results\`}, produced via either
@@ -54,6 +55,9 @@ This value is passed to the \code{\link{plot_exposures}} function.}
 \item{exp_legend_pos}{Character indicating the position of the legend in the exposures barplot. Admits 
 values \code{"top"}, \code{"bottom"}, \code{"center"}, \code{"left"}, \code{"right"}, 
 \code{"topleft"}, \code{"topright"} (the default), \code{"bottomleft"} and \code{"bottomright"}. 
+This value is passed to the \code{\link{plot_exposures}} function.}
+
+\item{exp_cex_names}{Numeric; relative size of sample labels in the exposures barplot (default is 1.9).
 This value is passed to the \code{\link{plot_exposures}} function.}
 
 \item{rec_legend_pos}{Character indicating the position of the legend in the reconstructed spectrum. 

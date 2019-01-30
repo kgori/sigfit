@@ -4,10 +4,11 @@
 \alias{plot_exposures}
 \title{Plot signature exposures}
 \usage{
-plot_exposures(mcmc_samples = NULL, counts = NULL, exposures = NULL,
-  signature_names = NULL, thresh = 0.01, hpd_prob = 0.95,
-  pdf_path = NULL, pdf_width = 24, pdf_height = 10,
-  margin_bottom = 10.5, legend_pos = "topright", sig_color_palette = NULL)
+plot_exposures(mcmc_samples = NULL, pdf_path = NULL, counts = NULL,
+  exposures = NULL, signature_names = NULL, thresh = 0.01,
+  hpd_prob = 0.95, pdf_width = 24, pdf_height = 10,
+  margin_bottom = 10.5, cex_names = 1.9, legend_pos = "topright",
+  sig_color_palette = NULL)
 }
 \arguments{
 \item{mcmc_samples}{List with elements \code{\`data\`} and \code{\`results\`}, produced via either
@@ -15,11 +16,15 @@ plot_exposures(mcmc_samples = NULL, counts = NULL, exposures = NULL,
 This is the preferred option for supplying data and results, but can be replaced by the
 combination of arguments \code{counts}, \code{exposures} and \code{signature_names}.}
 
+\item{pdf_path}{Character; if provided, the plots will be output to a PDF file with the provided 
+path. The PDF dimensions and graphical parameters will be automatically set to appropriate values,
+unless custom dimensions are specified via the arguments \code{pdf_width} and \code{pdf_height}.}
+
 \item{counts}{Integer matrix of observed mutation counts, with one row per sample and
 column for each mutation type. Only needed if \code{mcmc_samples} is not provided.}
 
-\item{exposures}{Either a numeric matrix of signature exposures, with one row per sample and one column
-per signature, or a list of exposures as produced by \code{\link{retrieve_pars}}.
+\item{exposures}{Either a numeric matrix of signature exposures, with one row per sample and one
+column per signature, or a list of exposures as produced by \code{\link{retrieve_pars}}.
 Only needed if \code{mcmc_samples} is not provided.}
 
 \item{signature_names}{Character vector containing the signature names. Only needed if \code{mcmc_samples}
@@ -32,10 +37,6 @@ colored in grey.}
 \item{hpd_prob}{Numeric; a value in the interval (0, 1), indicating the desired probability content of
 the HPD intervals (default is 0.95).}
 
-\item{pdf_path}{Character; if provided, the plots will be output to a PDF file with the provided 
-path. The PDF dimensions and graphical parameters will be automatically set to appropriate values,
-unless custom dimensions are specified via the arguments \code{pdf_width} and \code{pdf_height}.}
-
 \item{pdf_width}{Integer indicating the width of the output PDF (in inches; default value depends
 on the number of samples). Only used if \code{pdf_path} is provided.}
 
@@ -44,6 +45,8 @@ Only used if \code{pdf_path} is provided.}
 
 \item{margin_bottom}{Numeric; bottom margin of the plot (in inches, default is 10.5).
 Only used if \code{pdf_path} is provided.}
+
+\item{cex_names}{Numeric; relative size of sample labels in the exposures barplot (default is 1.9).}
 
 \item{legend_pos}{Character indicating the position of the legend in the exposures barplot. Admits 
 values \code{"top"}, \code{"bottom"}, \code{"center"}, \code{"left"}, \code{"right"}, 

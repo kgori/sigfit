@@ -4,7 +4,7 @@
 \alias{build_opps_matrix}
 \title{Build a opportunities matrix}
 \usage{
-build_opps_matrix(nsamples, keyword, strand)
+build_opps_matrix(nsamples, ncat, keyword)
 }
 \description{
 Build a opportunities matrix
