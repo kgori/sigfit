@@ -55,16 +55,18 @@ to_matrix <- function(x, int = FALSE) {
 }
 
 #' Build a opportunities matrix
-build_opps_matrix <- function(nsamples, keyword, strand) {
+build_opps_matrix <- function(nsamples, ncat, keyword) {
     if (is.null(keyword)) {
-        # Uniform opps are approximated from the sum of human genome frequencies
-        NCAT <- ifelse(strand, 192, 96)
-        matrix(rep(rep(round(sum(human_trinuc_freqs()) / NCAT), NCAT),
-                   nsamples),
-               nrow = nsamples,
-               byrow = TRUE)
+        matrix(1, nrow = nsamples, ncol = ncat)
+        # # Uniform opps are approximated from the sum of human genome frequencies
+        # NCAT <- ifelse(strand, 192, 96)
+        # matrix(rep(rep(round(sum(human_trinuc_freqs()) / NCAT), NCAT),
+        #            nsamples),
+        #        nrow = nsamples,
+        #        byrow = TRUE)
     }
     else {
+        strand <- ncat == 192
         matrix(rep(human_trinuc_freqs(keyword, strand), nsamples),
                nrow = nsamples,
                byrow = TRUE)

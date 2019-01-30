@@ -340,12 +340,7 @@ plot_reconstruction <- function(mcmc_samples = NULL, pdf_path = NULL, counts = N
     }
     
     if (is.null(opportunities) | is.character(opportunities)) {
-        if (NCAT %in% c(96, 192)) {
-            opportunities <- build_opps_matrix(NSAMP, opportunities, strand)
-        }
-        else {
-            opportunities <- matrix(1, nrow(counts), ncol(counts))
-        }
+        opportunities <- build_opps_matrix(NSAMP, NCAT, opportunities)
     }
     else if (!is.matrix(opportunities)) {
         opportunities <- as.matrix(opportunities)

@@ -72,7 +72,7 @@ fit_signatures <- function(counts, signatures, exp_prior = NULL, model = "nmf",
         }
 
         if (is.null(opportunities) | is.character(opportunities)) {
-            opportunities <- build_opps_matrix(NSAMP, opportunities, strand)
+            opportunities <- build_opps_matrix(NSAMP, NCAT, opportunities)
         }
         else if (!is.matrix(opportunities)) {
             opportunities <- as.matrix(opportunities)
@@ -231,7 +231,7 @@ extract_signatures <- function(counts, nsignatures, model = "nmf", opportunities
 
         # Build opportunities matrix
         if (is.null(opportunities) | is.character(opportunities)) {
-            opportunities <- build_opps_matrix(NSAMP, opportunities, strand)
+            opportunities <- build_opps_matrix(NSAMP, NCAT, opportunities)
         }
         else if (!is.matrix(opportunities)) {
             opportunities <- as.matrix(opportunities)
@@ -437,7 +437,7 @@ fit_extract_signatures <- function(counts, signatures, num_extra_sigs,
 
         # Build opportunities matrix
         if (is.null(opportunities) | is.character(opportunities)) {
-            opportunities <- build_opps_matrix(NSAMP, opportunities, strand)
+            opportunities <- build_opps_matrix(NSAMP, NCAT, opportunities)
         }
         else if (!is.matrix(opportunities)) {
             opportunities <- as.matrix(opportunities)
