@@ -1,5 +1,12 @@
 functions {
     #include "common_functions.stan"
+    matrix array_to_matrix(vector[] x) {
+        // Assume x doesn't have 0 rows or columns
+        matrix[size(x), rows(x[1])] y;
+        for (m in 1:size(x))
+            y[m] = x[m]';
+        return y;
+    }
 }
 
 data {
@@ -35,13 +42,13 @@ parameters {
 transformed parameters {
     matrix<lower=0>[G, S] activities;  // scaled exposures (# mutations)
     matrix[G, C] expected_counts;
-    vector<lower=0>[C_phi] phi;
-    // Scale overdispersion (neg binomial model)
-    if ((family == 2) && (robust == 1)) {
-        for (c in 1:C) {
-            phi[c] = 1 / phi_raw[c] ^ 2;
-        }
-    }
+    // vector<lower=0>[C_phi] phi;
+    // // Scale overdispersion (neg binomial model)
+    // if ((family == 2) && (robust == 1)) {
+    //     for (c in 1:C) {
+    //         phi[c] = 1 / phi_raw[c] ^ 2;
+    //     }
+    // }
     // Scale exposures into activities
     if (family == 1) {
         // Multinomial model uses unscaled exposures
@@ -89,9 +96,11 @@ model {
             
             // Negative binomial model
             else {
-                phi_raw ~ normal(0, 1);
+                //phi_raw ~ normal(0, 1);
+                phi_raw ~ cauchy(0, 2.5);
                 for (g in 1:G) {
-                    counts_int[g] ~ neg_binomial_2(expected_counts[g], phi);
+                    // counts_int[g] ~ neg_binomial_2(expected_counts[g], phi);
+                    counts_int[g] ~ neg_binomial_2(expected_counts[g], phi_raw);
                 }
             }
         }
