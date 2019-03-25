@@ -68,7 +68,7 @@ fit_signatures <- function(counts, signatures, exp_prior = NULL, model = "nmf",
 
     if (model == "emu") {
         if (is.null(opportunities)) {
-            warning("Using EMu model, but no opportunities were provided.")
+            warning("Using EMu model without any 'opportunities'.")
         }
 
         if (is.null(opportunities) | is.character(opportunities)) {
@@ -432,7 +432,7 @@ fit_extract_signatures <- function(counts, signatures, num_extra_sigs,
     # EMu model
     if (model == "emu") {
         if (is.null(opportunities)) {
-            warning("Using EMu model, but no opportunities were provided.")
+            warning("Using EMu model without any 'opportunities'.")
         }
 
         # Build opportunities matrix

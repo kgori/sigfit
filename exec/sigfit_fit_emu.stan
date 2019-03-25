@@ -23,7 +23,7 @@ transformed parameters {
     expected_counts = activities * signatures .* opps;
 }
 model {
-    multiplier ~ cauchy(0, 1);                    // multiplier prior
+    multiplier ~ cauchy(0, 1);                    // multiplier priors
     for (g in 1:G) {
         exposures[g] ~ dirichlet(kappa);          // exposure priors
         counts[g] ~ poisson(expected_counts[g]);  // Poisson likelihood
