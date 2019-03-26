@@ -333,12 +333,6 @@ plot_reconstruction <- function(mcmc_samples = NULL, pdf_path = NULL, counts = N
     NSAMP <- nrow(counts)  # number of samples
     strand <- NCAT == 192  # strand bias indicator (logical)
     
-    if (!(NCAT %in% c(96, 192))) {
-        cat('Skipping reconstructed spectrum plotting.\n')
-        warning("Reconstructed spectrum plots are available only for catalogues with 96 or 192 mutation types.")
-        return()
-    }
-    
     if (is.null(opportunities) | is.character(opportunities)) {
         opportunities <- build_opps_matrix(NSAMP, NCAT, opportunities)
     }
@@ -401,7 +395,6 @@ plot_reconstruction <- function(mcmc_samples = NULL, pdf_path = NULL, counts = N
     if (is.null(rownames(counts))) {
         rownames(counts) <- paste("Sample", 1:NSAMP)
     }
-    dimnames(reconstructions)[[3]] <- mut_types(strand)
 
     if ("signatures" %in% names(mcmc_samples$data)) {
         sig_names <- rownames(mcmc_samples$data$signatures)
@@ -429,11 +422,11 @@ plot_reconstruction <- function(mcmc_samples = NULL, pdf_path = NULL, counts = N
     
     # Generic spectrum (NCAT!={96,192})
     if (!(ncol(counts) %in% c(96, 192))) {
-        if (is.null(colnames(spec))) {
-            types <- paste0("Mutation type #", 1:ncol(spec))
+        if (is.null(colnames(counts))) {
+            types <- paste("Mut. type", 1:ncol(counts))
         }
         else {
-            types <- colnames(spec)
+            types <- colnames(counts)
         }
         
         for (i in 1:NSAMP) {
@@ -450,7 +443,7 @@ plot_reconstruction <- function(mcmc_samples = NULL, pdf_path = NULL, counts = N
             # Plot catalogue reconstruction
             bars <- barplot(reconstructions[i, , ],
                             names.arg = types, col = sigcols, border = "white",
-                            yaxt = "n", ylim = c(0, max_y), cex.names = 0.5, las = 2)
+                            yaxt = "n", ylim = c(0, max_y), cex.names = 1, las = 2)
             axis(side = 2, cex.axis = 1.8, lwd = 2)
             mtext("Mutations", side = 2, cex = 2, line = 3.5)
             title(paste0("Reconstructed spectrum (cosine similarity = ",
@@ -469,6 +462,7 @@ plot_reconstruction <- function(mcmc_samples = NULL, pdf_path = NULL, counts = N
         }
     }
     else {
+        dimnames(reconstructions)[[3]] <- mut_types(strand)
         
         # Default spectrum (NCAT=96)
         if (!strand) {
@@ -669,7 +663,7 @@ plot_spectrum <- function(spectra, pdf_path = NULL, pdf_width = 24,
     # Generic spectrum (NCAT!={96,192})
     if (!(ncol(spec) %in% c(96, 192))) {
         if (is.null(colnames(spec))) {
-            types <- paste("Mutation type", 1:ncol(spec))
+            types <- paste("Mut. type", 1:ncol(spec))
         }
         else {
             types <- colnames(spec)
@@ -685,7 +679,7 @@ plot_spectrum <- function(spectra, pdf_path = NULL, pdf_width = 24,
             }
             # Plot spectrum bars
             bars <- barplot(spec[i,], names.arg = types, col = "orangered3",
-                            border = "white", las = 2, cex.names = 0.8,
+                            border = "white", las = 2, cex.names = 1,
                             ylim = c(0, samp_max_y), yaxt = "n")
             # Plot axis
             if (counts) {
@@ -1004,28 +998,26 @@ plot_exposures <- function(mcmc_samples = NULL, pdf_path = NULL, counts = NULL, 
     }
     
     # Plot exposures for each sample
+    if (!is.null(upr)) {
+        max_y <- max(upr)
+    }
+    else {
+        max_y <- max(exposures)
+    }
     for (i in 1:NSAMP) {
-        exposures_sample <- exposures[i, ]
-        if (!is.null(lwr)) {
-            lwr_sample <- lwr[i, ]
-            upr_sample <- upr[i, ]
-            max_y <- max(upr_sample)
-        }
         colours <- rep("skyblue3", NSIG)
         if (!is.null(lwr)) {
-            colours[lwr_sample < thresh] <- "grey"
+            colours[lwr[i, ] < thresh] <- "grey"
         }
-        bars <- barplot(exposures_sample, col = colours, border = NA, 
+        bars <- barplot(exposures[i, ], col = colours, border = NA, 
                         cex.names = 1e-20, cex.main = 2.3, ylim = c(0, max_y), axes = F,
                         main = paste("Signature exposures in", rownames(exposures)[i]))
         text(x = bars, y = par()$usr[3] - 0.05 * (par()$usr[4] - par()$usr[3]),
-             labels = names(exposures_sample), cex = 1.9, srt = 45, adj = 1, xpd = TRUE)
+             labels = colnames(exposures), cex = cex_names, srt = 45, adj = 1, xpd = TRUE)
         axis(side = 2, cex.axis = 1.9, lwd = 2, line = -2.5, las = 2)
         mtext("Mutation fraction", side = 2, cex = 2.1, line = 3)
         if (!is.null(lwr)) {
-            arrows(bars, upr_sample, 
-                   bars, lwr_sample,
-                   length = 0, lwd = 4, col = "gray50")
+            segments(x0 = bars, y0 = upr[i, ], y1 = lwr[i, ], lwd = 4, col = "gray50")
         }
     }
 
@@ -1038,7 +1030,7 @@ plot_exposures <- function(mcmc_samples = NULL, pdf_path = NULL, counts = NULL, 
                         cex.names = 1e-20, cex.main = 2.3, axes = FALSE,
                         main = "Signature exposures per sample (absolute)")
         text(x = bars, y = par()$usr[3] - 0.05 * (par()$usr[4] - par()$usr[3]),
-             labels = rownames(exposures), cex = 1.2, srt = 45, adj = 1, xpd = TRUE)
+             labels = rownames(exposures), cex = cex_names, srt = 45, adj = 1, xpd = TRUE)
         axis(side = 2, cex.axis = 1.9, lwd = 2, line = -2.5)
         mtext("Mutations", side = 2, cex = 2.1, line = 3)
 
@@ -1053,7 +1045,7 @@ plot_exposures <- function(mcmc_samples = NULL, pdf_path = NULL, counts = NULL, 
                         cex.names = 1e-20, cex.main = 2.3, axes = FALSE,
                         main = "Signature exposures per sample (relative)")
         text(x = bars, y = par()$usr[3] - 0.05 * (par()$usr[4] - par()$usr[3]),
-             labels = rownames(exposures), cex = 1.2, srt = 45, adj = 1, xpd = TRUE)
+             labels = rownames(exposures), cex = cex_names, srt = 45, adj = 1, xpd = TRUE)
         axis(side = 2, cex.axis = 1.9, lwd = 2, line = -2.5, las = 2)
         mtext("Mutation fraction", side = 2, cex = 2.1, line = 3)
     }
