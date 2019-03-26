@@ -42,7 +42,7 @@ to_matrix <- function(x, int = FALSE) {
         x <- x$mean
     # If x is a vector, transform to 1-row matrix
     if (is.vector(x))
-        x <- matrix(x, nrow = 1)
+        x <- matrix(x, nrow = 1, dimnames = list(NULL, names(x)))
     # Otherwise, try coercing to matrix
     if (!is.matrix(x))
         x <- as.matrix(x)
