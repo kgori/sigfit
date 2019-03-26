@@ -16,7 +16,7 @@ See the package vignette for detailed usage examples:
 
     browseVignettes("sigfit")
 
-You can also browse the package vignette in [GitHub](http://htmlpreview.github.io/?https://github.com/kgori/sigfit/blob/master/inst/doc/sigfit_vignette.html).
+**You can also browse the package vignette on [GitHub](http://htmlpreview.github.io/?https://github.com/kgori/sigfit/blob/master/inst/doc/sigfit_vignette.html).**
 
 
 ## Citation
