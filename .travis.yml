@@ -10,19 +10,23 @@ r_github_packages:
   - jimhester/covr
 
 env:
-  matrix: 
+  matrix:
     - CXX_OLEVEL=2 CXX=clang++
 
 before_install:
   - mkdir -p ~/.R/
   - echo "CXX = `R CMD config CXX`" >> ~/.R/Makevars
-  - echo "CXXFLAGS = `R CMD config CXXFLAGS` -pedantic -g0" >> ~/.R/Makevars 
+  - echo "CXXFLAGS = `R CMD config CXXFLAGS` -pedantic -g0" >> ~/.R/Makevars
+  - echo "CXX11FLAGS = `R CMD config CXXFLAGS` -pedantic -g0" >> ~/.R/Makevars
+  - echo "CXX14FLAGS = `R CMD config CXXFLAGS` -pedantic -g0" >> ~/.R/Makevars
   - export CLANG_EXTRA_ARG=""
   - if [[ $CXX = "clang++" ]] ;  then export CLANG_EXTRA_ARG=" -Qunused-arguments -fcolor-diagnostics " ; fi
   - sed -i.bak "s/ g++/ ${CXX}${CLANG_EXTRA_ARG}/" ~/.R/Makevars
   - sed -i.bak "s/O[0-3]/O$CXX_OLEVEL/" ~/.R/Makevars
+  - echo "CXX11=${CXX} -std=c++11" >> ~/.R/Makevars
+  - echo "CXX14=${CXX} -std=c++14" >> ~/.R/Makevars
 
-script: 
+script:
   - |
     travis_wait R CMD build .
     travis_wait 60 R CMD check sigfit*tar.gz
