@@ -24,7 +24,7 @@ before_install:
   - sed -i.bak "s/ g++/ ${CXX}${CLANG_EXTRA_ARG}/" ~/.R/Makevars
   - sed -i.bak "s/O[0-3]/O$CXX_OLEVEL/" ~/.R/Makevars
   - echo "CXX11=${CXX} -std=c++11" >> ~/.R/Makevars
-  - echo "CXX14=${CXX} -std=c++14" >> ~/.R/Makevars
+  - echo "CXX14=${CXX} -std=c++11" >> ~/.R/Makevars
 
 script:
   - |
