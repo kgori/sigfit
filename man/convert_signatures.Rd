@@ -8,11 +8,11 @@ convert_signatures(signatures, ref_opportunities, model_to)
 }
 \arguments{
 \item{signatures}{Either a numeric matrix of mutational signatures, with one row per signature and one
-column for each of the 96 (or 192) mutation types, or a list of matrices generated via
+one column per mutation type, or a list of matrices generated via
 \code{\link{retrieve_pars}}.}
 
 \item{ref_opportunities}{Numeric vector of reference or average mutational opportunities, with
-one element for each of the 96 (or 192) mutation types. It can also take values \code{"human-genome"} or
+one element per mutation type. It can also take character values \code{"human-genome"} or
 \code{"human-exome"}, in which case the reference human genome/exome mutational opportunities will be used.}
 
 \item{model_to}{Character; model to convert to: either \code{"nmf"} (in which case the signatures will

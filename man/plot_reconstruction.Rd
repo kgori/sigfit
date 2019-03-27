@@ -4,41 +4,49 @@
 \alias{plot_reconstruction}
 \title{Plot mutational spectrum reconstructions}
 \usage{
-plot_reconstruction(mcmc_samples = NULL, counts = NULL, signatures = NULL,
-  exposures = NULL, opportunities = NULL, pdf_path = NULL,
-  legend_pos = "topright", sig_color_palette = NULL)
+plot_reconstruction(mcmc_samples = NULL, pdf_path = NULL, counts = NULL,
+  signatures = NULL, exposures = NULL, opportunities = NULL,
+  pdf_width = 24, pdf_height = 17, legend_pos = "topright",
+  sig_color_palette = NULL)
 }
 \arguments{
-\item{mcmc_samples}{List with elements \code{$data} and \code{$results}, produced via either
+\item{mcmc_samples}{List with elements \code{\`data\`} and \code{\`results\`}, produced via either
 \code{\link{fit_signatures}}, \code{\link{extract_signatures}} or \code{\link{fit_extract_signatures}}.
-This should be the preferred option for supplying data and results, but can be replaced by the
+This is the preferred option for supplying data and results, but can be replaced by the
 combination of arguments \code{counts}, \code{signatures}, \code{exposures} and \code{opportunities}.}
 
-\item{counts}{Integer matrix of observed mutation counts, with one row per sample and
-column for each of the 96 (or 192) mutation types. Only needed if \code{mcmc_samples} is not provided.}
+\item{pdf_path}{Character; if provided, the plots will be output to a PDF file with the provided 
+path. The PDF dimensions and graphical parameters will be automatically set to appropriate values,
+unless custom dimensions are specified via the arguments \code{pdf_width} and \code{pdf_height}.}
 
-\item{signatures}{Either a numeric matrix of mutational signatures, with one row per signature and one
-column for each of the 96 (or 192) mutation types, or a list of matrices generated via
+\item{counts}{Integer matrix of observed mutation counts, with one row per sample and
+column for each mutation type. Only needed if \code{mcmc_samples} is not provided.}
+
+\item{signatures}{Either a numeric matrix of mutational signatures, with one row per signature and
+one column per mutation type, or a list of matrices generated via
 \code{\link{retrieve_pars}}. Only needed if \code{mcmc_samples} is not provided.}
 
-\item{exposures}{Either a numeric matrix of signature exposures, with one row per sample and one column
-per signature, or a list of exposures as produced by \code{\link{retrieve_pars}}.
+\item{exposures}{Either a numeric matrix of signature exposures, with one row per sample and one
+column per signature, or a list of exposures as produced by \code{\link{retrieve_pars}}.
 Only needed if \code{mcmc_samples} is not provided.}
 
-\item{opportunities}{Integer matrix; it also admits values \code{"human-genome"} and \code{"human-exome"}.
-Only needed if \code{mcmc_samples} is not provided and \code{signatures} and/or \code{exposures} were
-obtained using the "EMu" model (\code{model = "emu"}). In that case, these should
-be the mutational opportunities used for extraction/fitting.}
+\item{opportunities}{Integer matrix of mutational opportunities; it also admits character values 
+\code{"human-genome"} and \code{"human-exome"}. Only needed if \code{mcmc_samples} is not provided 
+and \code{signatures} and/or \code{exposures} were obtained using the "EMu" model (\code{model = "emu"}).
+In that case, these should be the mutational opportunities used for extraction/fitting.}
 
-\item{pdf_path}{Character; if provided, the plots will be output to a PDF file with this path. The PDF
-size and graphical parameters will be automatically set to appropriate values.}
+\item{pdf_width}{Integer indicating the width of the output PDF (in inches, default is 24). 
+Only used if \code{pdf_path} is provided.}
 
-\item{legend_pos}{Character indicating the position of the legend in the reconstructed spectrum. Admits values
-\code{"bottomright"}, \code{"bottom"}, \code{"bottomleft"}, \code{"left"}, \code{"topleft"}, \code{"top"},
-\code{"topright"} (the default), \code{"right"} and \code{"center"}.}
+\item{pdf_height}{Integer indicating the height of the output PDF (in inches, default is 17). 
+Only used if \code{pdf_path} is provided.}
 
-\item{sig_color_palette}{Character vector of colour names or hexadecimal codes to use for each signature.
-Must have at least as many elements as the number of signatures.}
+\item{legend_pos}{Character indicating the position of the legend in the reconstructed spectrum. 
+Admits values \code{"top"}, \code{"bottom"}, \code{"center"}, \code{"left"}, \code{"right"}, 
+\code{"topleft"}, \code{"topright"} (the default), \code{"bottomleft"} and \code{"bottomright"}.}
+
+\item{sig_color_palette}{Character vector of custom color names or hexadecimal codes to use for 
+each signature. Must have at least as many elements as the number of signatures.}
 }
 \description{
 \code{plot_reconstruction} plots the reconstructions of the original mutational catalogues using the

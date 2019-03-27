@@ -9,36 +9,40 @@ extract_signatures(counts, nsignatures, model = "nmf", opportunities = NULL,
 }
 \arguments{
 \item{counts}{Integer matrix of observed mutation counts, with one row per sample and
-one column per mutation type.}
+one column per mutation type. Any decimal values will be rounded to integers.}
 
-\item{nsignatures}{Integer or integer vector; number(s) of signatures to extract.}
+\item{nsignatures}{Integer or integer vector indicating the number(s) of signatures to extract.}
 
-\item{model}{Character; model to sample from. Admits values \code{"nmf"} (default) or \code{"emu"}.}
+\item{model}{Character indicating the model to sample from. Admits values \code{"nmf"} 
+(the default) or \code{"emu"}.}
 
 \item{opportunities}{Numeric matrix of optional mutational opportunities for the "EMu" model
 (\code{model = "emu"}). Must be a matrix with same dimension as \code{counts}.
 Alternatively, it also admits character values \code{"human-genome"} or \code{"human-exome"},
 in which case the reference human genome/exome opportunities will be used for every sample.}
 
-\item{sig_prior}{Numeric matrix with one row per signature and one column per category, to be used as the Dirichlet
-priors for the signatures to be extracted. Only used when \code{nsignatures} is a scalar.
-Default priors are uniform (uninformative).}
+\item{sig_prior}{Numeric matrix with one row per signature and one column per mutation type, 
+to be used as the Dirichlet priors for the signatures to be extracted. Only used when 
+\code{nsignatures} is a scalar. Default priors are uniform (uninformative).}
 
-\item{exp_prior}{Numeric; hyperparameter of the Dirichlet prior given to the exposures. Default value is 1 (uniform, uninformative).}
+\item{exp_prior}{Numeric; hyperparameter of the Dirichlet prior given to the exposures. 
+Default value is 1 (uniform, uninformative).}
 
-\item{stanfunc}{Character; choice of rstan inference strategy. Admits values \code{"sampling"}, \code{"optimizing"}
-and \code{"vb"}. \code{"sampling"} is the full Bayesian MCMC approach, and is the default.
-\code{"optimizing"} returns the Maximum a Posteriori (MAP) point estimates via numerical optimization.
-\code{"vb"} uses Variational Bayes to approximate the full posterior.}
+\item{stanfunc}{Character indicating the choice of rstan inference strategy. 
+Admits values \code{"sampling"}, \code{"optimizing"} and \code{"vb"}. The default value is
+\code{"sampling"}, which corresponds to the full Bayesian MCMC approach. Alternatively, 
+\code{"optimizing"} returns the Maximum a Posteriori (MAP) point estimates via numerical 
+optimization, while \code{"vb"} uses Variational Bayes to approximate the full posterior.}
 
-\item{...}{Any other parameters to pass to the sampling function (by default, \code{\link{rstan::sampling}}).
-(The number of chains is set to 1 and cannot be changed, to prevent 'label switching' problems.)}
+\item{...}{Any additional parameters to be passed to the sampling function (by default, 
+\code{\link{rstan::sampling}}). (Note that the number of chains is set to 1 and cannot 
+be changed, in order to prevent 'label switching' problems.)}
 }
 \value{
 A list with two elements:
 \itemize{
- \item{\code{$data}: list containing the input data supplied to the model.}
- \item{\code{$result}: object of class stanfit, containing the output MCMC samples,
+ \item{\code{\`data\`}: list containing the input data supplied to the model.}
+ \item{\code{\`result\`}: object of class stanfit, containing the output MCMC samples,
  as well as information about the model and sampling process.}}
 The model parameters (such as signatures and exposures) can be extracted from this
 object using \code{\link{retrieve_parameters}}.

@@ -7,16 +7,17 @@
 build_catalogues(variants)
 }
 \arguments{
-\item{variants}{Character matrix with one row per single-nucleotide variant, and four (or five) columns:
+\item{variants}{Character matrix or data frame with one row per single-nucleotide variant,
+and four/five columns:
 \itemize{
  \item{Sample ID (character, e.g. "Sample 1").}
  \item{Reference allele (character: "A", "C", "G", or "T").}
  \item{Alternate allele (character: "A", "C", "G", or "T").}
- \item{Trinucleotide context of the variant (character; the reference sequence between the positions
- immediately before and after the variant; e.g. "TCA").}
- \item{Optional: transcriptional strand of the variant (character: "T" for transcribed,
- or "U" for untranscribed). If this column is included, a transcriptional-strand-wise representation of
- catalogues will be used.}
+ \item{Trinucleotide context of the variant (character; the reference sequence between the
+ positions immediately before and after the variant; e.g. "TCA").}
+ \item{Optional: transcriptional strand of the variant (character/numeric: 1 or "1" or "U" for 
+ untranscribed; -1 or "-1" or "T" for transcribed). If this column is included, a 
+ transcriptional-strand-wise representation of catalogues will be used.}
 }}
 }
 \value{

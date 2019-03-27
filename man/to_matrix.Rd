@@ -4,7 +4,7 @@
 \alias{to_matrix}
 \title{Initial coercion to matrix for signatures/exposures/counts}
 \usage{
-to_matrix(x)
+to_matrix(x, int = FALSE)
 }
 \description{
 Initial coercion to matrix for signatures/exposures/counts

@@ -1,5 +1,19 @@
 CHANGE LOG
 
+2019/03/26
+Major changes introduced in v1.3.0
+
+* Fixed bug in `build_catalogues` function, which made it fail for single-sample cases.
+* Implemented plotting routines for non-standard catalogues with arbitrary mutation categories.
+* Catalogues with non-integer mutation counts are automatically rounded with a warning
+  (current models admit only discrete counts).
+* Added alternative specifications of transcriptional strand in the input mutation matrix: 
+  1 or "1" or "U" for untranscribed strand; -1 or "-1" or "T" for transcribed strand.
+* Included additional arguments to `plot_all`, `plot_exposures` and `plot_reconstructions`
+  for further plot customisation.
+* Added citation information.
+
+
 2018/07/14
 Major changes introduced in v1.2.0
 

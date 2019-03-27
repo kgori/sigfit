@@ -9,22 +9,23 @@ extract_signatures_initialiser(counts, nsignatures, model = "emu",
 }
 \arguments{
 \item{counts}{Integer matrix of observed mutation counts, with one row per sample and
-one column per mutation type.}
+one column per mutation type. Any decimal values will be rounded to integers.}
 
-\item{nsignatures}{Integer or integer vector; number(s) of signatures to extract.}
+\item{nsignatures}{Integer or integer vector indicating the number(s) of signatures to extract.}
 
-\item{model}{Character; model to sample from. Admits values \code{"nmf"} (default) or \code{"emu"}.}
+\item{model}{Character indicating the model to sample from. Admits values \code{"nmf"} or 
+\code{"emu"} (the default).}
 
 \item{opportunities}{Numeric matrix of optional mutational opportunities for the "EMu" model
 (\code{model = "emu"}). Must be a matrix with same dimension as \code{counts}.
 Alternatively, it also admits character values \code{"human-genome"} or \code{"human-exome"},
 in which case the reference human genome/exome opportunities will be used for every sample.}
 
-\item{sig_prior}{Numeric matrix with one row per signature and one column per category, to be used as the Dirichlet
-priors for the signatures to be extracted. Only used when \code{nsignatures} is a scalar.
-Default priors are uniform (uninformative).}
+\item{sig_prior}{Numeric matrix with one row per signature and one column per mutation type, 
+to be used as the Dirichlet priors for the signatures to be extracted. Only used when 
+\code{nsignatures} is a scalar. Default priors are uniform (uninformative).}
 
-\item{chains}{Integer; number of chains to be initialised. (Default is 1.)}
+\item{chains}{Integer indicating number of chains to be initialised (default is 1).}
 
 \item{...}{Additional arguments to pass to \code{\link{rstan::optimizing}}.}
 }
