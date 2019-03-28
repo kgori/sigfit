@@ -367,17 +367,17 @@ fetch_cosmic_data <- function(reorder = TRUE, remove_zeros = TRUE) {
 #' by the opportunities).
 #' @return A numeric matrix of transformed signatures with the same dimensions as \code{signatures}.
 #' @examples
-#' # Fetch COSMIC signatures
+#' # Load COSMIC signatures
 #' # These are in "NMF" format, i.e. they are relative
 #' # to the human genome mutational opportunities
-#' signatures <- fetch_cosmic_data()
+#' data("cosmic_signatures")
 #'
 #' # Plot COSMIC signature 1
-#' barplot(signatures[1,])
+#' barplot(cosmic_signatures[1,])
 #'
 #' # Convert signatures to the "EMu" format, i.e. make
 #' # them not relative to mutational opportunities
-#' converted_signatures <- convert_signatures(signatures,
+#' converted_signatures <- convert_signatures(cosmic_signatures,
 #'                                            ref_opportunities = "human-genome",
 #'                                            model_to = "emu")
 #'
@@ -450,7 +450,7 @@ convert_signatures <- function(signatures, ref_opportunities, model_to) {
 #' # Plot signatures, reconstructions and mean exposures
 #' plot_spectrum(signatures)
 #' plot_spectrum(reconstructions)
-#' barplot(exposures$mean)
+#' barplot(t(exposures$mean))
 #' @importFrom "rstan" extract
 #' @importFrom "coda" HPDinterval
 #' @importFrom "coda" as.mcmc
