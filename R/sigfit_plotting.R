@@ -311,6 +311,7 @@ plot_all <- function(mcmc_samples = NULL, out_path, prefix = NULL, counts = NULL
 #'                     opportunities = "human-genome", pdf_path = "Reconstructions_2.pdf")
 #' @importFrom "rstan" extract
 #' @importFrom "coda" as.mcmc HPDinterval
+#' @importFrom "grDevices" cairo_pdf
 #' @export
 plot_reconstruction <- function(mcmc_samples = NULL, pdf_path = NULL, counts = NULL,
                                 signatures = NULL, exposures = NULL, opportunities = NULL, 
@@ -620,6 +621,7 @@ plot_reconstruction <- function(mcmc_samples = NULL, pdf_path = NULL, counts = N
 #'
 #' # Plot signatures
 #' plot_spectrum(sigs, pdf_path = "Signatures.pdf")
+#' @importFrom "grDevices" cairo_pdf
 #' @export
 plot_spectrum <- function(spectra, pdf_path = NULL, pdf_width = 24,
                           pdf_height = 8, name = NULL, max_y = NULL) {
@@ -908,6 +910,8 @@ plot_spectrum <- function(spectra, pdf_path = NULL, pdf_width = 24,
 #' plot_exposures(counts = counts_21breast, exposures = exposures,
 #'                signature_names = rownames(cosmic_signatures),
 #'                pdf_path = "Exposures.pdf")
+#' @importFrom "grDevices" cairo_pdf
+#' @importFrom "graphics" segments
 #' @export
 plot_exposures <- function(mcmc_samples = NULL, pdf_path = NULL, counts = NULL, exposures = NULL,
                            signature_names = NULL, thresh = 0.01, hpd_prob = 0.95, pdf_width = 24,
