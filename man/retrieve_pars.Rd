@@ -45,5 +45,5 @@ reconstructions <- retrieve_pars(samples, "reconstructions")
 # Plot signatures, reconstructions and mean exposures
 plot_spectrum(signatures)
 plot_spectrum(reconstructions)
-barplot(exposures$mean)
+barplot(t(exposures$mean))
 }
