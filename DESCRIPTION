@@ -1,3 +1,4 @@
+Encoding: UTF-8
 Package: sigfit
 Type: Package
 Title: Flexible Bayesian inference of mutational signatures
