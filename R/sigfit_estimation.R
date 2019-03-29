@@ -22,7 +22,7 @@
 #'  \item{\code{$result}: object of class stanfit, containing the output MCMC samples,
 #'  as well as information about the model and sampling process.}}
 #' The model parameters (such as signatures and exposures) can be extracted from this
-#' object using \code{\link{retrieve_parameters}}.
+#' object using \code{\link{retrieve_pars}}.
 #' @examples
 #' # Load example mutational catalogues and COSMIC signatures
 #' data("counts_21breast")
@@ -147,7 +147,7 @@ extract_signatures_initialiser <- function(counts, nsignatures, model = "emu", o
             exposures = matrix(opt$par[grepl("exposures", names(opt$par))], nrow = nrow(counts))
         )
         inits = list()
-        for (i in 1:chains) inits[[i]] <- p
+        for (i in 1:chains) inits[[i]] <- params
     }
     inits
 }
