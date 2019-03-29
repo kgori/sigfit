@@ -1,4 +1,4 @@
-<p align="center"><img src="logo.png" alt="sigfit" width="650"/></p>
+<p align="center"><img src="logo.png" alt="sigfit" width="700"/></p>
 
 ### Flexible Bayesian inference of mutational signatures
 
