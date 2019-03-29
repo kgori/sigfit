@@ -37,7 +37,7 @@ Default value is 1 (uniform, uninformative).}
 \code{"optimizing"} returns the Maximum a Posteriori (MAP) point estimates via numerical 
 optimization, while \code{"vb"} uses Variational Bayes to approximate the full posterior.}
 
-\item{...}{Any additional parameters to pass to the sampling function (by default, \code{\link{rstan::sampling}}).
+\item{...}{Any additional parameters to pass to the sampling function (by default, \code{rstan::sampling}).
 (Note that the number of chains is set to 1 and cannot be changed, to prevent 'label switching' problems.)}
 }
 \value{
@@ -47,7 +47,7 @@ A list with two elements:
  \item{\code{$result}: object of class stanfit, containing the output MCMC samples,
  as well as information about the model and sampling process.}}
 The model parameters (such as signatures and exposures) can be extracted from this
-object using \code{\link{retrieve_parameters}}.
+object using \code{\link{retrieve_pars}}.
 }
 \description{
 \code{fit_extract_signatures} fits signatures to estimate exposures in a set of mutation counts

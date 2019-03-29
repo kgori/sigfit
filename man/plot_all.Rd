@@ -12,7 +12,7 @@ plot_all(mcmc_samples = NULL, out_path, prefix = NULL, counts = NULL,
   sig_color_palette = NULL)
 }
 \arguments{
-\item{mcmc_samples}{List with elements \code{\`data\`} and \code{\`results\`}, produced via either
+\item{mcmc_samples}{List with elements \code{$data} and \code{$results}, produced via either
 \code{\link{fit_signatures}}, \code{\link{extract_signatures}} or \code{\link{fit_extract_signatures}}.
 This is the preferred option for supplying data and results, but can be replaced by the
 combination of arguments \code{counts}, \code{signatures}, \code{exposures} and \code{opportunities}.}

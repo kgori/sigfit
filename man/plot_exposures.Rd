@@ -11,7 +11,7 @@ plot_exposures(mcmc_samples = NULL, pdf_path = NULL, counts = NULL,
   sig_color_palette = NULL)
 }
 \arguments{
-\item{mcmc_samples}{List with elements \code{\`data\`} and \code{\`results\`}, produced via either
+\item{mcmc_samples}{List with elements \code{$data} and \code{$results}, produced via either
 \code{\link{fit_signatures}}, \code{\link{extract_signatures}} or \code{\link{fit_extract_signatures}}.
 This is the preferred option for supplying data and results, but can be replaced by the
 combination of arguments \code{counts}, \code{exposures} and \code{signature_names}.}

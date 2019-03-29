@@ -27,7 +27,7 @@ to be used as the Dirichlet priors for the signatures to be extracted. Only used
 
 \item{chains}{Integer indicating number of chains to be initialised (default is 1).}
 
-\item{...}{Additional arguments to pass to \code{\link{rstan::optimizing}}.}
+\item{...}{Additional arguments to pass to \code{rstan::optimizing}.}
 }
 \value{
 List of initial values to be passed to \code{\link{extract_signatures}} via the
