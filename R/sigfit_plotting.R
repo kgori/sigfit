@@ -124,7 +124,7 @@ plot_gof <- function(sample_list, stat = "cosine") {
 #'  \item{Signature exposures (via \code{\link{plot_exposures}})}
 #'  \item{All the reconstructed mutational spectra (via \code{\link{plot_reconstruction}})}
 #' }
-#' @param mcmc_samples List with elements \code{\`data\`} and \code{\`results\`}, produced via either
+#' @param mcmc_samples List with elements \code{$data} and \code{$results}, produced via either
 #' \code{\link{fit_signatures}}, \code{\link{extract_signatures}} or \code{\link{fit_extract_signatures}}.
 #' This is the preferred option for supplying data and results, but can be replaced by the
 #' combination of arguments \code{counts}, \code{signatures}, \code{exposures} and \code{opportunities}.
@@ -263,7 +263,7 @@ plot_all <- function(mcmc_samples = NULL, out_path, prefix = NULL, counts = NULL
 #' stanfit object (generated via \code{\link{fit_signatures}} or \code{\link{extract_signatures}}),
 #' or as separate signatures and exposures matrices (or lists produced via \code{\link{retrieve_pars}}).
 #' Only the former option allows the incorporation of HPD intervals to the reconstructed catalogue.
-#' @param mcmc_samples List with elements \code{\`data\`} and \code{\`results\`}, produced via either
+#' @param mcmc_samples List with elements \code{$data} and \code{$results}, produced via either
 #' \code{\link{fit_signatures}}, \code{\link{extract_signatures}} or \code{\link{fit_extract_signatures}}.
 #' This is the preferred option for supplying data and results, but can be replaced by the
 #' combination of arguments \code{counts}, \code{signatures}, \code{exposures} and \code{opportunities}.
@@ -861,7 +861,7 @@ plot_spectrum <- function(spectra, pdf_path = NULL, pdf_width = 24,
 #' Plot signature exposures
 #'
 #' \code{plot_exposures} plots the distribution of signature exposures across the samples.
-#' @param mcmc_samples List with elements \code{\`data\`} and \code{\`results\`}, produced via either
+#' @param mcmc_samples List with elements \code{$data} and \code{$results}, produced via either
 #' \code{\link{fit_signatures}}, \code{\link{extract_signatures}} or \code{\link{fit_extract_signatures}}.
 #' This is the preferred option for supplying data and results, but can be replaced by the
 #' combination of arguments \code{counts}, \code{exposures} and \code{signature_names}.

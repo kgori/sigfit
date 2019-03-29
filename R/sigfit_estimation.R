@@ -126,7 +126,7 @@ fit_signatures <- function(counts, signatures, exp_prior = NULL, model = "nmf",
 #' to be used as the Dirichlet priors for the signatures to be extracted. Only used when 
 #' \code{nsignatures} is a scalar. Default priors are uniform (uninformative).
 #' @param chains Integer indicating number of chains to be initialised (default is 1).
-#' @param ... Additional arguments to pass to \code{\link{rstan::optimizing}}.
+#' @param ... Additional arguments to pass to \code{rstan::optimizing}.
 #' @return List of initial values to be passed to \code{\link{extract_signatures}} via the
 #' \code{init} argument.
 #' @export
@@ -176,15 +176,15 @@ extract_signatures_initialiser <- function(counts, nsignatures, model = "emu", o
 #' \code{"optimizing"} returns the Maximum a Posteriori (MAP) point estimates via numerical 
 #' optimization, while \code{"vb"} uses Variational Bayes to approximate the full posterior.
 #' @param ... Any additional parameters to be passed to the sampling function (by default, 
-#' \code{\link{rstan::sampling}}). (Note that the number of chains is set to 1 and cannot 
+#' \code{rstan::sampling}). (Note that the number of chains is set to 1 and cannot 
 #' be changed, in order to prevent 'label switching' problems.)
 #' @return A list with two elements:
 #' \itemize{
-#'  \item{\code{\`data\`}: list containing the input data supplied to the model.}
-#'  \item{\code{\`result\`}: object of class stanfit, containing the output MCMC samples,
+#'  \item{\code{$data}: list containing the input data supplied to the model.}
+#'  \item{\code{$result}: object of class stanfit, containing the output MCMC samples,
 #'  as well as information about the model and sampling process.}}
 #' The model parameters (such as signatures and exposures) can be extracted from this
-#' object using \code{\link{retrieve_parameters}}.
+#' object using \code{\link{retrieve_pars}}.
 #' If a range of numbers of signatures is provided via the \code{nsignatures} argument, a list is returned where
 #' the N-th element contains the extraction results for N signatures, as a list with the structure described above.
 #' @examples
@@ -360,7 +360,7 @@ extract_signatures <- function(counts, nsignatures, model = "nmf", opportunities
 #' \code{"sampling"}, which corresponds to the full Bayesian MCMC approach. Alternatively, 
 #' \code{"optimizing"} returns the Maximum a Posteriori (MAP) point estimates via numerical 
 #' optimization, while \code{"vb"} uses Variational Bayes to approximate the full posterior.
-#' @param ... Any additional parameters to pass to the sampling function (by default, \code{\link{rstan::sampling}}).
+#' @param ... Any additional parameters to pass to the sampling function (by default, \code{rstan::sampling}).
 #' (Note that the number of chains is set to 1 and cannot be changed, to prevent 'label switching' problems.)
 #' @return A list with two elements:
 #' \itemize{
@@ -368,7 +368,7 @@ extract_signatures <- function(counts, nsignatures, model = "nmf", opportunities
 #'  \item{\code{$result}: object of class stanfit, containing the output MCMC samples,
 #'  as well as information about the model and sampling process.}}
 #' The model parameters (such as signatures and exposures) can be extracted from this
-#' object using \code{\link{retrieve_parameters}}.
+#' object using \code{\link{retrieve_pars}}.
 #' @examples
 #' # Fetch COSMIC signatures
 #' signatures <- fetch_cosmic_data()
