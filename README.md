@@ -1,6 +1,6 @@
 <p align="center"><img src="logo.png" alt="sigfit" width="700"/></p>
 
-### Flexible Bayesian inference of mutational signatures
+## Flexible Bayesian inference of mutational signatures
 
 [![Build Status](https://travis-ci.org/kgori/sigfit.svg?branch=master)](https://travis-ci.org/kgori/sigfit)
 
