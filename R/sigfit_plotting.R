@@ -124,7 +124,7 @@ plot_gof <- function(sample_list, stat = "cosine") {
 #'  \item{Signature exposures (via \code{\link{plot_exposures}})}
 #'  \item{All the reconstructed mutational spectra (via \code{\link{plot_reconstruction}})}
 #' }
-#' @param mcmc_samples List with elements \code{\`data\`} and \code{\`results\`}, produced via either
+#' @param mcmc_samples List with elements \code{$data} and \code{$results}, produced via either
 #' \code{\link{fit_signatures}}, \code{\link{extract_signatures}} or \code{\link{fit_extract_signatures}}.
 #' This is the preferred option for supplying data and results, but can be replaced by the
 #' combination of arguments \code{counts}, \code{signatures}, \code{exposures} and \code{opportunities}.
@@ -263,7 +263,7 @@ plot_all <- function(mcmc_samples = NULL, out_path, prefix = NULL, counts = NULL
 #' stanfit object (generated via \code{\link{fit_signatures}} or \code{\link{extract_signatures}}),
 #' or as separate signatures and exposures matrices (or lists produced via \code{\link{retrieve_pars}}).
 #' Only the former option allows the incorporation of HPD intervals to the reconstructed catalogue.
-#' @param mcmc_samples List with elements \code{\`data\`} and \code{\`results\`}, produced via either
+#' @param mcmc_samples List with elements \code{$data} and \code{$results}, produced via either
 #' \code{\link{fit_signatures}}, \code{\link{extract_signatures}} or \code{\link{fit_extract_signatures}}.
 #' This is the preferred option for supplying data and results, but can be replaced by the
 #' combination of arguments \code{counts}, \code{signatures}, \code{exposures} and \code{opportunities}.
@@ -311,6 +311,7 @@ plot_all <- function(mcmc_samples = NULL, out_path, prefix = NULL, counts = NULL
 #'                     opportunities = "human-genome", pdf_path = "Reconstructions_2.pdf")
 #' @importFrom "rstan" extract
 #' @importFrom "coda" as.mcmc HPDinterval
+#' @importFrom "grDevices" cairo_pdf
 #' @export
 plot_reconstruction <- function(mcmc_samples = NULL, pdf_path = NULL, counts = NULL,
                                 signatures = NULL, exposures = NULL, opportunities = NULL, 
@@ -620,6 +621,7 @@ plot_reconstruction <- function(mcmc_samples = NULL, pdf_path = NULL, counts = N
 #'
 #' # Plot signatures
 #' plot_spectrum(sigs, pdf_path = "Signatures.pdf")
+#' @importFrom "grDevices" cairo_pdf
 #' @export
 plot_spectrum <- function(spectra, pdf_path = NULL, pdf_width = 24,
                           pdf_height = 8, name = NULL, max_y = NULL) {
@@ -859,7 +861,7 @@ plot_spectrum <- function(spectra, pdf_path = NULL, pdf_width = 24,
 #' Plot signature exposures
 #'
 #' \code{plot_exposures} plots the distribution of signature exposures across the samples.
-#' @param mcmc_samples List with elements \code{\`data\`} and \code{\`results\`}, produced via either
+#' @param mcmc_samples List with elements \code{$data} and \code{$results}, produced via either
 #' \code{\link{fit_signatures}}, \code{\link{extract_signatures}} or \code{\link{fit_extract_signatures}}.
 #' This is the preferred option for supplying data and results, but can be replaced by the
 #' combination of arguments \code{counts}, \code{exposures} and \code{signature_names}.
@@ -908,6 +910,8 @@ plot_spectrum <- function(spectra, pdf_path = NULL, pdf_width = 24,
 #' plot_exposures(counts = counts_21breast, exposures = exposures,
 #'                signature_names = rownames(cosmic_signatures),
 #'                pdf_path = "Exposures.pdf")
+#' @importFrom "grDevices" cairo_pdf
+#' @importFrom "graphics" segments
 #' @export
 plot_exposures <- function(mcmc_samples = NULL, pdf_path = NULL, counts = NULL, exposures = NULL,
                            signature_names = NULL, thresh = 0.01, hpd_prob = 0.95, pdf_width = 24,

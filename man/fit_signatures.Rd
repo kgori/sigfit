@@ -34,7 +34,7 @@ A list with two elements:
  \item{\code{$result}: object of class stanfit, containing the output MCMC samples,
  as well as information about the model and sampling process.}}
 The model parameters (such as signatures and exposures) can be extracted from this
-object using \code{\link{retrieve_parameters}}.
+object using \code{\link{retrieve_pars}}.
 }
 \description{
 \code{fit_signatures} runs MCMC sampling to fit a set of mutational signatures

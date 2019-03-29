@@ -35,17 +35,17 @@ Admits values \code{"sampling"}, \code{"optimizing"} and \code{"vb"}. The defaul
 optimization, while \code{"vb"} uses Variational Bayes to approximate the full posterior.}
 
 \item{...}{Any additional parameters to be passed to the sampling function (by default, 
-\code{\link{rstan::sampling}}). (Note that the number of chains is set to 1 and cannot 
+\code{rstan::sampling}). (Note that the number of chains is set to 1 and cannot 
 be changed, in order to prevent 'label switching' problems.)}
 }
 \value{
 A list with two elements:
 \itemize{
- \item{\code{\`data\`}: list containing the input data supplied to the model.}
- \item{\code{\`result\`}: object of class stanfit, containing the output MCMC samples,
+ \item{\code{$data}: list containing the input data supplied to the model.}
+ \item{\code{$result}: object of class stanfit, containing the output MCMC samples,
  as well as information about the model and sampling process.}}
 The model parameters (such as signatures and exposures) can be extracted from this
-object using \code{\link{retrieve_parameters}}.
+object using \code{\link{retrieve_pars}}.
 If a range of numbers of signatures is provided via the \code{nsignatures} argument, a list is returned where
 the N-th element contains the extraction results for N signatures, as a list with the structure described above.
 }

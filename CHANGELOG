@@ -1,5 +1,12 @@
 CHANGE LOG
 
+2019/03/29
+Major changes introduced in v1.3.1
+
+* Set up continuous integration with TravisCI (config file .travis.yml).
+* Removed ggplot2 dependency.
+
+
 2019/03/26
 Major changes introduced in v1.3.0
 
