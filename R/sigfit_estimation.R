@@ -24,6 +24,7 @@
 #' The model parameters (such as signatures and exposures) can be extracted from this
 #' object using \code{\link{retrieve_pars}}.
 #' @examples
+#' \dontrun{
 #' # Load example mutational catalogues and COSMIC signatures
 #' data("counts_21breast")
 #' data("cosmic_signatures")
@@ -37,6 +38,7 @@
 #' # (3000 warmup iterations + 10000 sampling iterations)
 #' samples_2 <- fit_signatures(counts_21breast, cosmic_signatures, chains = 1,
 #'                             iter = 13000, warmup = 3000)
+#' }
 #' @useDynLib sigfit, .registration = TRUE
 #' @importFrom "rstan" sampling
 #' @export
