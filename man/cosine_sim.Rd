@@ -6,6 +6,18 @@
 \usage{
 cosine_sim(x, y)
 }
+\arguments{
+\item{x}{Vector of real values}
+
+\item{y}{Vector of real values, same length as \code{x}}
+}
+\value{
+Similarity measure between \code{x} and \code{y}, where 0
+means no similarity, and 1 means maximum similarity.
+}
 \description{
 Cosine similarity between two vectors
+}
+\examples{
+cosine_sim(c(1,2,3,4), c(4,3,2,1))
 }

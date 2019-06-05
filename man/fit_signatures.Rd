@@ -42,6 +42,7 @@ to a collection of mutational catalogues and estimate the exposure of each
 catalogue to each signature.
 }
 \examples{
+\dontrun{
 # Load example mutational catalogues and COSMIC signatures
 data("counts_21breast")
 data("cosmic_signatures")
@@ -55,4 +56,5 @@ samples_1 <- fit_signatures(counts_21breast, cosmic_signatures[1:4, ],
 # (3000 warmup iterations + 10000 sampling iterations)
 samples_2 <- fit_signatures(counts_21breast, cosmic_signatures, chains = 1,
                             iter = 13000, warmup = 3000)
+}
 }
