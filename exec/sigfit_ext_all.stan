@@ -61,6 +61,12 @@ transformed parameters {
     }
     // Calculate expected counts (or probabilities)
     expected_counts = activities * array_to_matrix(signatures) .* opportunities;
+
+    if (family == 1) { // Multinomial requires a simplex
+        for (g in 1:G) {
+            expected_counts[g] = scale_row_to_sum_1(expected_counts[g]);
+        }
+    }
 }
 
 model {
