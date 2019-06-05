@@ -242,6 +242,7 @@ extract_signatures <- function(counts, nsignatures, model = "nmf", opportunities
         C = NCAT,
         S = nsignatures,
         G = NSAMP,
+        counts = counts,
         counts_int = apply(counts, 2, as.integer),
         counts_real = apply(counts, 2, as.numeric),
         kappa = exp_prior,
