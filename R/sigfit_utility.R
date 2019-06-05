@@ -650,9 +650,10 @@ get_reconstructions <- function(mcmc_samples) {
 
     reconstructions <- array(NA, dim = c(NSAMP, NSIG, NCAT))
     hpds <- array(NA, dim = c(NSAMP, 2, NCAT))
+    opportunities <- mcmc_samples$data$opportunities
     for (sample in 1:NSAMP) {
-        if (grepl("emu", mcmc_samples$result@model_name)) {
-            opportunities <- mcmc_samples$data$opps
+        if (mcmc_samples$data$family != 1) {
+        #if (grepl("emu", mcmc_samples$result@model_name)) {
             arr <- aperm(
                 sapply(1:NREP, function(i) {
                     sweep(e$activities[i, sample, ] * e$signatures[i, , ],
@@ -666,14 +667,17 @@ get_reconstructions <- function(mcmc_samples) {
         else {
             arr <- aperm(
                 sapply(1:NREP, function(i) {
-                    e$exposures[i, sample, ] *
-                        e$signatures[i, , ] *
-                        sum(counts[sample, ])
+                    probs <- sweep(
+                        e$exposures[i, sample, ] *
+                        e$signatures[i, , ],
+                        2, as.numeric(opportunities[sample, ]), `*`)
+                    probs / sum(probs) * sum(counts[sample, ])
                 }, simplify = "array"),
                 c(3, 1, 2)
             )
         }
         reconstructions[sample, , ] <- apply(arr, c(2, 3), mean)
+        
         hpds[sample, , ] <- t(HPDinterval(
             as.mcmc(apply(arr, c(1, 3), sum))
         ))
