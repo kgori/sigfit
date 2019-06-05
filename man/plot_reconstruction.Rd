@@ -4,10 +4,10 @@
 \alias{plot_reconstruction}
 \title{Plot mutational spectrum reconstructions}
 \usage{
-plot_reconstruction(mcmc_samples = NULL, pdf_path = NULL, counts = NULL,
-  signatures = NULL, exposures = NULL, opportunities = NULL,
-  pdf_width = 24, pdf_height = 17, legend_pos = "topright",
-  sig_color_palette = NULL)
+plot_reconstruction(mcmc_samples = NULL, pdf_path = NULL,
+  counts = NULL, signatures = NULL, exposures = NULL,
+  opportunities = NULL, pdf_width = 24, pdf_height = 17,
+  legend_pos = "topright", sig_color_palette = NULL)
 }
 \arguments{
 \item{mcmc_samples}{List with elements \code{$data} and \code{$results}, produced via either

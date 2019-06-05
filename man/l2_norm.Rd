@@ -6,6 +6,18 @@
 \usage{
 l2_norm(x, y)
 }
+\arguments{
+\item{x}{Vector of real values}
+
+\item{y}{Vector of real values, same length as \code{x}}
+}
+\value{
+Distance measure between \code{x} and \code{y}, where 0
+means no difference.
+}
 \description{
 L2 norm between two vectors
+}
+\examples{
+l2_norm(c(1,2,3,4), c(4,3,2,1))
 }
