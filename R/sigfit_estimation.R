@@ -75,7 +75,7 @@ fit_signatures <- function(counts, signatures, exp_prior = NULL, model = "nmf",
     # Set up the opportunities
     if (is.null(opportunities)) {
         if (!(model == "nmf" | model == "multinomial"))
-            warning("Using EMu model, but no opportunities were provided.")
+            warning("Using an opportunities-sensitive model, but no opportunities were provided.")
     }
     
     if (is.null(opportunities) | is.character(opportunities)) {
@@ -99,7 +99,7 @@ fit_signatures <- function(counts, signatures, exp_prior = NULL, model = "nmf",
         robust = switch(model, negbin = 1, 0)
     )
 
-    cat("Fitting", NSIG, "signatures\n")
+    cat("Fitting", NSIG, "signatures using model", model, "\n")
     cat("Stan sampling:")
     out <- sampling(stanmodels$sigfit_fit_all, data = dat, pars = "multiplier", include = FALSE, ...)
 
