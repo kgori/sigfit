@@ -6,7 +6,7 @@
 \usage{
 extract_signatures(counts, nsignatures, model = "nmf",
   opportunities = NULL, sig_prior = NULL, exp_prior = 1,
-  stanfunc = "sampling", ...)
+  stanfunc = "sampling", chains = 1, ...)
 }
 \arguments{
 \item{counts}{Integer matrix of observed mutation counts, with one row per sample and

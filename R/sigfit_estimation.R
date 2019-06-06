@@ -71,6 +71,14 @@ fit_signatures <- function(counts, signatures, exp_prior = NULL, model = "nmf",
     # Select the model
     model_choices <- c("normal", "poisson", "emu", "multinomial", "nmf", "negbin")
     model <- match.arg(model, model_choices)
+    if (model == "nmf") {
+        cat("INFO:'nmf' is an alias for 'multinomial'\n")
+        model = "multinomial"
+    }
+    if (model == "emu") {
+        cat("INFO:'emu' is an alias for 'poisson'\n")
+        model = "poisson"
+    }
     
     # Set up the opportunities
     if (is.null(opportunities)) {
@@ -154,6 +162,7 @@ extract_signatures_initialiser <- function(counts, nsignatures, model = "emu", o
 #' @param chains (integer) return a copy of the parameter list for each of \code{chains}. Used
 #' to initialize multiple chains.
 #' @return list of parameter lists.
+#' @export
 get_initializer_list <- function(fitobj, chains = 1) {
     params <- list(
         activities = as.matrix(retrieve_pars(fitobj, "activities")$mean),
@@ -246,6 +255,14 @@ extract_signatures <- function(counts, nsignatures, model = "nmf", opportunities
     # Select the model
     model_choices <- c("normal", "poisson", "emu", "multinomial", "nmf", "negbin")
     model <- match.arg(model, model_choices)
+    if (model == "nmf") {
+        cat("INFO:'nmf' is an alias for 'multinomial'\n")
+        model = "multinomial"
+    }
+    if (model == "emu") {
+        cat("INFO:'emu' is an alias for 'poisson'\n")
+        model = "poisson"
+    }
 
     # Set up the opportunities
     if (is.null(opportunities)) {
