@@ -154,7 +154,7 @@ extract_signatures_initialiser <- function(counts, nsignatures, model = "emu", o
 #' @param chains (integer) return a copy of the parameter list for each of \code{chains}. Used
 #' to initialize multiple chains.
 #' @return list of parameter lists.
-get_initializer_list(fitobj, chains = 1) {
+get_initializer_list <- function(fitobj, chains = 1) {
     params <- list(
         activities = as.matrix(retrieve_pars(fitobj, "activities")$mean),
         exposures = as.matrix(retrieve_pars(fitobj, "exposures")$mean),
