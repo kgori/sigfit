@@ -10,16 +10,16 @@ functions {
 }
 
 data {
-    int<lower=1, upper=3> family;  // model: 1=multinomial, 2=poisson, 3=normal
-    int<lower=0, upper=1> robust;  // robust model: 0=no, 1=yes (neg binomial or t)
-    int<lower=1> C;                // number of mutation categories
-    int<lower=1> S;                // number of mutational signatures
-    int<lower=1> G;                // number of genomes
-    int counts_int[G, C];          // observed mutation counts (discrete case)
-    real counts_real[G, C];        // observed mutation counts (continuous case)
-    matrix[S, C] signatures;       // signatures to fit (signature per row)
-    matrix[G, C] opportunities;    // mutational opportunities (genome per row)
-    vector<lower=0>[S] kappa;      // prior on exposures (mixing proportions)
+    int<lower=1, upper=3> family;         // model: 1=multinomial, 2=poisson, 3=normal
+    int<lower=0, upper=1> robust;         // robust model: 0=no, 1=yes (neg binomial or t)
+    int<lower=1> C;                       // number of mutation categories
+    int<lower=1> S;                       // number of mutational signatures
+    int<lower=1> G;                       // number of genomes
+    int<lower=0> counts_int[G, C];        // observed mutation counts (discrete case)
+    real<lower=0> counts_real[G, C];      // observed mutation counts (continuous case)
+    matrix<lower=0>[S, C] signatures;     // signatures to fit (signature per row)
+    matrix<lower=0>[G, C] opportunities;  // mutational opportunities (genome per row)
+    vector<lower=0>[S] kappa;             // prior on exposures (mixing proportions)
 }
 
 transformed data {

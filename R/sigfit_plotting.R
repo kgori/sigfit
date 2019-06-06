@@ -610,6 +610,7 @@ plot_reconstruction <- function(mcmc_samples = NULL, pdf_path = NULL, counts = N
 #' @param name Character indicating a name to include in the plot title.
 #' Useful when plotting a single spectrum.
 #' @param max_y Numeric indicating an optional fixed higher limit for the vertical axis.
+#' @param box Logical indicating whether to draw a box around the plot (default is TRUE).
 #' @examples
 #' # Load example mutational catalogues
 #' data("counts_21breast")
@@ -628,7 +629,7 @@ plot_reconstruction <- function(mcmc_samples = NULL, pdf_path = NULL, counts = N
 #' plot_spectrum(sigs, pdf_path = "Signatures.pdf")
 #' @export
 plot_spectrum <- function(spectra, pdf_path = NULL, pdf_width = 24,
-                          pdf_height = 8, name = NULL, max_y = NULL) {
+                          pdf_height = 8, name = NULL, max_y = NULL, box = TRUE) {
     # Fetch HPD interval values, if present
     if (is.list(spectra) & "mean" %in% names(spectra)) {
         spec <- to_matrix(spectra$mean)
@@ -713,6 +714,10 @@ plot_spectrum <- function(spectra, pdf_path = NULL, pdf_width = 24,
                        bars, lwr[i,],
                        length = 0, lwd = 3, col = LINECOL)
             }
+            # Plot box
+            if (box) {
+                box(lwd = 2)
+            }
         }
     }
     else {
@@ -732,7 +737,7 @@ plot_spectrum <- function(spectra, pdf_path = NULL, pdf_width = 24,
                 bars <- barplot(spec[i,],
                                 names.arg = substr(mut_types(), 1, 3), mgp = c(3, 0.8, 0),
                                 col = rep(COLORS, each = 16), border = "white",
-                                las = 2, ylim = c(0, samp_max_y), xlim = c(-1, 116),
+                                las = 2, ylim = c(0, samp_max_y), xlim = c(-1, 116.38),
                                 yaxt = "n", cex.names = 1.6, xaxs = "i", family = "mono")
                 # Highlight trinucleotide middle bases
                 for (j in 1:length(COLORS)) {
@@ -768,10 +773,14 @@ plot_spectrum <- function(spectra, pdf_path = NULL, pdf_width = 24,
                            length = 0, lwd = 3, col = LINECOL)
                 }
                 # Plot mutation type labels
-                text(x = (XL + XR) / 2, y = 1.05 * samp_max_y,
+                text(x = (XL + XR) / 2, y = 1.055 * samp_max_y,
                      labels = TYPES, cex = 2.3, xpd = TRUE)
                 rect(xleft = XL, xright = XR, ybottom = 0.95 * samp_max_y,
                      ytop = samp_max_y, col = COLORS, border = "white")
+                # Plot box
+                if (box) {
+                    box(lwd = 2)
+                }
             }
         }
 
@@ -794,7 +803,7 @@ plot_spectrum <- function(spectra, pdf_path = NULL, pdf_width = 24,
                          ytop = samp_max_y, col = BACKCOL[j], border = "white")
                     rect(xleft = BACKLIM[j], xright = BACKLIM[j+1], ybottom = 0.95 * samp_max_y,
                          ytop = samp_max_y, col = COLORS[j], border = "white")
-                    text(x = (BACKLIM[j] + BACKLIM[j+1]) / 2, y = 1.05 * samp_max_y,
+                    text(x = (BACKLIM[j] + BACKLIM[j+1]) / 2, y = 1.055 * samp_max_y,
                          labels = TYPES[j], cex = 2.3, xpd = TRUE)
                 }
                 # Plot legend
@@ -852,6 +861,10 @@ plot_spectrum <- function(spectra, pdf_path = NULL, pdf_width = 24,
                     arrows(bars, upr[i,], 
                            bars, lwr[i,],
                            length = 0, lwd = 2.5, col = LINECOL)
+                }
+                # Plot box
+                if (box) {
+                    box(lwd = 2)
                 }
             }
         }
