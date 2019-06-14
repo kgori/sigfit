@@ -29,12 +29,10 @@ matrix array_to_matrix(vector[] x) {
     */
 vector stick_breaking(vector v) {
     int C = num_elements(v);
-    vector[C] pi;
+    vector[C] pi = rep_vector(0, C);
     pi[1] = v[1];
-    // stick-break process based on The BUGS book Chapter 11 (p.294)
-    for(j in 2:(C-1)){
-        pi[j] = v[j] * (1 - v[j-1]) * pi[j-1] / v[j-1];
+    for (j in 2:C) {
+        pi[j]= v[j]*(1-v[j-1])*pi[j-1]/v[j-1];
     }
-    pi[C] = 1 - sum(pi[1:(C-1)]); // to make a simplex
-    return pi;
+    return scale_to_sum_1(pi);
 }

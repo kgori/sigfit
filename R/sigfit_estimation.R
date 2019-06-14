@@ -210,7 +210,7 @@ extract_signatures_initialiser <- function(counts, nsignatures, model = "emu", o
 #' @importFrom "rstan" extract
 #' @export
 extract_signatures <- function(counts, nsignatures, model = "nmf", opportunities = NULL,
-                               sig_prior = NULL, exp_prior = 1, stanfunc = "sampling", ...) {
+                               sig_prior = NULL, dpp = FALSE, exp_prior = 1, stanfunc = "sampling", ...) {
 
     if (!is.null(sig_prior) & length(nsignatures) > 1) {
         stop("'sig_prior' is only admitted when 'nsignatures' is a scalar (single value).")
@@ -258,7 +258,6 @@ extract_signatures <- function(counts, nsignatures, model = "nmf", opportunities
             warning("Extracting with NMF model: 'opportunities' will not be used.")
         }
 
-        model <- stanmodels$sigfit_ext_nmf
 
         dat <- list(
             C = NCAT,
@@ -268,6 +267,13 @@ extract_signatures <- function(counts, nsignatures, model = "nmf", opportunities
             alpha = sig_prior,
             kappa = exp_prior
         )
+
+        if (dpp) {
+            model <- stanmodels$sigfit_ext_nmf_dpp
+            dat$kappa <- dat$kappa[1]
+        } else {
+            model <- stanmodels$sigfit_ext_nmf
+        }
     }
     else {
         stop("'model' must be either \"emu\" or \"nmf\".")
