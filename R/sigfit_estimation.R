@@ -42,7 +42,7 @@
 #' @useDynLib sigfit, .registration = TRUE
 #' @importFrom "rstan" sampling
 #' @export
-fit_signatures <- function(counts, signatures, exp_prior = NULL, model = "nmf",
+fit_signatures <- function(counts, signatures, exp_prior = NULL, model = "multinomial",
                            opportunities = NULL, ...) {
 
     # Force counts and signatures to matrix
@@ -73,11 +73,10 @@ fit_signatures <- function(counts, signatures, exp_prior = NULL, model = "nmf",
     model <- match.arg(model, model_choices)
     
     # Set up the opportunities
-    if (is.null(opportunities)) {
-        if (!(model == "nmf" | model == "multinomial"))
-            warning("Using EMu model, but no opportunities were provided.")
-    }
-    
+    # if (is.null(opportunities)) {
+    #     if (!(model == "nmf" | model == "multinomial"))
+    #         warning("Using EMu model, but no opportunities were provided.")
+    # }
     if (is.null(opportunities) | is.character(opportunities)) {
         opportunities <- build_opps_matrix(NSAMP, NCAT, opportunities)
     }
@@ -95,13 +94,13 @@ fit_signatures <- function(counts, signatures, exp_prior = NULL, model = "nmf",
         counts_real = apply(counts, 2, as.numeric),
         kappa = exp_prior,
         opportunities = opportunities,
-        family = switch(model, nmf = 1, multinomial = 1, emu = 2, poisson = 2, negbin = 2, normal = 3),
-        robust = switch(model, negbin = 1, 0)
+        family = switch(model,
+                        nmf = 1, multinomial = 1, emu = 2, poisson = 2, negbin = 3, normal = 4)
     )
 
-    cat("Fitting", NSIG, "signatures\n")
+    cat("---\nFitting", NSIG, "signatures using", model, "model\n---\n")
     cat("Stan sampling:")
-    out <- sampling(stanmodels$sigfit_fit_all, data = dat, pars = "multiplier", include = FALSE, ...)
+    out <- sampling(stanmodels$sigfit_fit, data = dat, pars = "multiplier", include = FALSE, ...)
 
     list("data" = dat,
          "result" = out)
@@ -203,7 +202,7 @@ extract_signatures_initialiser <- function(counts, nsignatures, model = "emu", o
 #' @importFrom "rstan" vb
 #' @importFrom "rstan" extract
 #' @export
-extract_signatures <- function(counts, nsignatures, model = "nmf", opportunities = NULL,
+extract_signatures <- function(counts, nsignatures, model = "multinomial", opportunities = NULL,
                                sig_prior = NULL, exp_prior = 1, stanfunc = "sampling", ...) {
 
     if (!is.null(sig_prior) & length(nsignatures) > 1) {
@@ -225,11 +224,10 @@ extract_signatures <- function(counts, nsignatures, model = "nmf", opportunities
     model <- match.arg(model, model_choices)
 
     # Set up the opportunities
-    if (is.null(opportunities)) {
-        if (!(model == "nmf" | model == "multinomial"))
-            warning("Using EMu model, but no opportunities were provided.")
-    }
-    
+    # if (is.null(opportunities)) {
+    #     if (!(model == "nmf" | model == "multinomial"))
+    #         warning("Using EMu model, but no opportunities were provided.")
+    # }
     if (is.null(opportunities) | is.character(opportunities)) {
         opportunities <- build_opps_matrix(NSAMP, NCAT, opportunities)
     } 
@@ -247,9 +245,9 @@ extract_signatures <- function(counts, nsignatures, model = "nmf", opportunities
         counts_real = apply(counts, 2, as.numeric),
         kappa = exp_prior,
         opportunities = opportunities,
-        family = switch(model, nmf = 1, multinomial = 1, emu = 2, poisson = 2, negbin = 2, normal = 3),
-        robust = switch(model, negbin = 1, 0),
-        alpha = sig_prior
+        alpha = sig_prior,
+        family = switch(model,
+                        nmf = 1, multinomial = 1, emu = 2, poisson = 2, negbin = 3, normal = 4)
     )
 
     # Extract signatures for each nsignatures value
@@ -261,24 +259,24 @@ extract_signatures <- function(counts, nsignatures, model = "nmf", opportunities
             dat$kappa <- rep(exp_prior, n)
             dat$S <- as.integer(n)
 
-            cat("Extracting", n, "signatures using", model, "model\n")
+            cat("---\nExtracting", n, "signatures using", model, "model\n---\n")
             if (stanfunc == "sampling") {
                 cat("Stan sampling:")
                 out[[n]] <- list("data" = dat,
-                                 "result" = sampling(stanmodels$sigfit_ext_all,
+                                 "result" = sampling(stanmodels$sigfit_ext,
                                                      data = dat, chains = 1, ...))
 
             }
             else if (stanfunc == "optimizing") {
                 cat("Stan optimizing:")
                 out[[n]] <- list("data" = dat,
-                                 "result" = optimizing(stanmodels$sigfit_ext_all,
+                                 "result" = optimizing(stanmodels$sigfit_ext,
                                                        data = dat, ...))
             }
             else if (stanfunc == "vb") {
                 cat("Stan vb:")
                 out[[n]] <- list("data" = dat,
-                                 "result" = vb(stanmodels$sigfit_ext_all,
+                                 "result" = vb(stanmodels$sigfit_ext,
                                                data = dat, ...))
             }
         }
@@ -305,18 +303,18 @@ extract_signatures <- function(counts, nsignatures, model = "nmf", opportunities
         if (stanfunc == "sampling") {
             cat("Stan sampling:")
             out <- list("data" = dat,
-                        "result" = sampling(stanmodels$sigfit_ext_all, data = dat, chains = 1, ...))
+                        "result" = sampling(stanmodels$sigfit_ext, data = dat, chains = 1, ...))
         }
         else if (stanfunc == "optimizing") {
             cat("Stan optimizing:")
             out <- list("data" = dat,
-                        "result" = optimizing(stanmodels$sigfit_ext_all,
+                        "result" = optimizing(stanmodels$sigfit_ext,
                                               data = dat, ...))
         }
         else if (stanfunc == "vb") {
             cat("Stan vb:")
             out <- list("data" = dat,
-                        "result" = vb(stanmodels$sigfit_ext_all,
+                        "result" = vb(stanmodels$sigfit_ext,
                                       data = dat, ...))
         }
     }
@@ -384,8 +382,8 @@ extract_signatures <- function(counts, nsignatures, model = "nmf", opportunities
 #' @importFrom "rstan" vb
 #' @export
 fit_extract_signatures <- function(counts, signatures, num_extra_sigs,
-                                   model = "nmf", opportunities = NULL, sig_prior = NULL, exp_prior = 1,
-                                   stanfunc = "sampling", ...) {
+                                   model = "multinomial", opportunities = NULL, sig_prior = NULL,
+                                   exp_prior = 1, stanfunc = "sampling", ...) {
     # Check that num_extra_sigs is scalar
     if (length(num_extra_sigs) != 1) {
         stop("'num_extra_sigs' must be an integer scalar.")
@@ -432,7 +430,7 @@ fit_extract_signatures <- function(counts, signatures, num_extra_sigs,
         }
         stopifnot(all(dim(opportunities) == dim(counts)))
 
-        model <- stanmodels$sigfit_fitex_emu
+        model <- stanmodels$sigfit_fitex
         dat <- list(
             C = NCAT,
             S = NSIG,
@@ -447,7 +445,7 @@ fit_extract_signatures <- function(counts, signatures, num_extra_sigs,
 
     # NMF model
     else if (model == "nmf") {
-        model <- stanmodels$sigfit_fitex_nmf
+        model <- stanmodels$sigfit_fitex
         dat <- list(
             C = NCAT,
             S = NSIG,
