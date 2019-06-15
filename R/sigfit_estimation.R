@@ -71,12 +71,21 @@ fit_signatures <- function(counts, signatures, exp_prior = NULL, model = "multin
     # Select the model
     model_choices <- c("normal", "poisson", "emu", "multinomial", "nmf", "negbin")
     model <- match.arg(model, model_choices)
+    if (model == "nmf") {
+        cat("INFO:'nmf' is an alias for 'multinomial'\n")
+        model = "multinomial"
+    }
+    if (model == "emu") {
+        cat("INFO:'emu' is an alias for 'poisson'\n")
+        model = "poisson"
+    }
     
     # Set up the opportunities
-    # if (is.null(opportunities)) {
-    #     if (!(model == "nmf" | model == "multinomial"))
-    #         warning("Using EMu model, but no opportunities were provided.")
-    # }
+    # (all models allow opportunities now)
+    #if (is.null(opportunities)) {
+    #    if (!(model == "nmf" | model == "multinomial"))
+    #        warning("Using an opportunities-sensitive model, but no opportunities were provided.")
+    #}
     if (is.null(opportunities) | is.character(opportunities)) {
         opportunities <- build_opps_matrix(NSAMP, NCAT, opportunities)
     }
@@ -126,24 +135,43 @@ fit_signatures <- function(counts, signatures, exp_prior = NULL, model = "multin
 #' \code{init} argument.
 #' @export
 extract_signatures_initialiser <- function(counts, nsignatures, model = "emu", opportunities = NULL,
-                                           sig_prior = NULL, chains = 1, ...) {
+                                           sig_prior = NULL, exp_prior = 1, chains = 1, ...) {
 
     opt <- extract_signatures(counts, nsignatures, model, opportunities,
-                              sig_prior, "optimizing", FALSE, ...)
+                              sig_prior, exp_prior, stanfunc = "optimizing", ...)
 
     if (is.null(opt)) {
-        warning("Parameter optimization failed - using random initialization")
-        inits <- "random"
+        stop("Parameter optimization failed")
     }
     else {
-        params <- list(
-            signatures = matrix(opt$par[grepl("signatures", names(opt$par))], nrow = nsignatures),
-            activities = matrix(opt$par[grepl("activities", names(opt$par))], nrow = nrow(counts)),
-            exposures = matrix(opt$par[grepl("exposures", names(opt$par))], nrow = nrow(counts))
-        )
-        inits = list()
-        for (i in 1:chains) inits[[i]] <- params
+        return (get_initializer_list(opt, chains))
     }
+}
+
+#' Query a signature extraction result for parameter values that can initialise a follow-up
+#' extraction.
+#' 
+#' \code{get_initializer_list} extracts parameter values from an extraction that can be
+#' used to initialise a follow-up extraction. One use case is to use a short, single-chain
+#' extraction to initialise a longer, multi-chain extraction. This can mitigate against
+#' label switching using the "Initialization around a single mode" strategy described in
+#' the Stan documentation 
+#' \url{https://mc-stan.org/docs/2_18/stan-users-guide/label-switching-problematic-section.html}
+#' 
+#' @param fitobj Result of a sigfit signature extraction
+#' @param chains (integer) return a copy of the parameter list for each of \code{chains}. Used
+#' to initialize multiple chains.
+#' @return list of parameter lists.
+#' @export
+get_initializer_list <- function(fitobj, chains = 1) {
+    params <- list(
+        activities = as.matrix(retrieve_pars(fitobj, "activities")$mean),
+        exposures = as.matrix(retrieve_pars(fitobj, "exposures")$mean),
+        signatures = as.matrix(retrieve_pars(fitobj, "signatures")$mean)
+    )
+    
+    inits <- list()
+    for (i in 1:chains) inits[[i]] <- params
     inits
 }
 
@@ -203,10 +231,14 @@ extract_signatures_initialiser <- function(counts, nsignatures, model = "emu", o
 #' @importFrom "rstan" extract
 #' @export
 extract_signatures <- function(counts, nsignatures, model = "multinomial", opportunities = NULL,
-                               sig_prior = NULL, exp_prior = 1, stanfunc = "sampling", ...) {
-
+                               sig_prior = NULL, exp_prior = 1, stanfunc = "sampling",
+                               chains = 1, ...) {
     if (!is.null(sig_prior) & length(nsignatures) > 1) {
         stop("'sig_prior' is only admitted when 'nsignatures' is a scalar (single value).")
+    }
+    
+    if (length(chains) > 1 | !all.equal(chains, as.integer(chains))) {
+        stop("'chains' must be a single integer value")
     }
 
     stopifnot(is.numeric(exp_prior) & exp_prior > 0)
@@ -222,6 +254,14 @@ extract_signatures <- function(counts, nsignatures, model = "multinomial", oppor
     # Select the model
     model_choices <- c("normal", "poisson", "emu", "multinomial", "nmf", "negbin")
     model <- match.arg(model, model_choices)
+    if (model == "nmf") {
+        cat("INFO:'nmf' is an alias for 'multinomial'\n")
+        model = "multinomial"
+    }
+    if (model == "emu") {
+        cat("INFO:'emu' is an alias for 'poisson'\n")
+        model = "poisson"
+    }
 
     # Set up the opportunities
     # if (is.null(opportunities)) {
@@ -264,8 +304,7 @@ extract_signatures <- function(counts, nsignatures, model = "multinomial", oppor
                 cat("Stan sampling:")
                 out[[n]] <- list("data" = dat,
                                  "result" = sampling(stanmodels$sigfit_ext,
-                                                     data = dat, chains = 1, ...))
-
+                                                     data = dat, chains = chains, ...))
             }
             else if (stanfunc == "optimizing") {
                 cat("Stan optimizing:")
@@ -303,7 +342,7 @@ extract_signatures <- function(counts, nsignatures, model = "multinomial", oppor
         if (stanfunc == "sampling") {
             cat("Stan sampling:")
             out <- list("data" = dat,
-                        "result" = sampling(stanmodels$sigfit_ext, data = dat, chains = 1, ...))
+                        "result" = sampling(stanmodels$sigfit_ext, data = dat, chains = chains, ...))
         }
         else if (stanfunc == "optimizing") {
             cat("Stan optimizing:")

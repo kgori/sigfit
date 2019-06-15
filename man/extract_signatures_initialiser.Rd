@@ -5,7 +5,8 @@
 \title{Use optimization to generate initial parameter values for MCMC sampling}
 \usage{
 extract_signatures_initialiser(counts, nsignatures, model = "emu",
-  opportunities = NULL, sig_prior = NULL, chains = 1, ...)
+  opportunities = NULL, sig_prior = NULL, exp_prior = 1,
+  chains = 1, ...)
 }
 \arguments{
 \item{counts}{Integer matrix of observed mutation counts, with one row per sample and
