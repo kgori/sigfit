@@ -18,8 +18,7 @@ transformed data {
     // Dynamic dimensions for model-specific parameters:
     // unused parameters have zero length
     int G_mult = (family != 1) ? G : 0;
-    int G_phi = (family == 3) ? G : 0;
-    //int G_phi = (family == 3) ? C : 0;
+    int C_phi = (family == 3) ? C : 0;
     int G_sigma = (family == 4) ? G : 0;
 }
 
@@ -27,7 +26,7 @@ parameters {
     simplex[S] exposures[G];           // signature exposures (genome per row)
     real<lower=0> multiplier[G_mult];  // exposure multipliers
     vector<lower=0>[G_sigma] sigma;    // standard deviations (normal model)
-    vector<lower=0>[G_phi] phi;        // unscaled overdispersions (neg bin model)
+    vector<lower=0>[C_phi] phi;        // overdispersions (neg bin model)
 }
 
 transformed parameters {
@@ -85,8 +84,7 @@ model {
         else if (family == 3) {
             phi ~ cauchy(0, 2.5);
             for (g in 1:G) {
-                counts_int[g] ~ neg_binomial_2(expected_counts[g], phi[g]);
-                //counts_int[g] ~ neg_binomial_2(expected_counts[g], phi);
+                counts_int[g] ~ neg_binomial_2(expected_counts[g], phi);
             }
         }
         
