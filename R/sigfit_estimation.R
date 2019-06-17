@@ -454,53 +454,71 @@ fit_extract_signatures <- function(counts, signatures, num_extra_sigs,
     stopifnot(nrow(sig_prior) == num_extra_sigs)
     stopifnot(ncol(sig_prior) == NCAT)
 
-    # EMu model
+
+    # Select the model
+    model_choices <- c("normal", "poisson", "emu", "multinomial", "nmf", "negbin")
+    model <- match.arg(model, model_choices)
+    if (model == "nmf") {
+        cat("INFO:'nmf' is an alias for 'multinomial'\n")
+        model = "multinomial"
+    }
     if (model == "emu") {
-        if (is.null(opportunities)) {
-            warning("Using EMu model, but no opportunities were provided.")
-        }
+        cat("INFO:'emu' is an alias for 'poisson'\n")
+        model = "poisson"
+    }
 
-        # Build opportunities matrix
-        if (is.null(opportunities) | is.character(opportunities)) {
-            opportunities <- build_opps_matrix(NSAMP, NCAT, opportunities)
-        }
-        else if (!is.matrix(opportunities)) {
-            opportunities <- as.matrix(opportunities)
-        }
-        stopifnot(all(dim(opportunities) == dim(counts)))
+    # Set up the opportunities
+    # if (is.null(opportunities)) {
+    #     if (!(model == "nmf" | model == "multinomial"))
+    #         warning("Using EMu model, but no opportunities were provided.")
+    # }
+    if (is.null(opportunities) | is.character(opportunities)) {
+        opportunities <- build_opps_matrix(NSAMP, NCAT, opportunities)
+    } 
+    else if (!is.matrix(opportunities)) {
+        opportunities <- as.matrix(opportunities)
+    }
+    stopifnot(all(dim(opportunities) == dim(counts)))
 
-        model <- stanmodels$sigfit_fitex
-        dat <- list(
-            C = NCAT,
-            S = NSIG,
-            G = NSAMP,
-            N = as.integer(num_extra_sigs),
-            fixed_sigs = signatures,
-            counts = counts,
-            opportunities = opportunities,
-            alpha = sig_prior
-        )
+    dat <- list(
+        C = NCAT,
+        S = NSIG,
+        G = NSAMP,
+        N = as.integer(num_extra_sigs),
+        fixed_sigs = signatures,
+        counts_int = counts,
+        counts_real = counts,
+        opportunities = opportunities,
+        alpha = sig_prior,
+        kappa = rep(exp_prior, NSIG + num_extra_sigs)
+    )
+
+    # EMu model
+    if (model == "multinomial") {
+        dat$family <- 1
+        dat$robust <- 0
     }
 
     # NMF model
-    else if (model == "nmf") {
-        model <- stanmodels$sigfit_fitex
-        dat <- list(
-            C = NCAT,
-            S = NSIG,
-            G = NSAMP,
-            N = as.integer(num_extra_sigs),
-            fixed_sigs = signatures,
-            counts = counts,
-            alpha = sig_prior,
-            kappa = exp_prior
-        )
+    else if (model == "poisson") {
+        dat$family <- 2
+        dat$robust <- 0
     }
 
-    cat("Fit-Ext: Fitting", NSIG, "signatures, extracting", num_extra_sigs, "signature(s)\n")
+    else if (model == "negbin") {
+        dat$family <- 2
+        dat$robust <- 1
+    }
+
+    else { # normal
+        dat$family <- 3
+        dat$robust <- 0
+    }
+    cat("Fit-Ext: Fitting", NSIG, "signatures, extracting", num_extra_sigs,
+        "signature(s), using", model, "model\n")
     if (stanfunc == "sampling") {
         cat("Stan sampling:")
-        out <- sampling(model, data = dat, chains = 1,
+        out <- sampling(stanmodels$sigfit_fitex, data = dat, chains = 1,
                         pars = "extra_sigs", include = FALSE, ...)
     }
     else if (stanfunc == "optimizing") {

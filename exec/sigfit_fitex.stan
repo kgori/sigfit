@@ -1,32 +1,9 @@
 functions {
-    // #include "common_functions.stan"
-    vector scale_to_sum_1(vector v) {
-        return (v / sum(v));
-    }
-
-    row_vector scale_row_to_sum_1(row_vector r) {
-        return (r / sum(r));
-    }
-
-    /**
-       * Copy an array of equal-length vectors (or simplexes)
-       * into a matrix
-       *
-       * @param x An array of vectors
-       * @return A matrix copy of x
-       */
-    matrix array_to_matrix(vector[] x) {
-        // Assume x doesn't have 0 rows or columns
-        matrix[size(x), rows(x[1])] y;
-        for (m in 1:size(x))
-            y[m] = x[m]';
-        return y;
-    }
+    #include "common_functions.stan"
 }
 
 data {
-    int<lower=1, upper=3> family;  // model: 1=multinomial, 2=poisson, 3=normal
-    int<lower=0, upper=1> robust;  // robust model: 0=no, 1=yes (neg binomial or t)
+    int<lower=1, upper=3> family;  // model: 1=multinomial, 2=poisson, 3=negbin, 4=normal
     int<lower=1> C;                // number of mutation categories
     int<lower=1> S;                // number of fixed signatures
     int<lower=1> G;                // number of genomes
@@ -42,10 +19,9 @@ data {
 transformed data {
     // Dynamic dimensions for model-specific parameters:
     // unused parameters have zero length
-    int C_phi = ((family == 2) && (robust == 1)) ? C : 0;
-    int C_nu = ((family == 3) && (robust == 1)) ? C : 0;
-    int G_sigma = (family == 3) ? G : 0;
     int G_mult = (family != 1) ? G : 0;
+    int C_phi = (family == 3) ? C : 0;
+    int G_sigma = (family == 4) ? G : 0;
 
     int T = S + N;  // total number of signatures
 }
@@ -55,8 +31,7 @@ parameters {
     simplex[T] exposures[G];           // signature exposures (genome per row)
     real<lower=0> multiplier[G_mult];  // exposure multipliers
     vector<lower=0>[G_sigma] sigma;    // standard deviations (normal/t model)
-    vector<lower=1>[C_nu] nu;          // degrees of freedom (t model)
-    vector<lower=0>[C_phi] phi_raw;    // unscaled overdispersions (neg bin model)
+    vector<lower=0>[C_phi] phi;    // unscaled overdispersions (neg bin model)
 }
 
 transformed parameters {
@@ -110,44 +85,26 @@ model {
     else {
         multiplier ~ cauchy(0, 2.5);
 
-        // Poisson model family
+        // Poisson model
         if (family == 2) {
-
-            // Poisson ('EMu') model
-            if (robust == 0) {
-                for (g in 1:G) {
-                    counts_int[g] ~ poisson(expected_counts[g]);
-                }
-            }
-
-            // Negative binomial model
-            else {
-                //phi_raw ~ normal(0, 1);
-                phi_raw ~ cauchy(0, 2.5);
-                for (g in 1:G) {
-                    // counts_int[g] ~ neg_binomial_2(expected_counts[g], phi);
-                    counts_int[g] ~ neg_binomial_2(expected_counts[g], phi_raw);
-                }
+            for (g in 1:G) {
+                counts_int[g] ~ poisson(expected_counts[g]);
             }
         }
 
-        // Normal model family
+        // Negative binomial model
         else if (family == 3) {
-            sigma ~ cauchy(0, 2.5);
-
-            // Normal model
-            if (robust == 0) {
-                for (g in 1:G) {
-                    counts_real[g] ~ normal(expected_counts[g], sigma[g]);
-                }
+            phi ~ cauchy(0, 2.5);
+            for (g in 1:G) {
+                counts_int[g] ~ neg_binomial_2(expected_counts[g], phi);
             }
+        }
 
-            // t model
-            else {
-                nu ~ gamma(2, 0.1);
-                for (g in 1:G) {
-                    counts_real[g] ~ student_t(nu, expected_counts[g], sigma[g]);
-                }
+        // Normal model
+        else {
+            sigma ~ cauchy(0, 2.5);
+            for (g in 1:G) {
+                counts_real[g] ~ normal(expected_counts[g], sigma[g]);
             }
         }
     }
