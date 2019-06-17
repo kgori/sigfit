@@ -63,29 +63,29 @@ model {
     for (g in 1:G) {
         exposures[g] ~ dirichlet(kappa);
     }
-    
+
     for (s in 1:S) {
         // Priors for signatures
         signatures[s] ~ dirichlet(alpha[s]');
     }
-    
+
     // Multinomial ('NMF') model
     if (family == 1) {
         for (g in 1:G) {
             counts_int[g] ~ multinomial(expected_counts[g]');
         }
     }
-    
+
     else {
         multiplier ~ cauchy(0, 2.5);
-        
+
         // Poisson ('EMu') model
         if (family == 2) {
             for (g in 1:G) {
                 counts_int[g] ~ poisson(expected_counts[g]);
             }
         }
-    
+
         // Negative binomial model
         else if (family == 3) {
             phi ~ cauchy(0, 2.5);
@@ -93,7 +93,7 @@ model {
                 counts_int[g] ~ neg_binomial_2(expected_counts[g], phi);
             }
         }
-        
+
         // Normal model
         else {
             sigma ~ cauchy(0, 2.5);
