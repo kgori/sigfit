@@ -76,18 +76,16 @@ plot_gof <- function(sample_list, stat = "cosine") {
     for (samples in sample_list) {
         if (!is.list(samples)) next
         
-        counts <- samples$data$counts
+        counts <- samples$data$counts_real
         
-        if (grepl("emu", samples$result@model_name)) {
-            model <- "EMu"
-            e <- extract(samples$result, pars = c("expected_counts", "signatures"))
-            reconstructed <- apply(e$expected_counts, c(2, 3), mean)
+        model <- samples$result@model_name
+        e <- extract(samples$result, pars = c("expected_counts", "signatures"))
+        
+        if (model %in% c("multinomial", "nmf")) {
+            reconstructed <- apply(e$expected_counts, c(2, 3), mean) * rowSums(counts)
         }
-        
         else {
-            model <- "NMF"
-            e <- extract(samples$result, pars = c("probs", "signatures"))
-            reconstructed <- apply(e$probs, c(2, 3), mean) * rowSums(counts)
+            reconstructed <- apply(e$expected_counts, c(2, 3), mean)
         }
         
         stopifnot(dim(reconstructed) == dim(counts))
@@ -229,7 +227,7 @@ plot_all <- function(mcmc_samples = NULL, out_path, prefix = NULL, counts = NULL
     # Case B: MCMC samples provided instead of matrices
     else {
         cat("Plotting original catalogues...\n")
-        plot_spectrum(mcmc_samples$data$counts,
+        plot_spectrum(mcmc_samples$data$counts_real,
                       pdf_path = file.path(out_path, paste0(prefix, "Catalogues_", Sys.Date(), ".pdf")))
 
         cat("Plotting mutational signatures...\n")
@@ -318,8 +316,8 @@ plot_reconstruction <- function(mcmc_samples = NULL, pdf_path = NULL, counts = N
                                 pdf_width = 24, pdf_height = 17, legend_pos = "topright", 
                                 sig_color_palette = NULL) {
     if (!is.null(mcmc_samples)) {
-        counts <- mcmc_samples$data$counts
-        opportunities <- mcmc_samples$data$opps
+        counts <- mcmc_samples$data$counts_real
+        opportunities <- mcmc_samples$data$opportunities
     }
     else {
         if (is.null(counts) | is.null(exposures) | is.null(signatures)) {
@@ -921,7 +919,7 @@ plot_exposures <- function(mcmc_samples = NULL, pdf_path = NULL, counts = NULL, 
         stop("Either 'mcmc_samples', or both 'counts' and 'exposures', must be provided.")
     }
     if (!is.null(mcmc_samples)) {
-        counts <- mcmc_samples$data$counts
+        counts <- mcmc_samples$data$counts_real
         exposures <- retrieve_pars(mcmc_samples, "exposures", hpd_prob = hpd_prob)
         lwr <- to_matrix(exposures$lower)
         upr <- to_matrix(exposures$upper)

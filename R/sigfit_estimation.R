@@ -477,7 +477,7 @@ fit_extract_signatures <- function(counts, signatures, num_extra_sigs,
             N = as.integer(num_extra_sigs),
             fixed_sigs = signatures,
             counts = counts,
-            opps = opportunities,
+            opportunities = opportunities,
             alpha = sig_prior
         )
     }

@@ -495,11 +495,11 @@ retrieve_pars <- function(mcmc_samples, par, hpd_prob = 0.95) {
                     names2 <- mut_types(strand)
                 }
                 else {
-                    if (is.null(colnames(mcmc_samples$data$counts))) {
-                        names2 <- paste("Mutation type", 1:ncol(mcmc_samples$data$counts))
+                    if (is.null(colnames(mcmc_samples$data$counts_real))) {
+                        names2 <- paste("Mutation type", 1:ncol(mcmc_samples$data$counts_real))
                     }
                     else {
-                        names2 <- colnames(mcmc_samples$data$counts)
+                        names2 <- colnames(mcmc_samples$data$counts_real)
                     }
                 }
                 if (is.null(signature_names)) {
@@ -511,7 +511,7 @@ retrieve_pars <- function(mcmc_samples, par, hpd_prob = 0.95) {
                 }
             }
             else if (par %in% c("exposures", "activities")) {
-                names1 <- rownames(mcmc_samples$data$counts)
+                names1 <- rownames(mcmc_samples$data$counts_real)
                 if (is.null(signature_names)) {
                     LETTERLABELS <- letterwrap(dim(p)[3])
                     names2 <- paste("Signature", LETTERLABELS[1:dim(p)[3]])
@@ -571,7 +571,7 @@ simulate_ppc <- function(mcmc_samples) {
         for (i in 1:dim(e$probs)[1]) {
             for (j in 1:dim(e$probs)[2]) {
                 ppc[i, j, ] <- t(
-                    rmultinom(1, sum(mcmc_samples$data$counts[j, ]), e$probs[i, j, ])
+                    rmultinom(1, sum(mcmc_samples$data$counts_real[j, ]), e$probs[i, j, ])
                 )
             }
         }
@@ -596,7 +596,7 @@ simulate_ppc <- function(mcmc_samples) {
 #' @importFrom "stats" dmultinom dpois
 #' @export
 get_loglik <- function(mcmc_samples) {
-    counts <- mcmc_samples$data$counts
+    counts <- mcmc_samples$data$counts_real
     dnames <- list(NULL, NULL)
     names(dnames) <- c("iterations", "")
     if (grepl("nmf", mcmc_samples$result@model_name)) {
@@ -631,7 +631,7 @@ get_loglik <- function(mcmc_samples) {
 #' @importFrom "coda" HPDinterval
 #' @export
 get_reconstructions <- function(mcmc_samples) {
-    counts <- mcmc_samples$data$counts
+    counts <- mcmc_samples$data$counts_real
     NCAT <- ncol(counts)   # number of categories
     NSAMP <- nrow(counts)  # number of samples
 
