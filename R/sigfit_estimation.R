@@ -231,7 +231,7 @@ get_initializer_list <- function(fitobj, chains = 1) {
 #' @importFrom "rstan" extract
 #' @export
 extract_signatures <- function(counts, nsignatures, model = "multinomial", opportunities = NULL,
-                               sig_prior = NULL, exp_prior = 1, stanfunc = "sampling",
+                               sig_prior = NULL, exp_prior = 1, dpp = FALSE, dpp_conc = 1, stanfunc = "sampling",
                                chains = 1, ...) {
     if (!is.null(sig_prior) & length(nsignatures) > 1) {
         stop("'sig_prior' is only admitted when 'nsignatures' is a scalar (single value).")
@@ -287,7 +287,9 @@ extract_signatures <- function(counts, nsignatures, model = "multinomial", oppor
         opportunities = opportunities,
         alpha = sig_prior,
         family = switch(model,
-                        nmf = 1, multinomial = 1, emu = 2, poisson = 2, negbin = 3, normal = 4)
+                        nmf = 1, multinomial = 1, emu = 2, poisson = 2, negbin = 3, normal = 4),
+        concentration = dpp_conc,
+        dpp = ifelse(dpp, 1, 0)
     )
 
     # Extract signatures for each nsignatures value
@@ -422,7 +424,7 @@ extract_signatures <- function(counts, nsignatures, model = "multinomial", oppor
 #' @export
 fit_extract_signatures <- function(counts, signatures, num_extra_sigs,
                                    model = "multinomial", opportunities = NULL, sig_prior = NULL,
-                                   exp_prior = 1, stanfunc = "sampling", ...) {
+                                   exp_prior = 1, dpp = FALSE, dpp_conc = 1, stanfunc = "sampling", ...) {
     # Check that num_extra_sigs is scalar
     if (length(num_extra_sigs) != 1) {
         stop("'num_extra_sigs' must be an integer scalar.")
@@ -493,13 +495,13 @@ fit_extract_signatures <- function(counts, signatures, num_extra_sigs,
         kappa = rep(exp_prior, NSIG + num_extra_sigs)
     )
 
-    # EMu model
+    # NMF model
     if (model == "multinomial") {
         dat$family <- 1
         dat$robust <- 0
     }
 
-    # NMF model
+    # EMu model
     else if (model == "poisson") {
         dat$family <- 2
         dat$robust <- 0
@@ -516,18 +518,29 @@ fit_extract_signatures <- function(counts, signatures, num_extra_sigs,
     }
     cat("Fit-Ext: Fitting", NSIG, "signatures, extracting", num_extra_sigs,
         "signature(s), using", model, "model\n")
+
+
+    if (dpp) {
+        stanmodel <- stanmodels$sigfit_fitex_dpp
+        dat$concentration <- dpp_conc
+        dat$kappa <- rep(exp_prior, NSIG)
+    }
+    else {
+        stanmodel <- stanmodels$sigfit_fitex
+    }
+
     if (stanfunc == "sampling") {
         cat("Stan sampling:")
-        out <- sampling(stanmodels$sigfit_fitex, data = dat, chains = 1,
+        out <- sampling(stanmodel, data = dat, chains = 1,
                         pars = "extra_sigs", include = FALSE, ...)
     }
     else if (stanfunc == "optimizing") {
         cat("Stan optimizing:")
-        out <- optimizing(model, data = dat, ...)
+        out <- optimizing(stanmodel, data = dat, ...)
     }
     else if (stanfunc == "vb") {
         cat("Stan vb")
-        out <- vb(model, data = dat, ...)
+        out <- vb(stanmodel, data = dat, ...)
     }
 
     list("data" = dat,

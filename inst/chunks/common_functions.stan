@@ -20,3 +20,19 @@ matrix array_to_matrix(vector[] x) {
         y[m] = x[m]';
     return y;
 }
+
+/**
+    * https://ecosang.github.io/blog/study/dirichlet-process-with-stan/
+    * Generates a simplex using a stick-breaking method.
+    * @param v A vector of proportions (values between 0 and 1)
+    * @return A vector that sums to 1
+    */
+vector stick_breaking(vector v) {
+    int C = num_elements(v);
+    vector[C] pi = rep_vector(0, C);
+    pi[1] = v[1];
+    for (j in 2:C) {
+        pi[j]= v[j]*(1-v[j-1])*pi[j-1]/v[j-1];
+    }
+    return scale_to_sum_1(pi);
+}
