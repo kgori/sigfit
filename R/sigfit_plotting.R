@@ -37,7 +37,7 @@ plot_ppc <- function(c, c_ppc, sample = 1) {
     colors <- make_colors(c, c_ppc, sample)
     lines(c[sample, ], type = 'p', lwd=2, col = colors, pch = 20)
     lines(c[sample, ], type = 'h', lend=1, lwd=1, col = colors)
-    legend('topright',
+    legend("topright",
            legend=c("PPC distribution",
                     "Observation (not extreme relative to PPC)",
                     "Observation (in 5% tails of PPC)",
@@ -153,13 +153,13 @@ plot_gof <- function(sample_list, stat = "cosine") {
 #' This value is passed to the \code{\link{plot_exposures}} function.
 #' @param exp_legend_pos Character indicating the position of the legend in the exposures barplot. Admits 
 #' values \code{"top"}, \code{"bottom"}, \code{"center"}, \code{"left"}, \code{"right"}, 
-#' \code{"topleft"}, \code{"topright"} (the default), \code{"bottomleft"} and \code{"bottomright"}. 
+#' \code{"topleft"} (the default), \code{"topright"}, \code{"bottomleft"} and \code{"bottomright"}. 
 #' This value is passed to the \code{\link{plot_exposures}} function.
 #' @param exp_cex_names Numeric; relative size of sample labels in the exposures barplot (default is 1.9).
 #' This value is passed to the \code{\link{plot_exposures}} function.
 #' @param rec_legend_pos Character indicating the position of the legend in the reconstructed spectrum. 
 #' Admits values \code{"top"}, \code{"bottom"}, \code{"center"}, \code{"left"}, \code{"right"}, 
-#' \code{"topleft"}, \code{"topright"} (the default), \code{"bottomleft"} and \code{"bottomright"}. 
+#' \code{"topleft"} (the default), \code{"topright"}, \code{"bottomleft"} and \code{"bottomright"}. 
 #' This value is passed to the \code{\link{plot_reconstruction}} function.
 #' @param sig_color_palette Character vector of custom color names or hexadecimal codes to use for 
 #' each signature. Must have at least as many elements as the number of signatures. This value is passed 
@@ -187,9 +187,10 @@ plot_gof <- function(sample_list, stat = "cosine") {
 #' @export
 plot_all <- function(mcmc_samples = NULL, out_path, prefix = NULL, counts = NULL, signatures = NULL,
                      exposures = NULL, opportunities = NULL, thresh = 0.01, hpd_prob = 0.95, 
-                     exp_margin_bottom = 10.5, signature_names = NULL, exp_legend_pos = "topright",
-                     exp_cex_names = 1.9, rec_legend_pos = "topright", sig_color_palette = NULL) {
-
+                     signature_names = NULL, exp_margin_bottom = 10.5, exp_legend_pos = "topleft",
+                     exp_legend_cex = 2, exp_cex_names = 1.9, rec_legend_pos = "topleft",
+                     rec_legend_cex = 2, sig_color_palette = NULL, boxes = TRUE) {
+    
     if (is.null(mcmc_samples) &
         (is.null(counts) | is.null(signatures) | is.null(exposures))) {
         stop("Either 'mcmc_samples', or all of 'counts', 'signatures' and 'exposures', must be provided.")
@@ -204,11 +205,11 @@ plot_all <- function(mcmc_samples = NULL, out_path, prefix = NULL, counts = NULL
     # Case A: matrices provided instead of MCMC samples
     if (is.null(mcmc_samples)) {
         cat("Plotting original catalogues...\n")
-        plot_spectrum(counts,
+        plot_spectrum(counts, boxes = boxes,
                       pdf_path = file.path(out_path, paste0(prefix, "Catalogues_", Sys.Date(), ".pdf")))
 
         cat("Plotting mutational signatures...\n")
-        plot_spectrum(signatures,
+        plot_spectrum(signatures, boxes = boxes,
                       pdf_path = file.path(out_path, paste0(prefix, "Signatures_", Sys.Date(), ".pdf")))
 
         cat("Plotting signature exposures...\n")
@@ -216,18 +217,19 @@ plot_all <- function(mcmc_samples = NULL, out_path, prefix = NULL, counts = NULL
                        signature_names = signature_names, thresh = thresh, 
                        sig_color_palette = sig_color_palette, cex_names = exp_cex_names, 
                        margin_bottom = exp_margin_bottom, legend_pos = exp_legend_pos,
+                       legend_cex = exp_legend_cex,
                        pdf_path = file.path(out_path, paste0(prefix, "Exposures_", Sys.Date(), ".pdf")))
 
         plot_reconstruction(counts = counts, signatures = signatures, exposures = exposures,
                             opportunities = opportunities, legend_pos = rec_legend_pos,
-                            sig_color_palette = sig_color_palette,
+                            legend_cex = rec_legend_cex, sig_color_palette = sig_color_palette,
                             pdf_path = file.path(out_path, paste0(prefix, "Reconstructions_", Sys.Date(), ".pdf")))
     }
 
     # Case B: MCMC samples provided instead of matrices
     else {
         cat("Plotting original catalogues...\n")
-        plot_spectrum(mcmc_samples$data$counts_real,
+        plot_spectrum(mcmc_samples$data$counts_real, boxes = boxes,
                       pdf_path = file.path(out_path, paste0(prefix, "Catalogues_", Sys.Date(), ".pdf")))
 
         cat("Plotting mutational signatures...\n")
@@ -237,7 +239,7 @@ plot_all <- function(mcmc_samples = NULL, out_path, prefix = NULL, counts = NULL
         else {
             signatures <- mcmc_samples$data$signatures
         }
-        plot_spectrum(signatures,
+        plot_spectrum(signatures, boxes = boxes,
                       pdf_path = file.path(out_path, paste0(prefix, "Signatures_", Sys.Date(), ".pdf")))
 
         cat("Plotting signature exposures...\n")
@@ -245,10 +247,12 @@ plot_all <- function(mcmc_samples = NULL, out_path, prefix = NULL, counts = NULL
                        thresh = thresh, hpd_prob = hpd_prob, 
                        margin_bottom = exp_margin_bottom, legend_pos = exp_legend_pos, 
                        sig_color_palette = sig_color_palette, cex_names = exp_cex_names,
+                       legend_cex = exp_legend_cex,
                        pdf_path = file.path(out_path, paste0(prefix, "Exposures_", Sys.Date(), ".pdf")))
 
         plot_reconstruction(mcmc_samples = mcmc_samples,
-                            legend_pos = rec_legend_pos, sig_color_palette = sig_color_palette,
+                            legend_pos = rec_legend_pos, legend_cex = rec_legend_cex,
+                            sig_color_palette = sig_color_palette,
                             pdf_path = file.path(out_path, paste0(prefix, "Reconstructions_", Sys.Date(), ".pdf")))
     }
 }
@@ -286,7 +290,7 @@ plot_all <- function(mcmc_samples = NULL, out_path, prefix = NULL, counts = NULL
 #' Only used if \code{pdf_path} is provided.
 #' @param legend_pos Character indicating the position of the legend in the reconstructed spectrum. 
 #' Admits values \code{"top"}, \code{"bottom"}, \code{"center"}, \code{"left"}, \code{"right"}, 
-#' \code{"topleft"}, \code{"topright"} (the default), \code{"bottomleft"} and \code{"bottomright"}.
+#' \code{"topleft"} (the default), \code{"topright"}, \code{"bottomleft"} and \code{"bottomright"}.
 #' @param sig_color_palette Character vector of custom color names or hexadecimal codes to use for 
 #' each signature. Must have at least as many elements as the number of signatures.
 #' @examples
@@ -313,8 +317,8 @@ plot_all <- function(mcmc_samples = NULL, out_path, prefix = NULL, counts = NULL
 #' @export
 plot_reconstruction <- function(mcmc_samples = NULL, pdf_path = NULL, counts = NULL,
                                 signatures = NULL, exposures = NULL, opportunities = NULL, 
-                                pdf_width = 24, pdf_height = 17, legend_pos = "topright", 
-                                sig_color_palette = NULL) {
+                                pdf_width = 24, pdf_height = 15, legend_pos = "topleft", 
+                                legend_cex = 2, sig_color_palette = NULL, boxes = TRUE) {
     if (!is.null(mcmc_samples)) {
         counts <- mcmc_samples$data$counts_real
         opportunities <- mcmc_samples$data$opportunities
@@ -372,7 +376,7 @@ plot_reconstruction <- function(mcmc_samples = NULL, pdf_path = NULL, counts = N
         NSIG <- dim(l$exposures)[2]
     }
 
-    cat("Plotting reconstructions for each sample...\n")
+    cat("Plotting reconstructed catalogues...\n")
 
     # Plotting
     TYPES <- c("C>A", "C>G", "C>T", "T>A", "T>C", "T>G")
@@ -380,6 +384,7 @@ plot_reconstruction <- function(mcmc_samples = NULL, pdf_path = NULL, counts = N
     STRANDCOL <- c("deepskyblue3", "red3")
     BACKCOL <- c("#00BFFF33", "#00000033", "#EE2C2C33", "#C2C2C24D", "#A2CD5A4D", "#EEB4B44D")
     LINECOL <- "gray60"
+    FACTOR <- 1.095
     XL <- c(0.2, 19.4, 38.6, 57.8, 77, 96.2)
     XR <- c(19.2, 38.4, 57.6, 76.8, 96, 115.2)
     BACKLIM <- c(0, 46.5, 93, 139.5, 186, 232.5, 279)
@@ -409,12 +414,12 @@ plot_reconstruction <- function(mcmc_samples = NULL, pdf_path = NULL, counts = N
     if (!is.null(pdf_path)) {
         stopifnot(is.character(pdf_path))
         cairo_pdf(pdf_path, width = pdf_width, height = pdf_height, onefile = TRUE)
-        par(oma = c(1, 0.25, 1, 0.25))
+        par(oma = c(1, 0, 1, 0))
         if (ncol(counts) %in% c(96, 192)) {
-            par(mar = c(4.5, 7, 6.5, 1.6))
+            par(mar = c(4.5, 7, 6.5, 2))
         }
         else {
-            par(mar = c(9, 7, 6.5, 1.6))
+            par(mar = c(9, 7, 6.5, 2))
         }
     }
     par(mfrow = c(2, 1))
@@ -430,20 +435,20 @@ plot_reconstruction <- function(mcmc_samples = NULL, pdf_path = NULL, counts = N
         
         for (i in 1:NSAMP) {
             if (is.null(mcmc_samples)) {
-                max_y <- max(c(counts[i, ], colSums(reconstructions[i, , ]))) * 1.15
+                max_y <- max(c(counts[i, ], colSums(reconstructions[i, , ]))) * FACTOR
             }
             else {
-                max_y <- max(c(counts[i, ], hpds[i, , ])) * 1.15
+                max_y <- max(c(counts[i, ], hpds[i, , ])) * FACTOR
             }
             
             # Plot original catalogue
-            plot_spectrum(counts[i, ], name = rownames(counts)[i], max_y = max_y)
+            plot_spectrum(counts[i, ], name = rownames(counts)[i], max_y = max_y, boxes = boxes)
             
             # Plot catalogue reconstruction
             bars <- barplot(reconstructions[i, , ],
                             names.arg = types, col = sigcols, border = "white",
                             yaxt = "n", ylim = c(0, max_y), cex.names = 1, las = 2)
-            axis(side = 2, cex.axis = 1.8, lwd = 2)
+            axis(side = 2, cex.axis = 1.9, lwd = 2)
             mtext("Mutations", side = 2, cex = 2, line = 3.5)
             title(paste0("Reconstructed spectrum (cosine similarity = ",
                          round(cosine_sim(counts[i,], colSums(reconstructions[i, , ])), 3), ")"),
@@ -457,7 +462,7 @@ plot_reconstruction <- function(mcmc_samples = NULL, pdf_path = NULL, counts = N
             # Legend
             legend(legend_pos, inset = c(0, 0.13), ncol = 2,
                    legend = paste0(sig_names, " (", round(exposures[i, ], 3), ")"),
-                   fill = sigcols, border = "white", cex = 1.8, bty = "n")
+                   fill = sigcols, border = "white", cex = legend_cex, bty = "n")
         }
     }
     else {
@@ -467,20 +472,26 @@ plot_reconstruction <- function(mcmc_samples = NULL, pdf_path = NULL, counts = N
         if (!strand) {
             for (i in 1:NSAMP) {
                 if (is.null(mcmc_samples)) {
-                    max_y <- max(c(counts[i, ], colSums(reconstructions[i, , ]))) * 1.15
+                    max_y <- max(c(counts[i, ], colSums(reconstructions[i, , ]))) * FACTOR
                 }
                 else {
-                    max_y <- max(c(counts[i, ], hpds[i, , ])) * 1.15
+                    max_y <- max(c(counts[i, ], hpds[i, , ])) * FACTOR
+                }
+                if (boxes) {
+                    xlim <- c(-0.105, 115.5)
+                }
+                else {
+                    xlim <- c(-1, 116)
                 }
                 
                 # Plot original catalogue
-                plot_spectrum(counts[i, ], name = rownames(counts)[i], max_y = max_y)
+                plot_spectrum(counts[i, ], name = rownames(counts)[i], max_y = max_y, boxes = boxes)
                 
                 # Plot catalogue reconstruction
                 bars <- barplot(reconstructions[i, , ],
                                 names.arg = substr(mut_types(), 1, 3), mgp = c(3, 0.8, 0),
                                 col = sigcols, border = "white",
-                                yaxt = "n", ylim = c(0, max_y), xlim = c(-1, 116),
+                                yaxt = "n", ylim = c(0, max_y), xlim = xlim,
                                 las = 2, cex.names = 1.6, xaxs = "i", family = "mono")
                 for (j in 1:length(COLORS)) {
                     idx <- ((j-1) * 16 + 1):(j * 16)
@@ -488,8 +499,8 @@ plot_reconstruction <- function(mcmc_samples = NULL, pdf_path = NULL, counts = N
                          mgp = c(3, 0.8, 0), las = 2, family = "mono", font = 2, 
                          col.axis = COLORS[j], labels = paste0(" ", substr(mut_types()[idx], 2, 2), " "))
                 }
-                axis(side = 2, cex.axis = 1.8, lwd = 2)
-                mtext("Mutations", side = 2, cex = 2, line = 3.5)
+                axis(side = 2, cex.axis = 1.9, lwd = 2)
+                mtext("Mutations", side = 2, cex = 2.4, line = 3.5)
                 title(paste0("Reconstructed spectrum (cosine similarity = ",
                              round(cosine_sim(counts[i,], colSums(reconstructions[i, , ])), 3), ")"),
                       line = 4, cex.main = 2.5)
@@ -500,14 +511,18 @@ plot_reconstruction <- function(mcmc_samples = NULL, pdf_path = NULL, counts = N
                            length = 0, lwd = 3, col = LINECOL)
                 }
                 # Mutation type labels
-                text(x = (XL + XR) / 2, y = max_y * 1.05,
-                     labels = TYPES, cex = 2.3, xpd = TRUE)
-                rect(xleft = XL, xright = XR, ybottom = max_y * 0.95,
+                text(x = (XL + XR) / 2, y = max_y * 1.055,
+                     labels = TYPES, cex = 2.4, xpd = TRUE)
+                rect(xleft = XL, xright = XR, ybottom = max_y * 0.945,
                      ytop = max_y, col = COLORS, border = "white")
                 # Legend
                 legend(legend_pos, inset = c(0, 0.05), ncol = 2,
                        legend = paste0(sig_names, " (", round(exposures[i, ], 3), ")"),
-                       fill = sigcols, border = "white", cex = 1.9, bty = "n")
+                       fill = sigcols, border = sigcols, cex = 1.9, bty = "n")
+                # Box
+                if (boxes) {
+                    box(lwd = 2)
+                }
             }
         }
     
@@ -515,14 +530,20 @@ plot_reconstruction <- function(mcmc_samples = NULL, pdf_path = NULL, counts = N
         else {
             for (i in 1:NSAMP) {
                 if (is.null(mcmc_samples)) {
-                    max_y <- max(c(counts[i, ], colSums(reconstructions[i, , ]))) * 1.15
+                    max_y <- max(c(counts[i, ], colSums(reconstructions[i, , ]))) * FACTOR
                 }
                 else {
-                    max_y <- max(c(counts[i, ], hpds[i, , ])) * 1.15
+                    max_y <- max(c(counts[i, ], hpds[i, , ])) * FACTOR
+                }
+                if (boxes) {
+                    xlim <- c(0, 279.2)
+                }
+                else {
+                    xlim <- c(-3, 280)
                 }
     
                 # Plot original catalogue
-                plot_spectrum(counts[i, ], name = rownames(counts)[i], max_y = max_y)
+                plot_spectrum(counts[i, ], name = rownames(counts)[i], max_y = max_y, boxes = boxes)
     
                 # Plot catalogue reconstruction
                 # Background panes and mutation type labels
@@ -530,14 +551,14 @@ plot_reconstruction <- function(mcmc_samples = NULL, pdf_path = NULL, counts = N
                               reconstructions[i, 1, (NCAT/2+1):NCAT]),
                         beside = TRUE, col = NA, border = NA,
                         space = c(0.1, 0.8), xaxs = "i", yaxt = "n", xaxt = "n", 
-                        ylim = c(0, max_y), xlim = c(-3, 280))
+                        ylim = c(0, max_y), xlim = xlim)
                 for (j in 1:length(COLORS)) {
                     rect(xleft = BACKLIM[j], xright = BACKLIM[j+1], ybottom = 0,
                          ytop = max_y, col = BACKCOL[j], border = "white")
-                    rect(xleft = BACKLIM[j], xright = BACKLIM[j+1], ybottom = 0.95 * max_y,
+                    rect(xleft = BACKLIM[j], xright = BACKLIM[j+1], ybottom = 0.945 * max_y,
                          ytop = max_y, col = COLORS[j], border = "white")
-                    text(x = (BACKLIM[j] + BACKLIM[j+1]) / 2, y = 1.05 * max_y,
-                         labels = TYPES[j], cex = 2.3, xpd = TRUE)
+                    text(x = (BACKLIM[j] + BACKLIM[j+1]) / 2, y = 1.055 * max_y,
+                         labels = TYPES[j], cex = 2.4, xpd = TRUE)
                 }
                 # Spectrum bars
                 for (j in NSIG:1) {
@@ -547,8 +568,8 @@ plot_reconstruction <- function(mcmc_samples = NULL, pdf_path = NULL, counts = N
                                     names.arg = substr(mut_types(), 1, 3),
                                     col = sigcols[j], border = "white", las = 2,
                                     beside = TRUE, space = c(0.1, 0.8), mgp = c(3, 0.8, 0), 
-                                    ylim = c(0, max_y), xlim = c(-1, 116), cex.names = 1.6,
-                                    yaxt = "n", xaxs = "i", family = "mono", add = TRUE)
+                                    cex.names = 1.6, yaxt = "n", xaxs = "i",
+                                    family = "mono", add = TRUE)
                 }
                 for (j in 1:length(COLORS)) {
                     idx <- ((j-1) * 16 + 1):(j * 16)
@@ -557,8 +578,8 @@ plot_reconstruction <- function(mcmc_samples = NULL, pdf_path = NULL, counts = N
                          family = "mono", font = 2, col.axis = COLORS[j],
                          labels = paste0(" ", substr(mut_types()[idx], 2, 2), " "))
                 }
-                axis(side = 2, cex.axis = 1.8, lwd = 2)
-                mtext("Mutations", side = 2, cex = 2, line = 3.5)
+                axis(side = 2, cex.axis = 1.9, lwd = 2)
+                mtext("Mutations", side = 2, cex = 2.4, line = 3.5)
                 title(paste0("Reconstructed spectrum (cosine similarity = ",
                              round(cosine_sim(counts[i,], colSums(reconstructions[i, , ])), 3), ")"),
                       line = 4, cex.main = 2.5)
@@ -570,9 +591,16 @@ plot_reconstruction <- function(mcmc_samples = NULL, pdf_path = NULL, counts = N
                            length = 0, lwd = 2.5, col = LINECOL)
                 }
                 # Legend
-                legend(legend_pos, inset = c(0.01, 0.105), ncol = 2,
+                legend(legend_pos, inset = c(0, 0.05), ncol = 2,
                        legend = paste0(sig_names, " (", round(exposures[i, ], 3), ")"),
-                       fill = sigcols, border = sigcols, cex = 1.8, bty = "n")
+                       fill = sigcols, border = sigcols, cex = 1.9, bty = "n")
+                # legend(legend_pos, inset = c(0.01, 0.105), ncol = 2,
+                #        legend = paste0(sig_names, " (", round(exposures[i, ], 3), ")"),
+                #        fill = sigcols, border = sigcols, cex = 1.8, bty = "n")
+                # Box
+                if (boxes) {
+                    box(lwd = 2)
+                }
             }
         }
     }
@@ -621,8 +649,8 @@ plot_reconstruction <- function(mcmc_samples = NULL, pdf_path = NULL, counts = N
 #' plot_spectrum(sigs, pdf_path = "Signatures.pdf")
 #' @importFrom "grDevices" cairo_pdf
 #' @export
-plot_spectrum <- function(spectra, pdf_path = NULL, pdf_width = 24,
-                          pdf_height = 8, name = NULL, max_y = NULL) {
+plot_spectrum <- function(spectra, pdf_path = NULL, pdf_width = 24, pdf_height = 8,
+                          name = NULL, max_y = NULL, colors = NULL, boxes = TRUE) {
     # Fetch HPD interval values, if present
     if (is.list(spectra) & "mean" %in% names(spectra)) {
         spec <- to_matrix(spectra$mean)
@@ -648,15 +676,15 @@ plot_spectrum <- function(spectra, pdf_path = NULL, pdf_width = 24,
     LINECOL <- "gray60"
     XL <- c(0.2, 19.4, 38.6, 57.8, 77, 96.2)
     XR <- c(19.2, 38.4, 57.6, 76.8, 96, 115.2)
-    BACKLIM <- c(0, 46.5, 93, 139.5, 186, 232.5, 279)
+    BACKLIM <- c(0, 46.8, 93.2, 139.55, 186, 232.35, 279.2)
 
     if (!is.null(pdf_path)) {
         cairo_pdf(pdf_path, width = pdf_width, height = pdf_height, onefile = TRUE)
         if (ncol(spec) %in% c(96, 192)) {
-            par(mar = c(5.5, 7, 7.5, 1.6))
+            par(mar = c(5.5, 7, 7.5, 2))
         }
         else {
-            par(mar = c(10, 7, 7.5, 1.6))
+            par(mar = c(10, 7, 7.5, 2))
         }
     }
 
@@ -677,18 +705,26 @@ plot_spectrum <- function(spectra, pdf_path = NULL, pdf_width = 24,
             else {
                 samp_max_y <- max_y
             }
+            if (is.null(colors)) {
+                colors = "orangered3"
+            }
+            else {
+                if ((length(colors) > 1) & (length(colors) != ncol(spec))) {
+                    stop("'colors' must contain either a single value, or one value per mutation type.")
+                }
+            }
             # Plot spectrum bars
-            bars <- barplot(spec[i,], names.arg = types, col = "orangered3",
+            bars <- barplot(spec[i,], names.arg = types, col = colors, mgp = c(3, 0.8, 0),
                             border = "white", las = 2, cex.names = 1,
                             ylim = c(0, samp_max_y), yaxt = "n")
             # Plot axis
             if (counts) {
-                axis(side = 2, cex.axis = 1.8, lwd = 2)
+                axis(side = 2, cex.axis = 1.9, lwd = 2)
                 label <- "Mutations"
                 n_text <- paste0(" (", prettyNum(sum(spec[i,]), big.mark = ","), " mutations)")
             }
             else {
-                axis(side = 2, cex.axis = 1.8, lwd = 2)
+                axis(side = 2, cex.axis = 1.9, lwd = 2)
                 label <- "Mutation probability"
                 n_text <- ""
             }
@@ -698,14 +734,17 @@ plot_spectrum <- function(spectra, pdf_path = NULL, pdf_width = 24,
             else {
                 nme <- name
             }
-            mtext(label, side = 2, cex = 2, line = 3.5)
-            title(paste0(nme, n_text),
-                  line = 4, cex.main = 2.5)
+            mtext(label, side = 2, cex = 2.4, line = 3.5)
+            title(paste0(nme, n_text), line = 4, cex.main = 2.5)
             # Plot HPD intervals
             if (!is.null(lwr)) {
                 arrows(bars, upr[i,], 
                        bars, lwr[i,],
                        length = 0, lwd = 3, col = LINECOL)
+            }
+            # Plot box
+            if (boxes) {
+                box(lwd = 2)
             }
         }
     }
@@ -722,11 +761,17 @@ plot_spectrum <- function(spectra, pdf_path = NULL, pdf_width = 24,
                 else {
                     samp_max_y <- max_y
                 }
+                if (boxes) {
+                    xlim <- c(-0.105, 115.5)
+                }
+                else {
+                    xlim <- c(-1, 116)
+                }
                 # Plot spectrum bars
-                bars <- barplot(spec[i,],
+                bars <- barplot(spec[i, ],
                                 names.arg = substr(mut_types(), 1, 3), mgp = c(3, 0.8, 0),
                                 col = rep(COLORS, each = 16), border = "white",
-                                las = 2, ylim = c(0, samp_max_y), xlim = c(-1, 116),
+                                las = 2, ylim = c(0, samp_max_y), xlim = xlim,
                                 yaxt = "n", cex.names = 1.6, xaxs = "i", family = "mono")
                 # Highlight trinucleotide middle bases
                 for (j in 1:length(COLORS)) {
@@ -737,12 +782,12 @@ plot_spectrum <- function(spectra, pdf_path = NULL, pdf_width = 24,
                 }
                 # Plot axis
                 if (counts) {
-                    axis(side = 2, cex.axis = 1.8, lwd = 2)
+                    axis(side = 2, cex.axis = 1.9, lwd = 2)
                     label <- "Mutations"
                     n_text <- paste0(" (", prettyNum(sum(spec[i,]), big.mark = ","), " mutations)")
                 }
                 else {
-                    axis(side = 2, at = seq(0, samp_max_y, 0.05), cex.axis = 1.8, lwd = 2)
+                    axis(side = 2, at = seq(0, samp_max_y, 0.05), cex.axis = 1.9, lwd = 2)
                     label <- "Mutation probability"
                     n_text <- ""
                 }
@@ -752,9 +797,8 @@ plot_spectrum <- function(spectra, pdf_path = NULL, pdf_width = 24,
                 else {
                     nme <- name
                 }
-                mtext(label, side = 2, cex = 2, line = 3.5)
-                title(paste0(nme, n_text),
-                      line = 4, cex.main = 2.5)
+                mtext(label, side = 2, cex = 2.4, line = 3.5)
+                title(paste0(nme, n_text), line = 4, cex.main = 2.5)
                 # Plot HPD intervals
                 if (!is.null(lwr)) {
                     arrows(bars, upr[i,], 
@@ -762,10 +806,14 @@ plot_spectrum <- function(spectra, pdf_path = NULL, pdf_width = 24,
                            length = 0, lwd = 3, col = LINECOL)
                 }
                 # Plot mutation type labels
-                text(x = (XL + XR) / 2, y = 1.05 * samp_max_y,
-                     labels = TYPES, cex = 2.3, xpd = TRUE)
-                rect(xleft = XL, xright = XR, ybottom = 0.95 * samp_max_y,
+                text(x = (XL + XR) / 2, y = 1.055 * samp_max_y,
+                     labels = TYPES, cex = 2.4, xpd = TRUE)
+                rect(xleft = XL, xright = XR, ybottom = 0.945 * samp_max_y,
                      ytop = samp_max_y, col = COLORS, border = "white")
+                # Plot box
+                if (boxes) {
+                    box(lwd = 2)
+                }
             }
         }
 
@@ -780,31 +828,36 @@ plot_spectrum <- function(spectra, pdf_path = NULL, pdf_width = 24,
                 else {
                     samp_max_y <- max_y
                 }
+                if (boxes) {
+                    xlim <- c(0, 279.2)
+                }
+                else {
+                    xlim <- c(-3, 280)
+                }
                 # Plot background panes and mutation type labels
-                barplot(rbind(spec[i, 1:(NCAT/2)], spec[i, (NCAT/2+1):NCAT]), beside = TRUE, col = NA, border = NA,
-                        space = c(0.1, 0.8), xaxs = "i", yaxt = "n", xaxt = "n", ylim = c(0, samp_max_y), xlim = c(-3, 280))
+                barplot(rbind(spec[i, 1:(NCAT/2)], spec[i, (NCAT/2+1):NCAT]), beside = TRUE,
+                        col = NA, border = NA, space = c(0.1, 0.8), xaxs = "i", yaxt = "n",
+                        xaxt = "n", ylim = c(0, samp_max_y), xlim = xlim)
                 for (j in 1:length(COLORS)) {
                     rect(xleft = BACKLIM[j], xright = BACKLIM[j+1], ybottom = 0,
                          ytop = samp_max_y, col = BACKCOL[j], border = "white")
-                    rect(xleft = BACKLIM[j], xright = BACKLIM[j+1], ybottom = 0.95 * samp_max_y,
+                    text(x = (BACKLIM[j] + BACKLIM[j+1]) / 2, y = 1.055 * samp_max_y,
+                         labels = TYPES[j], cex = 2.4, xpd = TRUE)
+                    rect(xleft = BACKLIM[j], xright = BACKLIM[j+1], ybottom = 0.945 * samp_max_y,
                          ytop = samp_max_y, col = COLORS[j], border = "white")
-                    text(x = (BACKLIM[j] + BACKLIM[j+1]) / 2, y = 1.05 * samp_max_y,
-                         labels = TYPES[j], cex = 2.3, xpd = TRUE)
                 }
                 # Plot legend
-                legend("topright", bty = "n", inset = c(0.0035, 0.03),
-                       legend = c("Transcribed strand", "Untranscribed strand"),
-                       fill = NA, border = NA, cex = 1.9)
-                legend("topright", bty = "n", inset = c(0.1255, 0.025), cex = 2.2, 
-                       y.intersp = 0.86, legend = c("", ""),
-                       fill = STRANDCOL, border = STRANDCOL)
+                legend("topright", bty = "n", inset = c(0.016, 0.03), 
+                       legend = c("Transcribed", "Untranscribed"), 
+                       cex = 2.1, fill = NA, border = NA)
+                legend("topright", bty = "n", inset = c(0.115, 0.03), pch=15, pt.cex=3.75,
+                       col=STRANDCOL, legend = c("", ""), cex = 2.1)
                 # Plot spectrum bars
                 bars <- barplot(rbind(spec[i, 1:(NCAT/2)],
                                       spec[i, (NCAT/2+1):NCAT]),
                                 names.arg = substr(mut_types(), 1, 3), beside = TRUE,
-                                space = c(0.1, 0.8), mgp = c(3, 0.8, 0),
-                                col = STRANDCOL, border = "white", las = 2,
-                                ylim = c(0, samp_max_y), xlim = c(-1, 116), yaxt = "n",
+                                space = c(0.1, 0.8), mgp = c(3, 0.8, 0), las = 2,
+                                col = STRANDCOL, border = "white", yaxt = "n",
                                 cex.names = 1.6, xaxs = "i", family = "mono", add = TRUE)
                 # Highlight trinucleotide middle bases
                 for (j in 1:length(COLORS)) {
@@ -816,12 +869,12 @@ plot_spectrum <- function(spectra, pdf_path = NULL, pdf_width = 24,
                 }
                 # Plot axis
                 if (counts) {
-                    axis(side = 2, cex.axis = 1.8, lwd = 2)
+                    axis(side = 2, cex.axis = 1.9, lwd = 2)
                     label <- "Mutations"
                     n_text <- paste0(" (", prettyNum(sum(spec[i,]), big.mark = ","), " mutations)")
                 }
                 else {
-                    axis(side = 2, at = seq(0, samp_max_y, 0.05), cex.axis = 1.8, lwd = 2)
+                    axis(side = 2, at = seq(0, samp_max_y, 0.05), cex.axis = 1.9, lwd = 2)
                     label <- "Mutation probability"
                     n_text <- ""
                 }
@@ -837,15 +890,18 @@ plot_spectrum <- function(spectra, pdf_path = NULL, pdf_width = 24,
                 else {
                     num <- ""
                 }
-                mtext(label, side = 2, cex = 2, line = 3.5)
-                title(paste0(nme, n_text),
-                      line = 4, cex.main = 2.5)
+                mtext(label, side = 2, cex = 2.4, line = 3.5)
+                title(paste0(nme, n_text), line = 4, cex.main = 2.5)
                 # Plot HPD intervals
                 if (!is.null(lwr)) {
                     bars <- as.numeric(t(bars))
                     arrows(bars, upr[i,], 
                            bars, lwr[i,],
                            length = 0, lwd = 2.5, col = LINECOL)
+                }
+                # Plot box
+                if (boxes) {
+                    box(lwd = 2)
                 }
             }
         }
@@ -887,7 +943,7 @@ plot_spectrum <- function(spectra, pdf_path = NULL, pdf_width = 24,
 #' @param cex_names Numeric; relative size of sample labels in the exposures barplot (default is 1.9).
 #' @param legend_pos Character indicating the position of the legend in the exposures barplot. Admits 
 #' values \code{"top"}, \code{"bottom"}, \code{"center"}, \code{"left"}, \code{"right"}, 
-#' \code{"topleft"}, \code{"topright"} (the default), \code{"bottomleft"} and \code{"bottomright"}.
+#' \code{"topleft"} (the default), \code{"topright"}, \code{"bottomleft"} and \code{"bottomright"}.
 #' @param sig_color_palette Character vector of custom color names or hexadecimal codes to use for 
 #' each signature. Must have at least as many elements as the number of signatures.
 #' @importFrom "graphics" arrows axis barplot legend lines mtext par plot points rect text title
@@ -914,7 +970,7 @@ plot_spectrum <- function(spectra, pdf_path = NULL, pdf_width = 24,
 plot_exposures <- function(mcmc_samples = NULL, pdf_path = NULL, counts = NULL, exposures = NULL,
                            signature_names = NULL, thresh = 0.01, hpd_prob = 0.95, pdf_width = 24,
                            pdf_height = 10, margin_bottom = 10.5, cex_names = 1.9, 
-                           legend_pos = "topright", sig_color_palette = NULL) {
+                           legend_pos = "topleft", legend_cex = 2, sig_color_palette = NULL) {
     if (is.null(mcmc_samples) & (is.null(counts) | is.null(exposures))) {
         stop("Either 'mcmc_samples', or both 'counts' and 'exposures', must be provided.")
     }
@@ -991,7 +1047,7 @@ plot_exposures <- function(mcmc_samples = NULL, pdf_path = NULL, counts = NULL, 
         text(x = bars, y = par()$usr[3] - 0.05 * (par()$usr[4] - par()$usr[3]),
              labels = names(exposures_global), cex = cex_names, srt = 45, adj = 1, xpd = TRUE)
         axis(side = 2, cex.axis = 1.9, lwd = 2, line = -2.5, las = 2)
-        mtext("Mutation fraction", side = 2, cex = 2.1, line = 3)
+        mtext("Mutation fraction", side = 2, cex = 2.4, line = 3)
         if (!is.null(lwr)) {
             arrows(bars, upr_global, 
                    bars, lwr_global,
@@ -1017,7 +1073,7 @@ plot_exposures <- function(mcmc_samples = NULL, pdf_path = NULL, counts = NULL, 
         text(x = bars, y = par()$usr[3] - 0.05 * (par()$usr[4] - par()$usr[3]),
              labels = colnames(exposures), cex = cex_names, srt = 45, adj = 1, xpd = TRUE)
         axis(side = 2, cex.axis = 1.9, lwd = 2, line = -2.5, las = 2)
-        mtext("Mutation fraction", side = 2, cex = 2.1, line = 3)
+        mtext("Mutation fraction", side = 2, cex = 2.4, line = 3)
         if (!is.null(lwr)) {
             segments(x0 = bars, y0 = upr[i, ], y1 = lwr[i, ], lwd = 4, col = "gray50")
         }
@@ -1034,13 +1090,13 @@ plot_exposures <- function(mcmc_samples = NULL, pdf_path = NULL, counts = NULL, 
         text(x = bars, y = par()$usr[3] - 0.05 * (par()$usr[4] - par()$usr[3]),
              labels = rownames(exposures), cex = cex_names, srt = 45, adj = 1, xpd = TRUE)
         axis(side = 2, cex.axis = 1.9, lwd = 2, line = -2.5)
-        mtext("Mutations", side = 2, cex = 2.1, line = 3)
+        mtext("Mutations", side = 2, cex = 2.4, line = 3)
 
         # Legend
         # Expand legend box horizontally if there are many signatures
         LEGENDCOLS <- max(2, ceiling(NSIG / 10))
         legend(legend_pos, bty = "n", ncol = LEGENDCOLS, xpd = TRUE, inset = c(0.03, -0.04),
-               fill = sigcols, border = sigcols, legend = colnames(exposures), cex = 1.8)
+               fill = sigcols, border = sigcols, legend = colnames(exposures), cex = legend_cex)
 
         # Plot relative exposures
         bars <- barplot(t(exposures), col = sigcols,
@@ -1049,7 +1105,7 @@ plot_exposures <- function(mcmc_samples = NULL, pdf_path = NULL, counts = NULL, 
         text(x = bars, y = par()$usr[3] - 0.05 * (par()$usr[4] - par()$usr[3]),
              labels = rownames(exposures), cex = cex_names, srt = 45, adj = 1, xpd = TRUE)
         axis(side = 2, cex.axis = 1.9, lwd = 2, line = -2.5, las = 2)
-        mtext("Mutation fraction", side = 2, cex = 2.1, line = 3)
+        mtext("Mutation fraction", side = 2, cex = 2.4, line = 3)
     }
 
     if (!is.null(pdf_path)) {
