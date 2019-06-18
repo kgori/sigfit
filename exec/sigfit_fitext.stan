@@ -17,7 +17,7 @@ transformed data {
 }
 parameters {
     simplex[C] extra_sigs[N];   // additional signatures to extract
-    simplex[T] exposures[G]; // includes exposures for extra_sigs
+    simplex[T] exposures[G];    // includes exposures for extra_sigs
 }
 transformed parameters {
     matrix[T, C] signatures;
