@@ -61,7 +61,7 @@ transformed parameters {
         // Multinomial model uses unscaled exposures
         activities = array_to_matrix(exposures);
     }
-    else if (family == 2 || family == 3) {
+    else if ((family == 2) || (family == 3)) {
         for (g in 1:G) {
             activities[g] = exposures[g]' * sum(counts_int[g]) * multiplier[g];
         }
