@@ -14,6 +14,8 @@ data {
     matrix[G, C] opportunities;    // mutational opportunities (genome per row)
     vector<lower=0>[S+N] kappa;    // prior on exposures (mixing proportions)
     matrix[N, C] alpha;            // prior for extra signatures
+    int<lower=0, upper=1> dpp;     // use DPP prior: 0=no, 1=yes
+    real<lower=0> concentration;   // concentration hyperparameter of DPP
 }
 
 transformed data {
@@ -22,22 +24,43 @@ transformed data {
     int G_mult = (family != 1) ? G : 0;
     int C_phi = (family == 3) ? C : 0;
     int G_sigma = (family == 4) ? G : 0;
-
+    int G_dpp = (dpp == 1) ? G : 0;
+    int G_notdpp = (dpp == 0) ? G : 0;
     int T = S + N;  // total number of signatures
 }
 
 parameters {
     simplex[C] extra_sigs[N];          // additional signatures to extract
-    simplex[T] exposures[G];           // signature exposures (genome per row)
     real<lower=0> multiplier[G_mult];  // exposure multipliers
     vector<lower=0>[G_sigma] sigma;    // standard deviations (normal/t model)
-    vector<lower=0>[C_phi] phi;    // unscaled overdispersions (neg bin model)
+    vector<lower=0>[C_phi] phi;        // unscaled overdispersions (neg bin model)
+
+    // Exposures parameter IF NOT using Dirichlet Process Prior
+    simplex[T] exposures_all[G_notdpp];           // signature exposures (genome per row), for all signatures
+
+    // Exposures priors IF using Dirichlet Process Prior
+    simplex[S] exposures_fixed[G_dpp];                               // Exposures within the fixed set
+    vector<lower=0, upper=1>[N + 1] exposures_sticklengths[G_dpp];   // signature exposures (genome per row)
+    real<lower=0> dp_alpha[G_dpp];                                   // dirichlet process prior
 }
 
 transformed parameters {
+    simplex[T] exposures[G];
     matrix<lower=0>[G, T] activities;  // scaled exposures (# mutations)
     matrix[G, C] expected_counts;
     matrix[T, C] signatures = append_row(fixed_sigs, array_to_matrix(extra_sigs));
+
+    // Construct the exposures
+    if (dpp == 1) {
+        for (g in 1:G) {
+            exposures[g] = build_exposures_from_sticks_and_fixed(exposures_sticklengths[g], exposures_fixed[g]);
+        }
+    }
+    else {
+        for (g in 1:G) {
+            exposures[g] = exposures_all[g];
+        }
+    }
 
     // Scale exposures into activities
     if (family == 1) {
@@ -65,9 +88,19 @@ transformed parameters {
 }
 
 model {
+    if (dpp == 1) {
+        dp_alpha ~ gamma(concentration, 1);
+    }
+
     // Exposure priors (all models)
     for (g in 1:G) {
-        exposures[g] ~ dirichlet(kappa);
+        if (dpp == 1) {
+            exposures_fixed[g] ~ dirichlet(rep_vector(1, S));
+            exposures_sticklengths[g] ~ beta(1, dp_alpha[g]);
+        }
+        else {
+            exposures_all[g] ~ dirichlet(kappa);
+        }
     }
 
     for (n in 1:N) {

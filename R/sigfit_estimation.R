@@ -492,55 +492,44 @@ fit_extract_signatures <- function(counts, signatures, num_extra_sigs,
         counts_real = counts,
         opportunities = opportunities,
         alpha = sig_prior,
-        kappa = rep(exp_prior, NSIG + num_extra_sigs)
+        kappa = rep(exp_prior, NSIG + num_extra_sigs),
+        concentration = dpp_conc,
+        dpp = ifelse(dpp, 1, 0)
     )
 
     # NMF model
     if (model == "multinomial") {
         dat$family <- 1
-        dat$robust <- 0
     }
 
     # EMu model
     else if (model == "poisson") {
         dat$family <- 2
-        dat$robust <- 0
     }
 
     else if (model == "negbin") {
-        dat$family <- 2
-        dat$robust <- 1
+        dat$family <- 3
     }
 
     else { # normal
-        dat$family <- 3
-        dat$robust <- 0
+        dat$family <- 4
     }
+    
     cat("Fit-Ext: Fitting", NSIG, "signatures, extracting", num_extra_sigs,
         "signature(s), using", model, "model\n")
 
-
-    if (dpp) {
-        stanmodel <- stanmodels$sigfit_fitex_dpp
-        dat$concentration <- dpp_conc
-        dat$kappa <- rep(exp_prior, NSIG)
-    }
-    else {
-        stanmodel <- stanmodels$sigfit_fitex
-    }
-
     if (stanfunc == "sampling") {
         cat("Stan sampling:")
-        out <- sampling(stanmodel, data = dat, chains = 1,
+        out <- sampling(stanmodels$sigfit_fitex, data = dat, chains = 1,
                         pars = "extra_sigs", include = FALSE, ...)
     }
     else if (stanfunc == "optimizing") {
         cat("Stan optimizing:")
-        out <- optimizing(stanmodel, data = dat, ...)
+        out <- optimizing(stanmodels$sigfit_fitex, data = dat, ...)
     }
     else if (stanfunc == "vb") {
         cat("Stan vb")
-        out <- vb(stanmodel, data = dat, ...)
+        out <- vb(stanmodels$sigfit_fitex, data = dat, ...)
     }
 
     list("data" = dat,
