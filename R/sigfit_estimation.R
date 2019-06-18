@@ -44,25 +44,26 @@
 #' @export
 fit_signatures <- function(counts, signatures, exp_prior = NULL, model = "multinomial",
                            opportunities = NULL, ...) {
-
+    
     # Force counts and signatures to matrix
-    counts <- to_matrix(counts, int = TRUE)
+    counts_real <- to_matrix(counts)
+    counts_int <- to_matrix(counts, int = TRUE)
     signatures <- to_matrix(signatures)
-
+    
     # Add pseudocounts to signatures
     signatures <- remove_zeros_(signatures)
-
+    
     NSAMP <- nrow(counts)
     NCAT <- ncol(counts)
     NSIG <- nrow(signatures)
     strand <- NCAT == 192  # strand bias indicator
-
+    
     # Check exposure priors
     if (is.null(exp_prior)) {
         exp_prior = rep(1, NSIG)
     }
     exp_prior <- as.numeric(exp_prior)
-
+    
     # Check dimensions are correct. Should be:
     # counts[NSAMPLES, NCAT], signatures[NSIG, NCAT]
     stopifnot(ncol(signatures) == NCAT)
@@ -99,8 +100,8 @@ fit_signatures <- function(counts, signatures, exp_prior = NULL, model = "multin
         S = NSIG,
         G = NSAMP,
         signatures = signatures,
-        counts_int = apply(counts, 2, as.integer),
-        counts_real = apply(counts, 2, as.numeric),
+        counts_int = counts_int,
+        counts_real = counts_real,
         kappa = exp_prior,
         opportunities = opportunities,
         family = switch(model,
@@ -244,8 +245,9 @@ extract_signatures <- function(counts, nsignatures, model = "multinomial", oppor
     stopifnot(is.numeric(exp_prior) & exp_prior > 0)
     if (length(exp_prior) > 1 | exp_prior != 1) warning("Setting custom priors on exposures is not implemented yet")
 
-    # Force counts to (integer) matrix
-    counts <- to_matrix(counts, int = TRUE)
+    # Force counts to matrix
+    counts_real <- to_matrix(counts)
+    counts_int <- to_matrix(counts, int = TRUE)
 
     NSAMP <- nrow(counts)
     NCAT <- ncol(counts)
@@ -281,8 +283,8 @@ extract_signatures <- function(counts, nsignatures, model = "multinomial", oppor
         S = nsignatures,
         G = NSAMP,
         counts = counts,
-        counts_int = apply(counts, 2, as.integer),
-        counts_real = apply(counts, 2, as.numeric),
+        counts_int = counts_int,
+        counts_real = counts_real,
         kappa = exp_prior,
         opportunities = opportunities,
         alpha = sig_prior,
@@ -338,7 +340,7 @@ extract_signatures <- function(counts, nsignatures, model = "multinomial", oppor
         dat$alpha <- sig_prior
         dat$kappa <- rep(exp_prior, nsignatures)
 
-        cat("Extracting", nsignatures, "signatures using", model, "model\n")
+        cat("---\nExtracting", nsignatures, "signatures using", model, "model\n---\n")
         if (stanfunc == "sampling") {
             cat("Stan sampling:")
             out <- list("data" = dat,
@@ -431,7 +433,8 @@ fit_extract_signatures <- function(counts, signatures, num_extra_sigs,
     stopifnot(is.numeric(exp_prior) & exp_prior > 0)
 
     # Force counts and signatures to matrix
-    counts <- to_matrix(counts, int = TRUE)
+    counts_real <- to_matrix(counts)
+    counts_int <- to_matrix(counts, int = TRUE)
     signatures <- to_matrix(signatures)
 
     # Add pseudocounts to signatures
@@ -454,62 +457,44 @@ fit_extract_signatures <- function(counts, signatures, num_extra_sigs,
     stopifnot(nrow(sig_prior) == num_extra_sigs)
     stopifnot(ncol(sig_prior) == NCAT)
 
-    # EMu model
-    if (model == "emu") {
-        if (is.null(opportunities)) {
-            warning("Using EMu model, but no opportunities were provided.")
-        }
-
-        # Build opportunities matrix
-        if (is.null(opportunities) | is.character(opportunities)) {
-            opportunities <- build_opps_matrix(NSAMP, NCAT, opportunities)
-        }
-        else if (!is.matrix(opportunities)) {
-            opportunities <- as.matrix(opportunities)
-        }
-        stopifnot(all(dim(opportunities) == dim(counts)))
-
-        model <- stanmodels$sigfit_fitex
-        dat <- list(
-            C = NCAT,
-            S = NSIG,
-            G = NSAMP,
-            N = as.integer(num_extra_sigs),
-            fixed_sigs = signatures,
-            counts = counts,
-            opportunities = opportunities,
-            alpha = sig_prior
-        )
+    # Build opportunities matrix
+    if (is.null(opportunities) | is.character(opportunities)) {
+        opportunities <- build_opps_matrix(NSAMP, NCAT, opportunities)
     }
-
-    # NMF model
-    else if (model == "nmf") {
-        model <- stanmodels$sigfit_fitex
-        dat <- list(
-            C = NCAT,
-            S = NSIG,
-            G = NSAMP,
-            N = as.integer(num_extra_sigs),
-            fixed_sigs = signatures,
-            counts = counts,
-            alpha = sig_prior,
-            kappa = exp_prior
-        )
+    else if (!is.matrix(opportunities)) {
+        opportunities <- as.matrix(opportunities)
     }
-
-    cat("Fit-Ext: Fitting", NSIG, "signatures, extracting", num_extra_sigs, "signature(s)\n")
+    stopifnot(all(dim(opportunities) == dim(counts)))
+    
+    dat <- list(
+        C = NCAT,
+        S = NSIG,
+        G = NSAMP,
+        N = as.integer(num_extra_sigs),
+        fixed_sigs = signatures,
+        counts_int = counts_int,
+        counts_real = counts_real,
+        kappa = exp_prior,
+        opportunities = opportunities,
+        alpha = sig_prior,
+        family = switch(model,
+                        nmf = 1, multinomial = 1, emu = 2, poisson = 2, negbin = 3, normal = 4)
+    )
+    
+    cat("---\nFit-Ext: Fitting", NSIG, "signatures and extracting", num_extra_sigs,
+        "signature(s) using", model, "model\n---\n")
     if (stanfunc == "sampling") {
         cat("Stan sampling:")
-        out <- sampling(model, data = dat, chains = 1,
+        out <- sampling(stanmodels$sigfit_fitex, data = dat, chains = 1,
                         pars = "extra_sigs", include = FALSE, ...)
     }
     else if (stanfunc == "optimizing") {
         cat("Stan optimizing:")
-        out <- optimizing(model, data = dat, ...)
+        out <- optimizing(stanmodels$sigfit_fitex, data = dat, ...)
     }
     else if (stanfunc == "vb") {
         cat("Stan vb")
-        out <- vb(model, data = dat, ...)
+        out <- vb(stanmodels$sigfit_fitex, data = dat, ...)
     }
 
     list("data" = dat,
