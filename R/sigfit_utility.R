@@ -246,8 +246,8 @@ human_trinuc_freqs <- function(type = "human-genome", strand = FALSE) {
 #'  \item{Alternate allele (character: "A", "C", "G", or "T").}
 #'  \item{Trinucleotide context of the variant (character; the reference sequence between the
 #'  positions immediately before and after the variant; e.g. "TCA").}
-#'  \item{Optional: transcriptional strand of the variant (character/numeric: 1 or "1" or "U" for 
-#'  untranscribed; -1 or "-1" or "T" for transcribed). If this column is included, a 
+#'  \item{Optional: transcriptional strand of the variant (character/numeric: 1 or "1" or "U" for
+#'  untranscribed; -1 or "-1" or "T" for transcribed). If this column is included, a
 #'  transcriptional-strand-wise representation of catalogues will be used.}
 #' }
 #' @return An integer matrix of mutation counts, where each row corresponds to a sample and each column
@@ -283,14 +283,14 @@ build_catalogues <- function(variants) {
     if (!is.matrix(variants)) {
         variants <- as.matrix(variants)
     }
-    
+
     # Exclude any trinucleotides containing undefined bases
     idx <- !grepl("(A|C|G|T){3}", variants[, 4])
     if (any(idx)) {
         warning(sum(idx), " variants have an invalid trinucleotide context and have been omitted.")
         variants <- variants[!idx, ]
     }
-    
+
     # Check that REF base coincides with middle base in trinucleotide
     if (any(variants[, 2] != substr(variants[, 4], 2, 2))) {
         stop("Reference allele (column 2) does not match the middle base of the trinucleotide context (column 4) in some variant(s).")
@@ -301,7 +301,7 @@ build_catalogues <- function(variants) {
     catalogues <- t(sapply(samples, function(sample) {
         # Select mutations from sample
         idx <- variants[, 1] == sample
-        
+
         # Obtain mutation types, collapsed such that they refer to pyrimidine bases
         vars_collapsed <- apply(variants[idx, , drop = FALSE], 1, function(var) {
             if (var[2] %in% c("C", "T")) {
@@ -325,7 +325,7 @@ build_catalogues <- function(variants) {
                 paste0(paste(trinuc, collapse=""), ">", trinuc[1], alt, trinuc[3])
             }
         })
-        
+
         # Count number of occurrences of each mutation type
         stopifnot(all(vars_collapsed %in% mut_types(strand)))
         sapply(mut_types(strand), function(type) {
@@ -431,7 +431,7 @@ convert_signatures <- function(signatures, ref_opportunities, model_to) {
 
 #' Retrieve model parameters
 #'
-#' \code{retrieve_pars} obtains summary values for a set of model parameters (signatures or exposures) 
+#' \code{retrieve_pars} obtains summary values for a set of model parameters (signatures or exposures)
 #' from a stanfit object.
 #' @param mcmc_samples List with elements \code{\`data\`} and \code{\`results\`}, produced via either
 #' \code{\link{fit_signatures}}, \code{\link{extract_signatures}} or \code{\link{fit_extract_signatures}}.
@@ -677,7 +677,7 @@ get_reconstructions <- function(mcmc_samples) {
             )
         }
         reconstructions[sample, , ] <- apply(arr, c(2, 3), mean)
-        
+
         hpds[sample, , ] <- t(HPDinterval(
             as.mcmc(apply(arr, c(1, 3), sum))
         ))

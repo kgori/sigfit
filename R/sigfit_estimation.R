@@ -68,7 +68,7 @@ fit_signatures <- function(counts, signatures, exp_prior = NULL, model = "multin
     # counts[NSAMPLES, NCAT], signatures[NSIG, NCAT]
     stopifnot(ncol(signatures) == NCAT)
     stopifnot(length(exp_prior) == NSIG)
-    
+
     # Select the model
     model_choices <- c("normal", "poisson", "emu", "multinomial", "nmf", "negbin")
     model <- match.arg(model, model_choices)
@@ -80,7 +80,7 @@ fit_signatures <- function(counts, signatures, exp_prior = NULL, model = "multin
         cat("INFO:'emu' is an alias for 'poisson'\n")
         model = "poisson"
     }
-    
+
     # Set up the opportunities
     # (all models allow opportunities now)
     #if (is.null(opportunities)) {
@@ -94,7 +94,7 @@ fit_signatures <- function(counts, signatures, exp_prior = NULL, model = "multin
         opportunities <- as.matrix(opportunities)
     }
     stopifnot(all(dim(opportunities) == dim(counts)))
-    
+
     dat <- list(
         C = NCAT,
         S = NSIG,
@@ -121,14 +121,14 @@ fit_signatures <- function(counts, signatures, exp_prior = NULL, model = "multin
 #' @param counts Integer matrix of observed mutation counts, with one row per sample and
 #' one column per mutation type. Any decimal values will be rounded to integers.
 #' @param nsignatures Integer or integer vector indicating the number(s) of signatures to extract.
-#' @param model Character indicating the model to sample from. Admits values \code{"nmf"} or 
+#' @param model Character indicating the model to sample from. Admits values \code{"nmf"} or
 #' \code{"emu"} (the default).
 #' @param opportunities Numeric matrix of optional mutational opportunities for the "EMu" model
 #' (\code{model = "emu"}). Must be a matrix with same dimension as \code{counts}.
 #' Alternatively, it also admits character values \code{"human-genome"} or \code{"human-exome"},
 #' in which case the reference human genome/exome opportunities will be used for every sample.
-#' @param sig_prior Numeric matrix with one row per signature and one column per mutation type, 
-#' to be used as the Dirichlet priors for the signatures to be extracted. Only used when 
+#' @param sig_prior Numeric matrix with one row per signature and one column per mutation type,
+#' to be used as the Dirichlet priors for the signatures to be extracted. Only used when
 #' \code{nsignatures} is a scalar. Default priors are uniform (uninformative).
 #' @param chains Integer indicating number of chains to be initialised (default is 1).
 #' @param ... Additional arguments to pass to \code{rstan::optimizing}.
@@ -151,14 +151,14 @@ extract_signatures_initialiser <- function(counts, nsignatures, model = "emu", o
 
 #' Query a signature extraction result for parameter values that can initialise a follow-up
 #' extraction.
-#' 
+#'
 #' \code{get_initializer_list} extracts parameter values from an extraction that can be
 #' used to initialise a follow-up extraction. One use case is to use a short, single-chain
 #' extraction to initialise a longer, multi-chain extraction. This can mitigate against
 #' label switching using the "Initialization around a single mode" strategy described in
-#' the Stan documentation 
+#' the Stan documentation
 #' \url{https://mc-stan.org/docs/2_18/stan-users-guide/label-switching-problematic-section.html}
-#' 
+#'
 #' @param fitobj Result of a sigfit signature extraction
 #' @param chains (integer) return a copy of the parameter list for each of \code{chains}. Used
 #' to initialize multiple chains.
@@ -170,7 +170,7 @@ get_initializer_list <- function(fitobj, chains = 1) {
         exposures = as.matrix(retrieve_pars(fitobj, "exposures")$mean),
         signatures = as.matrix(retrieve_pars(fitobj, "signatures")$mean)
     )
-    
+
     inits <- list()
     for (i in 1:chains) inits[[i]] <- params
     inits
@@ -183,24 +183,24 @@ get_initializer_list <- function(fitobj, chains = 1) {
 #' @param counts Integer matrix of observed mutation counts, with one row per sample and
 #' one column per mutation type. Any decimal values will be rounded to integers.
 #' @param nsignatures Integer or integer vector indicating the number(s) of signatures to extract.
-#' @param model Character indicating the model to sample from. Admits values \code{"nmf"} 
+#' @param model Character indicating the model to sample from. Admits values \code{"nmf"}
 #' (the default) or \code{"emu"}.
 #' @param opportunities Numeric matrix of optional mutational opportunities for the "EMu" model
 #' (\code{model = "emu"}). Must be a matrix with same dimension as \code{counts}.
 #' Alternatively, it also admits character values \code{"human-genome"} or \code{"human-exome"},
 #' in which case the reference human genome/exome opportunities will be used for every sample.
-#' @param sig_prior Numeric matrix with one row per signature and one column per mutation type, 
-#' to be used as the Dirichlet priors for the signatures to be extracted. Only used when 
+#' @param sig_prior Numeric matrix with one row per signature and one column per mutation type,
+#' to be used as the Dirichlet priors for the signatures to be extracted. Only used when
 #' \code{nsignatures} is a scalar. Default priors are uniform (uninformative).
-#' @param exp_prior Numeric; hyperparameter of the Dirichlet prior given to the exposures. 
+#' @param exp_prior Numeric; hyperparameter of the Dirichlet prior given to the exposures.
 #' Default value is 1 (uniform, uninformative).
-#' @param stanfunc Character indicating the choice of rstan inference strategy. 
+#' @param stanfunc Character indicating the choice of rstan inference strategy.
 #' Admits values \code{"sampling"}, \code{"optimizing"} and \code{"vb"}. The default value is
-#' \code{"sampling"}, which corresponds to the full Bayesian MCMC approach. Alternatively, 
-#' \code{"optimizing"} returns the Maximum a Posteriori (MAP) point estimates via numerical 
+#' \code{"sampling"}, which corresponds to the full Bayesian MCMC approach. Alternatively,
+#' \code{"optimizing"} returns the Maximum a Posteriori (MAP) point estimates via numerical
 #' optimization, while \code{"vb"} uses Variational Bayes to approximate the full posterior.
-#' @param ... Any additional parameters to be passed to the sampling function (by default, 
-#' \code{rstan::sampling}). (Note that the number of chains is set to 1 and cannot 
+#' @param ... Any additional parameters to be passed to the sampling function (by default,
+#' \code{rstan::sampling}). (Note that the number of chains is set to 1 and cannot
 #' be changed, in order to prevent 'label switching' problems.)
 #' @return A list with two elements:
 #' \itemize{
@@ -232,12 +232,12 @@ get_initializer_list <- function(fitobj, chains = 1) {
 #' @importFrom "rstan" extract
 #' @export
 extract_signatures <- function(counts, nsignatures, model = "multinomial", opportunities = NULL,
-                               sig_prior = NULL, exp_prior = 1, stanfunc = "sampling",
+                               sig_prior = NULL, exp_prior = 1, dpp = FALSE, dpp_conc = 1, stanfunc = "sampling",
                                chains = 1, ...) {
     if (!is.null(sig_prior) & length(nsignatures) > 1) {
         stop("'sig_prior' is only admitted when 'nsignatures' is a scalar (single value).")
     }
-    
+
     if (length(chains) > 1 | !all.equal(chains, as.integer(chains))) {
         stop("'chains' must be a single integer value")
     }
@@ -252,7 +252,7 @@ extract_signatures <- function(counts, nsignatures, model = "multinomial", oppor
     NSAMP <- nrow(counts)
     NCAT <- ncol(counts)
     strand <- NCAT == 192  # strand bias indicator
-    
+
     # Select the model
     model_choices <- c("normal", "poisson", "emu", "multinomial", "nmf", "negbin")
     model <- match.arg(model, model_choices)
@@ -272,12 +272,12 @@ extract_signatures <- function(counts, nsignatures, model = "multinomial", oppor
     # }
     if (is.null(opportunities) | is.character(opportunities)) {
         opportunities <- build_opps_matrix(NSAMP, NCAT, opportunities)
-    } 
+    }
     else if (!is.matrix(opportunities)) {
         opportunities <- as.matrix(opportunities)
     }
     stopifnot(all(dim(opportunities) == dim(counts)))
-    
+
     dat <- list(
         C = NCAT,
         S = nsignatures,
@@ -289,7 +289,9 @@ extract_signatures <- function(counts, nsignatures, model = "multinomial", oppor
         opportunities = opportunities,
         alpha = sig_prior,
         family = switch(model,
-                        nmf = 1, multinomial = 1, emu = 2, poisson = 2, negbin = 3, normal = 4)
+                        nmf = 1, multinomial = 1, emu = 2, poisson = 2, negbin = 3, normal = 4),
+        concentration = dpp_conc,
+        dpp = ifelse(dpp, 1, 0)
     )
 
     # Extract signatures for each nsignatures value
@@ -380,12 +382,12 @@ extract_signatures <- function(counts, nsignatures, model = "multinomial", oppor
 #' in which case the reference human genome/exome opportunities will be used for every sample.
 #' @param sig_prior Numeric matrix with one row per additional signature and one column per category, to be used as the
 #' Dirichlet priors for the additional signatures to be extracted. Default priors are uniform (uninformative).
-#' @param exp_prior Numeric; hyperparameter of the Dirichlet prior given to the exposures. 
+#' @param exp_prior Numeric; hyperparameter of the Dirichlet prior given to the exposures.
 #' Default value is 1 (uniform, uninformative).
-#' @param stanfunc Character indicating the choice of rstan inference strategy. Admits values \code{"sampling"}, 
+#' @param stanfunc Character indicating the choice of rstan inference strategy. Admits values \code{"sampling"},
 #' \code{"optimizing"} and \code{"vb"}. The default value is
-#' \code{"sampling"}, which corresponds to the full Bayesian MCMC approach. Alternatively, 
-#' \code{"optimizing"} returns the Maximum a Posteriori (MAP) point estimates via numerical 
+#' \code{"sampling"}, which corresponds to the full Bayesian MCMC approach. Alternatively,
+#' \code{"optimizing"} returns the Maximum a Posteriori (MAP) point estimates via numerical
 #' optimization, while \code{"vb"} uses Variational Bayes to approximate the full posterior.
 #' @param ... Any additional parameters to pass to the sampling function (by default, \code{rstan::sampling}).
 #' (Note that the number of chains is set to 1 and cannot be changed, to prevent 'label switching' problems.)
@@ -424,7 +426,7 @@ extract_signatures <- function(counts, nsignatures, model = "multinomial", oppor
 #' @export
 fit_extract_signatures <- function(counts, signatures, num_extra_sigs,
                                    model = "multinomial", opportunities = NULL, sig_prior = NULL,
-                                   exp_prior = 1, stanfunc = "sampling", ...) {
+                                   exp_prior = 1, dpp = FALSE, dpp_conc = 1, stanfunc = "sampling", ...) {
     # Check that num_extra_sigs is scalar
     if (length(num_extra_sigs) != 1) {
         stop("'num_extra_sigs' must be an integer scalar.")
@@ -457,6 +459,18 @@ fit_extract_signatures <- function(counts, signatures, num_extra_sigs,
     stopifnot(nrow(sig_prior) == num_extra_sigs)
     stopifnot(ncol(sig_prior) == NCAT)
 
+    # Select the model
+    model_choices <- c("normal", "poisson", "emu", "multinomial", "nmf", "negbin")
+    model <- match.arg(model, model_choices)
+    if (model == "nmf") {
+        cat("INFO:'nmf' is an alias for 'multinomial'\n")
+        model = "multinomial"
+    }
+    if (model == "emu") {
+        cat("INFO:'emu' is an alias for 'poisson'\n")
+        model = "poisson"
+    }
+
     # Build opportunities matrix
     if (is.null(opportunities) | is.character(opportunities)) {
         opportunities <- build_opps_matrix(NSAMP, NCAT, opportunities)
@@ -483,18 +497,40 @@ fit_extract_signatures <- function(counts, signatures, num_extra_sigs,
     
     cat("---\nFit-Ext: Fitting", NSIG, "signatures and extracting", num_extra_sigs,
         "signature(s) using", model, "model\n---\n")
+    }
+    stopifnot(all(dim(opportunities) == dim(counts)))
+
+    dat <- list(
+        C = NCAT,
+        S = NSIG,
+        G = NSAMP,
+        N = as.integer(num_extra_sigs),
+        fixed_sigs = signatures,
+        counts_int = counts,
+        counts_real = counts,
+        opportunities = opportunities,
+        alpha = sig_prior,
+        kappa = rep(exp_prior, NSIG + num_extra_sigs),
+        concentration = dpp_conc,
+        dpp = ifelse(dpp, 1, 0),
+        family = switch(model,
+                        nmf = 1, multinomial = 1, emu = 2, poisson = 2, negbin = 3, normal = 4)
+    )
+    
+    cat("Fit-Ext: Fitting", NSIG, "signatures, extracting", num_extra_sigs,
+        "signature(s), using", model, "model\n")
     if (stanfunc == "sampling") {
         cat("Stan sampling:")
-        out <- sampling(stanmodels$sigfit_fitex, data = dat, chains = 1,
+        out <- sampling(stanmodels$sigfit_fitext, data = dat, chains = 1,
                         pars = "extra_sigs", include = FALSE, ...)
     }
     else if (stanfunc == "optimizing") {
         cat("Stan optimizing:")
-        out <- optimizing(stanmodels$sigfit_fitex, data = dat, ...)
+        out <- optimizing(stanmodels$sigfit_fitext, data = dat, ...)
     }
     else if (stanfunc == "vb") {
         cat("Stan vb")
-        out <- vb(stanmodels$sigfit_fitex, data = dat, ...)
+        out <- vb(stanmodels$sigfit_fitext, data = dat, ...)
     }
 
     list("data" = dat,
