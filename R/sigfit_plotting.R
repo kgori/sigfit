@@ -81,7 +81,7 @@ plot_gof <- function(sample_list, stat = "cosine") {
         model <- samples$result@model_name
         e <- extract(samples$result, pars = c("expected_counts", "signatures"))
 
-        if (model %in% c("multinomial", "nmf")) {
+        if (samples$data$family == 1) {
             reconstructed <- apply(e$expected_counts, c(2, 3), mean) * rowSums(counts)
         }
         else {
