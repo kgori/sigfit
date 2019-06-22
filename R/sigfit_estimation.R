@@ -497,7 +497,7 @@ fit_extract_signatures <- function(counts, signatures, num_extra_sigs,
     
     cat("---\nFit-Ext: Fitting", NSIG, "signatures and extracting", num_extra_sigs,
         "signature(s) using", model, "model\n---\n")
-    }
+    
     stopifnot(all(dim(opportunities) == dim(counts)))
 
     dat <- list(
