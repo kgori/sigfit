@@ -479,26 +479,6 @@ fit_extract_signatures <- function(counts, signatures, num_extra_sigs,
         opportunities <- as.matrix(opportunities)
     }
     stopifnot(all(dim(opportunities) == dim(counts)))
-    
-    dat <- list(
-        C = NCAT,
-        S = NSIG,
-        G = NSAMP,
-        N = as.integer(num_extra_sigs),
-        fixed_sigs = signatures,
-        counts_int = counts_int,
-        counts_real = counts_real,
-        kappa = exp_prior,
-        opportunities = opportunities,
-        alpha = sig_prior,
-        family = switch(model,
-                        nmf = 1, multinomial = 1, emu = 2, poisson = 2, negbin = 3, normal = 4)
-    )
-    
-    cat("---\nFit-Ext: Fitting", NSIG, "signatures and extracting", num_extra_sigs,
-        "signature(s) using", model, "model\n---\n")
-    
-    stopifnot(all(dim(opportunities) == dim(counts)))
 
     dat <- list(
         C = NCAT,
@@ -517,8 +497,8 @@ fit_extract_signatures <- function(counts, signatures, num_extra_sigs,
                         nmf = 1, multinomial = 1, emu = 2, poisson = 2, negbin = 3, normal = 4)
     )
     
-    cat("Fit-Ext: Fitting", NSIG, "signatures, extracting", num_extra_sigs,
-        "signature(s), using", model, "model\n")
+    cat("---\nFit-Ext: Fitting", NSIG, "signatures and extracting", num_extra_sigs,
+        "signature(s) using", model, "model\n---\n")
     if (stanfunc == "sampling") {
         cat("Stan sampling:")
         out <- sampling(stanmodels$sigfit_fitext, data = dat, chains = 1,
