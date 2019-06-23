@@ -82,17 +82,7 @@ fit_signatures <- function(counts, signatures, exp_prior = NULL, model = "multin
     }
 
     # Set up the opportunities
-    # (all models allow opportunities now)
-    #if (is.null(opportunities)) {
-    #    if (!(model == "nmf" | model == "multinomial"))
-    #        warning("Using an opportunities-sensitive model, but no opportunities were provided.")
-    #}
-    if (is.null(opportunities) | is.character(opportunities)) {
-        opportunities <- build_opps_matrix(NSAMP, NCAT, opportunities)
-    }
-    else if (!is.matrix(opportunities)) {
-        opportunities <- as.matrix(opportunities)
-    }
+    opportunities <- build_opps_matrix(NSAMP, NCAT, opportunities)
     stopifnot(all(dim(opportunities) == dim(counts)))
 
     dat <- list(
@@ -266,18 +256,9 @@ extract_signatures <- function(counts, nsignatures, model = "multinomial", oppor
     }
 
     # Set up the opportunities
-    # if (is.null(opportunities)) {
-    #     if (!(model == "nmf" | model == "multinomial"))
-    #         warning("Using EMu model, but no opportunities were provided.")
-    # }
-    if (is.null(opportunities) | is.character(opportunities)) {
-        opportunities <- build_opps_matrix(NSAMP, NCAT, opportunities)
-    }
-    else if (!is.matrix(opportunities)) {
-        opportunities <- as.matrix(opportunities)
-    }
+    opportunities <- build_opps_matrix(NSAMP, NCAT, opportunities)
     stopifnot(all(dim(opportunities) == dim(counts)))
-
+    
     dat <- list(
         C = NCAT,
         S = nsignatures,
@@ -471,13 +452,8 @@ fit_extract_signatures <- function(counts, signatures, num_extra_sigs,
         model = "poisson"
     }
 
-    # Build opportunities matrix
-    if (is.null(opportunities) | is.character(opportunities)) {
-        opportunities <- build_opps_matrix(NSAMP, NCAT, opportunities)
-    }
-    else if (!is.matrix(opportunities)) {
-        opportunities <- as.matrix(opportunities)
-    }
+    # Set up the opportunities
+    opportunities <- build_opps_matrix(NSAMP, NCAT, opportunities)
     stopifnot(all(dim(opportunities) == dim(counts)))
 
     dat <- list(
@@ -486,8 +462,8 @@ fit_extract_signatures <- function(counts, signatures, num_extra_sigs,
         G = NSAMP,
         N = as.integer(num_extra_sigs),
         fixed_sigs = signatures,
-        counts_int = counts,
-        counts_real = counts,
+        counts_int = counts_int,
+        counts_real = counts_real,
         opportunities = opportunities,
         alpha = sig_prior,
         kappa = rep(exp_prior, NSIG + num_extra_sigs),
