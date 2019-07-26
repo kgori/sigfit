@@ -267,7 +267,7 @@ build_catalogues <- function(variants) {
         stop("'variants' must be a matrix or data frame with four/five columns and one row per variant.\nType ?build_catalogues to read the documentation.")
     }
     if (ncol(variants) == 5) {
-        cat("'variants' has five columns: generating transcriptional-strand-wise catalogues.\n")
+        warning("'variants' has five columns: generating transcriptional-strand-wise catalogues.")
         variants[, 5] <- gsub("1", "U",
                               gsub("-1", "T", as.character(variants[, 5])))
         idx <- !(variants[, 5] %in% c("T", "U"))
