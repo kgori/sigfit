@@ -4,7 +4,7 @@ sudo: FALSE
 cache: packages
 dist: bionic
 
-warnings_are_errors: TRUE
+warnings_are_errors: FALSE
 
 r_build_args: '--no-build-vignettes'
 r_check_args: '--ignore-vignettes --no-examples'
