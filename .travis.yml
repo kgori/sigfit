@@ -1,42 +1,45 @@
 language: r
-sudo: false
-r: release
+r: devel
+sudo: FALSE
 cache: packages
+dist: bionic
 
-r_build_args: --no-build-vignettes
-r_check_args: --no-build-vignettes
+warnings_are_errors: TRUE
+
+r_build_args: '--no-build-vignettes'
+r_check_args: '--ignore-vignettes --no-examples'
 
 r_github_packages:
   - jimhester/covr
-
-env:
-  matrix:
-    - CXX_OLEVEL=2 CXX=clang++
+  - stan-dev/rstantools
+    
 
 before_install:
+  - sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
+  - sudo apt-get update -qq
+  - sudo apt-get install -qq gcc-9
+  - sudo apt-get install -qq g++-9
+  - sudo apt-get install -qq gfortran-9
+  - sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-9 90
+  - sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-9 90
+  - sudo update-alternatives --install /usr/bin/gfortran gfortran /usr/bin/gfortran-9 90
   - mkdir -p ~/.R/
-  - echo "CXX = `R CMD config CXX`" >> ~/.R/Makevars
-  - echo "CXXFLAGS = `R CMD config CXXFLAGS` -pedantic -g0 -fPIC" >> ~/.R/Makevars
-  - echo "CXX11FLAGS = `R CMD config CXXFLAGS` -pedantic -g0 -fPIC" >> ~/.R/Makevars
-  - echo "CXX14FLAGS = `R CMD config CXXFLAGS` -pedantic -g0 -fPIC" >> ~/.R/Makevars
-  - export CLANG_EXTRA_ARG=""
-  - if [[ $CXX = "clang++" ]] ;  then export CLANG_EXTRA_ARG=" -Qunused-arguments -fcolor-diagnostics " ; fi
-  - sed -i.bak "s/ g++/ ${CXX}${CLANG_EXTRA_ARG}/" ~/.R/Makevars
-  - sed -i.bak "s/O[0-3]/O$CXX_OLEVEL/" ~/.R/Makevars
-  - echo "CXX11=${CXX} -std=c++11" >> ~/.R/Makevars
-  - echo "CXX14=${CXX} -std=c++11" >> ~/.R/Makevars
+  - echo "CXX = g++" >> ~/.R/Makevars
+  - echo "CXXFLAGS = -O2 -m64 -g -Wno-ignored-attributes -Wno-deprecated-declarations" >> ~/.R/Makevars
+  - echo "CXXPICFLAGS = -fpic" >> ~/.R/Makevars
+  - echo "CXX11 = g++" >> ~/.R/Makevars
+  - echo "CXX11FLAGS = -O2 -m64 -g -Wno-ignored-attributes -Wno-deprecated-declarations" >> ~/.R/Makevars
+  - echo "CXX11STD = -std=gnu++11" >> ~/.R/Makevars
+  - echo "CXX11PICFLAGS = -fpic" >> ~/.R/Makevars
+  - echo "CXX14 = g++" >> ~/.R/Makevars
+  - echo "CXX14FLAGS = -O2 -m64 -g -Wno-ignored-attributes -Wno-deprecated-declarations" >> ~/.R/Makevars
+  - echo "CXX14STD = -std=gnu++14" >> ~/.R/Makevars
+  - echo "CXX14PICFLAGS = -fpic" >> ~/.R/Makevars
+  - echo "CXX17 = g++" >> ~/.R/Makevars
+  - echo "CXX17FLAGS = -O2 -m64 -g -Wno-ignored-attributes -Wno-deprecated-declarations" >> ~/.R/Makevars
+  - echo "CXX17STD = -std=gnu++17" >> ~/.R/Makevars
+  - echo "CXX17PICFLAGS = -fpic" >> ~/.R/Makevars
 
-script:
-  - |
-    travis_wait R CMD build .
-    travis_wait 60 R CMD check sigfit*tar.gz
-
-after_script:
-  - tar -ztvf sigfit_*.tar.gz
-  - echo ${NOT_CRAN}
-
+  
 after_success:
-  - travis_wait 40 tar -C .. -xf $PKG_TARBALL
-
-after_failure:
-  - cat sigfit.Rcheck/00*
+  - travis_wait 30 Rscript -e 'covr::codecov()'
