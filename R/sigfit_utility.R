@@ -47,9 +47,8 @@ to_matrix <- function(x, int = FALSE) {
     if (!is.matrix(x))
         x <- as.matrix(x)
     # For counts matrix: if real-valued, round
-    if (int & !all(x == round(x))) {
+    if (int) {
         x <- round(x)
-        warning("Non-integer values in 'counts' have been rounded.")
     }
     x
 }
