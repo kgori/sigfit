@@ -64,53 +64,60 @@ plot_ppc <- function(c, c_ppc, sample = 1) {
 #' @importFrom "rstan" extract
 #' @export
 plot_gof <- function(sample_list, stat = "cosine") {
-    gof_function <- switch(stat,
-                           "cosine" = cosine_sim,
-                           "L2" = l2_norm)
-    if (is.null(gof_function)) {
-        stop("'stat' only admits values \"cosine\" and \"L2\".\nType ?plot_gof to read the documentation.")
+    
+    if (sum(sapply(sample_list, is.list)) < 4) {
+        warning("Goodness-of-fit analysis omitted when using less than 4 values of 'nsignatures'.")
     }
-
-    nS <- NULL
-    gof <- NULL
-    for (samples in sample_list) {
-        if (!is.list(samples)) next
-
-        counts <- samples$data$counts_real
-
-        model <- samples$result@model_name
-        e <- extract(samples$result, pars = c("expected_counts", "signatures"))
-
-        if (samples$data$family == 1) {
-            reconstructed <- apply(e$expected_counts, c(2, 3), mean) * rowSums(counts)
+    
+    else {
+        gof_function <- switch(stat,
+                               "cosine" = cosine_sim,
+                               "L2" = l2_norm)
+        if (is.null(gof_function)) {
+            stop("'stat' only admits values \"cosine\" and \"L2\".\nType ?plot_gof to read the documentation.")
         }
-        else {
-            reconstructed <- apply(e$expected_counts, c(2, 3), mean)
+    
+        nS <- NULL
+        gof <- NULL
+        for (samples in sample_list) {
+            if (!is.list(samples)) next
+    
+            counts <- samples$data$counts_real
+    
+            model <- samples$result@model_name
+            e <- extract(samples$result, pars = c("expected_counts", "signatures"))
+    
+            if (samples$data$family == 1) {
+                reconstructed <- apply(e$expected_counts, c(2, 3), mean) * rowSums(counts)
+            }
+            else {
+                reconstructed <- apply(e$expected_counts, c(2, 3), mean)
+            }
+    
+            stopifnot(dim(reconstructed) == dim(counts))
+    
+            nS <- c(nS, dim(e$signatures)[2])
+            gof <- c(gof, gof_function(as.vector(reconstructed),
+                                       as.vector(counts)))
         }
-
-        stopifnot(dim(reconstructed) == dim(counts))
-
-        nS <- c(nS, dim(e$signatures)[2])
-        gof <- c(gof, gof_function(as.vector(reconstructed),
-                                   as.vector(counts)))
+    
+        # Find the point of highest rate of change of gradient (i.e. highest positive
+        # 2nd derivative for 'L'-shaped curves, negative for 'r'-shaped curves)
+        # Approximate 2nd derivative = x[n+1] + x[n-1] - 2x[n]
+        deriv <- gof[3:(length(gof))] + gof[1:(length(gof)-2)] - 2 * gof[2:(length(gof)-1)]
+        best <- ifelse(stat == "cosine",
+                       which.min(deriv) + 1,  # highest negative curvature
+                       which.max(deriv) + 1)  # highest positive curvature
+    
+        plot(nS, gof, type = "o", lty = 3, pch = 16, col = "dodgerblue4",
+             main = paste0("Goodness of fit (", stat, ")\nmodel: ", model),
+             xlab = "Number of signatures",
+             ylab = paste0("Goodness of fit (", stat, ")"))
+        points(nS[best], gof[best], pch = 16, col = "orangered", cex = 1.1)
+    
+        cat("Estimated best number of signatures:", nS[best], "\n")
+        nS[best]
     }
-
-    # Find the point of highest rate of change of gradient (i.e. highest positive
-    # 2nd derivative for 'L'-shaped curves, negative for 'r'-shaped curves)
-    # Approximate 2nd derivative = x[n+1] + x[n-1] - 2x[n]
-    deriv <- gof[3:(length(gof))] + gof[1:(length(gof)-2)] - 2 * gof[2:(length(gof)-1)]
-    best <- ifelse(stat == "cosine",
-                   which.min(deriv) + 1,  # highest negative curvature
-                   which.max(deriv) + 1)  # highest positive curvature
-
-    plot(nS, gof, type = "o", lty = 3, pch = 16, col = "dodgerblue4",
-         main = paste0("Goodness of fit (", stat, ")\nmodel: ", model),
-         xlab = "Number of signatures",
-         ylab = paste0("Goodness of fit (", stat, ")"))
-    points(nS[best], gof[best], pch = 16, col = "orangered", cex = 1.1)
-
-    cat("Estimated best number of signatures:", nS[best], "\n")
-    nS[best]
 }
 
 #' Plot all results from signature fitting or extraction
