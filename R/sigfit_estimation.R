@@ -50,6 +50,13 @@ fit_signatures <- function(counts, signatures, exp_prior = NULL, model = "multin
     counts_int <- to_matrix(counts, int = TRUE)
     signatures <- to_matrix(signatures)
     
+    if (model != "normal" & !identical(counts_real, counts_int)) {
+        warning("Using discrete model for non-integer counts: counts have been rounded.")
+    }
+    if (model == "normal" & identical(counts_real, counts_int)) {
+        warning("Using continuous model for integer counts; we recommend using a discrete model instead.")
+    }
+    
     # Add pseudocounts to signatures
     signatures <- remove_zeros_(signatures)
     
@@ -239,6 +246,13 @@ extract_signatures <- function(counts, nsignatures, model = "multinomial", oppor
     counts_real <- to_matrix(counts)
     counts_int <- to_matrix(counts, int = TRUE)
 
+    if (model != "normal" & !identical(counts_real, counts_int)) {
+        warning("Using discrete model for non-integer counts: counts have been rounded.")
+    }
+    if (model == "normal" & identical(counts_real, counts_int)) {
+        warning("Using continuous model for integer counts; we recommend using a discrete model instead.")
+    }
+
     NSAMP <- nrow(counts)
     NCAT <- ncol(counts)
     strand <- NCAT == 192  # strand bias indicator
@@ -419,7 +433,14 @@ fit_extract_signatures <- function(counts, signatures, num_extra_sigs,
     counts_real <- to_matrix(counts)
     counts_int <- to_matrix(counts, int = TRUE)
     signatures <- to_matrix(signatures)
-
+    
+    if (model != "normal" & !identical(counts_real, counts_int)) {
+        warning("Using discrete model for non-integer counts: counts have been rounded.")
+    }
+    if (model == "normal" & identical(counts_real, counts_int)) {
+        warning("Using continuous model for integer counts; we recommend using a discrete model instead.")
+    }
+    
     # Add pseudocounts to signatures
     signatures <- remove_zeros_(signatures)
 
