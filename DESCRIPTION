@@ -12,12 +12,26 @@ Description: This package implements Bayesian models for fitting and extracting
     as auxiliary functions for analysing and plotting resulting data. Markov Chain
     Monte Carlo sampling is done using Stan.
 License: GPL (>=3)
-Depends: R (>= 3.0.2), Rcpp (>= 0.12.9), methods
-Imports: rstan (>= 2.14.1), coda (>= 0.19.1), clue (>= 0.3.54)
-LinkingTo: StanHeaders (>= 2.14.0.1), rstan (>= 2.14.1), BH (>= 1.62.0.1), 
-           Rcpp (>= 0.12.9), RcppEigen (>= 0.3.2.9.0)
-RcppModules: stan_fit4sigfit_mod
-RoxygenNote: 6.0.1
-NeedsCompilation: yes
-Suggests: knitr, rmarkdown
+LazyData: true
+Biarch: true
+Depends: 
+    R (>= 3.4.0)
+Imports: 
+    methods,
+    Rcpp (>= 0.12.0),
+    rstan (>= 2.18.1),
+    rstantools (>= 2.0.0.9000),
+    coda (>= 0.19),
+    clue (>= 0.3)
+LinkingTo: 
+    BH (>= 1.66.0),
+    Rcpp (>= 0.12.0),
+    RcppEigen (>= 0.3.3.3.0),
+    rstan (>= 2.18.1),
+    StanHeaders (>= 2.18.0)
+SystemRequirements: GNU make
+RoxygenNote: 6.1.1
+Suggests: 
+    knitr,
+    rmarkdown
 VignetteBuilder: knitr
