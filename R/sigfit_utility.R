@@ -74,9 +74,21 @@ build_opps_matrix <- function(nsamples, ncat, keyword) {
 }
 
 #' Cosine similarity between two vectors
+#' @param x Vector of real values
+#' @param y Vector of real values, same length as \code{x}
+#' @return Similarity measure between \code{x} and \code{y}, where 0
+#' means no similarity, and 1 means maximum similarity.
+#' @examples
+#' cosine_sim(c(1,2,3,4), c(4,3,2,1))
 cosine_sim <- function(x, y) { x %*% y / sqrt(x%*%x * y%*%y) }
 
 #' L2 norm between two vectors
+#' @param x Vector of real values
+#' @param y Vector of real values, same length as \code{x}
+#' @return Distance measure between \code{x} and \code{y}, where 0
+#' means no difference.
+#' @examples
+#' l2_norm(c(1,2,3,4), c(4,3,2,1))
 l2_norm <- function(x, y) { sqrt(sum((x - y)^2)) }
 
 #' Deal with zero values in a signature

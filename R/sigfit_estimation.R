@@ -24,6 +24,7 @@
 #' The model parameters (such as signatures and exposures) can be extracted from this
 #' object using \code{\link{retrieve_pars}}.
 #' @examples
+#' \dontrun{
 #' # Load example mutational catalogues and COSMIC signatures
 #' data("counts_21breast")
 #' data("cosmic_signatures")
@@ -37,7 +38,7 @@
 #' # (3000 warmup iterations + 10000 sampling iterations)
 #' samples_2 <- fit_signatures(counts_21breast, cosmic_signatures, chains = 1,
 #'                             iter = 13000, warmup = 3000)
-#' @useDynLib sigfit, .registration = TRUE
+#' }
 #' @importFrom "rstan" sampling
 #' @export
 fit_signatures <- function(counts, signatures, exp_prior = NULL, model = "nmf",
@@ -201,7 +202,6 @@ extract_signatures_initialiser <- function(counts, nsignatures, model = "emu", o
 #' samples_emu <- extract_signatures(counts_21breast, nsignatures = 4, model = "emu",
 #'                                   opportunities = "human-genome",
 #'                                   iter = 1200, warmup = 400)
-#' @useDynLib sigfit, .registration = TRUE
 #' @importFrom "rstan" sampling
 #' @importFrom "rstan" optimizing
 #' @importFrom "rstan" vb
@@ -390,7 +390,6 @@ extract_signatures <- function(counts, nsignatures, model = "nmf", opportunities
 #' extr_sigs <- retrieve_pars(mcmc_samples, "signatures")
 #' plot_spectrum(signatures[7, ], pdf_path = "COSMIC_Sig7.pdf", name="COSMIC sig. 7")
 #' plot_spectrum(extr_sigs, pdf_path = "Extracted_Sigs.pdf")
-#' @useDynLib sigfit, .registration = TRUE
 #' @importFrom "rstan" sampling
 #' @importFrom "rstan" optimizing
 #' @importFrom "rstan" vb
