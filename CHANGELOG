@@ -1,5 +1,11 @@
 CHANGE LOG
 
+2019/08/06
+No major user facing changes introduced in v1.3.2
+
+* Bug fix for issue #46 - installation errors due to changes in R 3.6.0 and stan 2.19
+
+
 2019/03/29
 Major changes introduced in v1.3.1
 
