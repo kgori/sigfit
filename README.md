@@ -11,7 +11,8 @@ sigfit is an R package to estimate signatures of mutational processes and their 
 ## Installation
 sigfit is an R package. As it is in early development it is not yet on CRAN, but can be installed from inside an R session using the [devtools](https://cran.r-project.org/web/packages/devtools/index.html) package.
 
-    devtools::install_github("kgori/sigfit", args = "--preclean", build_vignettes = TRUE)
+    devtools::install_github("kgori/sigfit", ref = "v1.3.2",
+                             build_opts = c("--no-resave-data", "--no-manual"))
 
 
 ## Usage guide
