@@ -11,9 +11,30 @@ sigfit is an R package to estimate signatures of mutational processes and their 
 ## Installation
 sigfit is an R package. As it is in early development it is not yet on CRAN, but can be installed from inside an R session using the [devtools](https://cran.r-project.org/web/packages/devtools/index.html) package.
 
-    devtools::install_github("kgori/sigfit", ref = "v1.3.2",
-                             build_opts = c("--no-resave-data", "--no-manual"))
+    devtools::install_github("kgori/sigfit", build_opts = c("--no-resave-data", "--no-manual"))
+    
+`build_opts` can be omitted, but it will not build the package vignettes in this case.
 
+#### Troubleshooting installation
+
+Problem:
+
+    Error: 'rstan_config' is not an exported object from 'namespace:rstantools'
+    
+Solution:
+Update rstantools: `devtools::install_github("stan-dev/rstantools")`
+
+Problem:
+
+    C++14 standard requested but CXX14 is not defined
+    
+Solution:
+Provide R with c++14 options via the file `~/.R/Makevars`, e.g.
+
+    CXX14 = g++
+    CXX14FLAGS = -g -O2
+    CXX14PICFLAGS = -fpic
+    CXX14STD = -std=gnu++14
 
 ## Usage guide
 
