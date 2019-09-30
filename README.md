@@ -27,7 +27,7 @@ See the package vignette for detailed usage examples:
 
 To cite sigfit in publications, please use:
 
-* **Kevin Gori, Adrian Baez-Ortega. sigfit: flexible Bayesian inference of mutational signatures. _bioRxiv_ (2018). doi: [10.1101/372896](http://doi.org/10.1101/372896).**
+* **Kevin Gori, Adrian Baez-Ortega. sigfit: flexible Bayesian inference of mutational signatures. _bioRxiv_, 372896 (2018). doi: [10.1101/372896](http://doi.org/10.1101/372896).**
 
 The corresponding BibTeX entry is:
 
@@ -36,6 +36,7 @@ The corresponding BibTeX entry is:
         author = {Gori, Kevin and Baez-Ortega, Adrian},
         journal = {bioRxiv},
         year = {2018},
+        pages = {372896},
         doi = {10.1101/372896}
     }
 
