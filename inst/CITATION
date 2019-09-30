@@ -5,4 +5,5 @@ bibentry(bibtype = "Article",
                     person("Adrian", "Baez-Ortega")),
          journal = "bioRxiv",
          year = 2018,
+         pages = 372896,
          doi = "10.1101/372896")
