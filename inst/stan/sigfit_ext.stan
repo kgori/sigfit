@@ -10,8 +10,8 @@ data {
     int counts_int[G, C];          // observed mutation counts (discrete case)
     real counts_real[G, C];        // observed mutation counts (continuous case)
     matrix[G, C] opportunities;    // mutational opportunities (genome per row)
-    vector<lower=0>[S] kappa;      // prior on exposures (mixing proportions)
-    matrix[S, C] alpha;            // prior for signatures
+    vector<lower=0>[S] kappa[G];   // prior on exposures (mixing proportions)
+    vector<lower=0>[C] alpha[S];   // prior for signatures
     int<lower=0,upper=1> dpp;      // Use Dirichlet Process exposures: 0=no, 1=yes
     real<lower=0> concentration;   // prior for Dirichlet Process
 }
@@ -83,13 +83,13 @@ model {
             exposures_raw[g] ~ beta(1, dp_alpha[g]);
         }
         else {
-            exposures_raw[g] ~ dirichlet(kappa);
+            exposures_raw[g] ~ dirichlet(kappa[g]);
         }
     }
 
     for (s in 1:S) {
         // Priors for signatures
-        signatures[s] ~ dirichlet(alpha[s]');
+        signatures[s] ~ dirichlet(alpha[s]);
     }
 
     // Multinomial ('NMF') model

@@ -11,7 +11,7 @@ data {
     real counts_real[G, C];        // observed mutation counts (continuous case)
     matrix[S, C] signatures;       // signatures to fit (signature per row)
     matrix[G, C] opportunities;    // mutational opportunities (genome per row)
-    vector<lower=0>[S] kappa;      // prior on exposures (mixing proportions)
+    vector<lower=0>[S] kappa[G];   // prior on exposures (mixing proportions)
 }
 
 transformed data {
@@ -60,7 +60,7 @@ transformed parameters {
 model {
     // Exposure priors (all models)
     for (g in 1:G) {
-        exposures[g] ~ dirichlet(kappa);
+        exposures[g] ~ dirichlet(kappa[g]);
     }
 
     // Multinomial ('NMF') model

@@ -3,19 +3,19 @@ functions {
 }
 
 data {
-    int<lower=1, upper=3> family;  // model: 1=multinomial, 2=poisson, 3=negbin, 4=normal
-    int<lower=1> C;                // number of mutation categories
-    int<lower=1> S;                // number of fixed signatures
-    int<lower=1> G;                // number of genomes
-    int<lower=1> N;                // number of extra signatures
-    matrix[S, C] fixed_sigs;       // matrix of signatures (rows) by categories (columns)
-    int counts_int[G, C];          // observed mutation counts (discrete case)
-    real counts_real[G, C];        // observed mutation counts (continuous case)
-    matrix[G, C] opportunities;    // mutational opportunities (genome per row)
-    vector<lower=0>[S+N] kappa;    // prior on exposures (mixing proportions)
-    matrix[N, C] alpha;            // prior for extra signatures
-    int<lower=0, upper=1> dpp;     // use DPP prior: 0=no, 1=yes
-    real<lower=0> concentration;   // concentration hyperparameter of DPP
+    int<lower=1, upper=3> family;   // model: 1=multinomial, 2=poisson, 3=negbin, 4=normal
+    int<lower=1> C;                 // number of mutation categories
+    int<lower=1> S;                 // number of fixed signatures
+    int<lower=1> G;                 // number of genomes
+    int<lower=1> N;                 // number of extra signatures
+    matrix[S, C] fixed_sigs;        // matrix of signatures (rows) by categories (columns)
+    int counts_int[G, C];           // observed mutation counts (discrete case)
+    real counts_real[G, C];         // observed mutation counts (continuous case)
+    matrix[G, C] opportunities;     // mutational opportunities (genome per row)
+    vector<lower=0>[S+N] kappa[G];  // prior on exposures (mixing proportions)
+    vector<lower=0>[C] alpha[N];    // prior for extra signatures
+    int<lower=0, upper=1> dpp;      // use DPP prior: 0=no, 1=yes
+    real<lower=0> concentration;    // concentration hyperparameter of DPP
 }
 
 transformed data {
@@ -99,13 +99,13 @@ model {
             exposures_sticklengths[g] ~ beta(1, dp_alpha[g]);
         }
         else {
-            exposures_all[g] ~ dirichlet(kappa);
+            exposures_all[g] ~ dirichlet(kappa[g]);
         }
     }
 
     for (n in 1:N) {
         // Priors for signatures
-        extra_sigs[n] ~ dirichlet(alpha[n]');
+        extra_sigs[n] ~ dirichlet(alpha[n]);
     }
 
     // Multinomial ('NMF') model
