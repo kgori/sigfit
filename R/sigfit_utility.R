@@ -382,14 +382,14 @@ fetch_cosmic_data <- function(reorder = TRUE, remove_zeros = TRUE) {
 #' # Load COSMIC signatures
 #' # These are in "NMF" format, i.e. they are relative
 #' # to the human genome mutational opportunities
-#' data("cosmic_signatures")
+#' data("cosmic_signatures_v2")
 #'
 #' # Plot COSMIC signature 1
-#' barplot(cosmic_signatures[1,])
+#' barplot(cosmic_signatures_v2[1,])
 #'
 #' # Convert signatures to the "EMu" format, i.e. make
 #' # them not relative to mutational opportunities
-#' converted_signatures <- convert_signatures(cosmic_signatures,
+#' converted_signatures <- convert_signatures(cosmic_signatures_v2,
 #'                                            ref_opportunities = "human-genome",
 #'                                            model_to = "emu")
 #'

@@ -40,16 +40,16 @@ This example will use the mutational signatures from [COSMIC](http://cancer.sang
 First of all we need some mutational signatures to fit to our data. The line below loads the mutational signatures published in COSMIC.
 
 ```{r fetch}
-data("cosmic_signatures", package = "sigfit")
+data("cosmic_signatures_v2", package = "sigfit")
 ```
 
 Let's use these signatures to simulate some mutation data. This code will generate 20,000 mutations from a 4:3:2:1 mixture of signatures 1, 3, 7 and 11.
 
 ```{r sim}
 set.seed(1)
-probs <- c(0.4, 0.3, 0.2, 0.1) %*% as.matrix(cosmic_signatures[c(1, 3, 7, 11), ])
+probs <- c(0.4, 0.3, 0.2, 0.1) %*% as.matrix(cosmic_signatures_v2[c(1, 3, 7, 11), ])
 mutations <- matrix(rmultinom(1, 20000, probs), nrow = 1)
-colnames(mutations) <- colnames(cosmic_signatures)
+colnames(mutations) <- colnames(cosmic_signatures_v2)
 ```
 
 Here is what our simulated counts look like:
@@ -70,7 +70,7 @@ We can use ```fit_signatures``` to fit the COSMIC signatures to the simulated co
 
 ```{r fitting, warning=FALSE}
 mcmc_samples_fit <- sigfit::fit_signatures(counts = mutations, 
-                                           signatures = cosmic_signatures,
+                                           signatures = cosmic_signatures_v2,
                                            iter = 2000, 
                                            warmup = 1000, 
                                            chains = 1, 
@@ -106,7 +106,7 @@ sigfit::plot_exposures(mcmc_samples = mcmc_samples_fit)
 
 The bars in this plot are coloured blue if the estimated exposure value is 'sufficiently non-zero'. It is difficult for the model to make hard assignments of which signatures are present or absent due to the non-negative constraint on the estimate, which means that the range of values in the sample will not normally include zero. In practice, 'sufficiently non-zero' means that the lower end of the Bayesian HPD credible interval is above a threshold value close to zero (by default 0.01, and adjustable via the ```thresh``` argument). In this example, sigfit has identified the 4 signatures used to construct the sample.
 
-Next, we would recommend running ```fit_signatures``` again, this time to fit only those signatures (i.e. those rows of the ```cosmic_signatures``` matrix) which have been highlighted as 'sufficiently non-zero' in the plot above, in order to obtain more accurate estimates. We will skip this step in the present example.
+Next, we would recommend running ```fit_signatures``` again, this time to fit only those signatures (i.e. those rows of the ```cosmic_signatures_v2``` matrix) which have been highlighted as 'sufficiently non-zero' in the plot above, in order to obtain more accurate estimates. We will skip this step in the present example.
 
 We can also examine how effectively the estimated signatures and/or exposures can reconstruct the original count data, using the ```plot_reconstruction``` function. 
 
@@ -273,6 +273,13 @@ sigfit::plot_spectrum(exome_signatures[4,], name="Signature D, Exome-relative pr
 One novelty in sigfit is the introduction of Fit-Ext models, which are able to extract mutational signatures _de novo_ while fitting a set of predefined signatures that are already known to be present in the data. Such models are useful for the discovery of rare signatures for which there is some qualitative evidence, but insufficient support as to allow deconvolution via conventional methods; or in cases where only signature fitting is possible, yet the data clearly display a mutational pattern which cannot be captured by the available signatures. For further details on the Fit-Ext models, please refer to the [sigfit paper](https://www.biorxiv.org/content/early/2018/07/20/372896).
 
 The Fit-Ext models can be accessed via the ```fit_extract_signatures``` function. This is used similarly to ```extract_signatures```, with the exception that a matrix of known signatures to be fitted needs to be provided via the ```signatures``` argument (as in ```fit_signatures```), and that the number of additional signatures to extract is provided via the ```num_extra_sigs``` argument. Unlike the ```nsignatures``` argument in ```extract_signatures```, ```num_extra_sigs``` currently admits only scalar values. For further details, type ```?fit_extract_signatures``` to read the documentation.
+
+
+### List of available test datasets
+
+sigfit includes the following test datasets, which can be loaded using the `data` function.
+
+* 
 
 ___
 

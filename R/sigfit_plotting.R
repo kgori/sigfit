@@ -959,10 +959,10 @@ plot_spectrum <- function(spectra, pdf_path = NULL, pdf_width = 24, pdf_height =
 #' @examples
 #' # Load example mutational catalogues and COSMIC signatures
 #' data("counts_21breast")
-#' data("cosmic_signatures")
+#' data("cosmic_signatures_v2")
 #'
 #' # Fit signatures and retrieve exposures
-#' samples <- fit_signatures(counts_21breast, cosmic_signatures)
+#' samples <- fit_signatures(counts_21breast, cosmic_signatures_v2)
 #' exposures <- retrieve_pars(samples, "exposures")
 #'
 #' # Plot exposures using MCMC samples
@@ -970,7 +970,7 @@ plot_spectrum <- function(spectra, pdf_path = NULL, pdf_width = 24, pdf_height =
 #'
 #' # Plot exposures using retrieved exposures matrix
 #' plot_exposures(counts = counts_21breast, exposures = exposures,
-#'                signature_names = rownames(cosmic_signatures),
+#'                signature_names = rownames(cosmic_signatures_v2),
 #'                pdf_path = "Exposures.pdf")
 #' @importFrom "grDevices" cairo_pdf
 #' @importFrom "graphics" segments
