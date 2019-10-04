@@ -1,6 +1,6 @@
 ---
 title: "Fitting and extracting mutational signatures with sigfit"
-author: "Kevin Gori and Adrian Baez-Ortega (2018)"
+author: "Kevin Gori and Adrian Baez-Ortega (2019)"
 output: rmarkdown::html_vignette
 vignette: >
   %\VignetteIndexEntry{Usage guide}
@@ -14,17 +14,22 @@ suppressPackageStartupMessages(library(sigfit))
 par(mar = c(6, 4, 6, 4))
 ```
 
+
 ## Introduction
 
 sigfit is used to estimate signatures of mutational processes and their degree of activity on a collection of cancer (or normal) samples. Starting from a set of single-nucleotide variants (SNVs), it allows both estimation of the exposure of samples to predefined mutational signatures (including whether the signatures are present at all), and identification signatures _de novo_ from the mutation counts. These two procedures are often called, respectively, signature fitting and signature extraction. In addition, sigfit includes 'Fit-Ext' models that allow combining signature fitting and extraction in a single inference process. Furthermore, the signature analysis methods in sigfit can be seamlessly applied to mutational profiles beyond SNV data, including insertion/deletion (indel) or rearrangement count data. The package also provides a range of functions to generate publication-quality graphics of the corresponding mutational catalogues, signatures and exposures.
 
+
 ## Installation
 
-sigfit is an R package. As it is in early development it is not yet on CRAN, but can be installed from GitHub using the devtools package.
+sigfit is an R package. As it is in early development it is not yet on CRAN, but can be installed from GitHub using the [devtools](https://cran.r-project.org/web/packages/devtools/index.html) package.
 
 ```{r devtools_instructions, eval=FALSE}
-devtools::install_github("kgori/sigfit", args = "--preclean", build_vignettes = TRUE)
+devtools::install_github("kgori/sigfit", build_opts = c("--no-resave-data", "--no-manual"))
 ```
+
+The solutions to some of the problems that may arise during installation are listed in the [README.md](https://github.com/kgori/sigfit/blob/master/README.md) file for the package.
+
 
 ## Usage guide
 

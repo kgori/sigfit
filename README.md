@@ -5,13 +5,36 @@
 [![Build Status](https://travis-ci.org/kgori/sigfit.svg?branch=master)](https://travis-ci.org/kgori/sigfit)
 
 
-sigfit is an R package to estimate signatures of mutational processes and their activities on mutation count data. Starting from a set of single-nucleotide variants (SNVs), it allows both estimation of the exposure of samples to predefined mutational signatures (including whether the signatures are present at all), and identification signatures _de novo_ from the mutation counts. These two procedures are often called, respectively, signature fitting and signature extraction. Furthermore, the signature fitting and extraction methods in sigfit can be seamlessly applied to mutational profiles beyond SNV data, including insertion/deletion (indel) or rearrangement count data. The package provides a range of functions to generate publication-quality graphics of the corresponding mutational catalogues, signatures and exposures.
+sigfit is an R package to estimate signatures of mutational processes and their activities on mutation count data. Starting from a set of single-nucleotide variants (SNVs), it allows both estimation of the exposure of samples to predefined mutational signatures (including whether the signatures are present at all), and identification of signatures _de novo_ from the mutation counts. These two procedures are often called, respectively, signature fitting and signature extraction. In addition, sigfit implements novel methodos to combine signature fitting and extraction into a single inferential process. The package provides interfaces to four different Bayesian models of signatures (multinomial, Poisson, normal and negative binomial), as well as a range of functions to generate publication-quality graphics of the corresponding mutational catalogues, signatures and exposures. Furthermore, the signature fitting and extraction methods in sigfit can be seamlessly applied to mutational profiles beyond SNV data, including indel or rearrangement count data, and even real-valued data such as DNA methylation profiles.
 
 
 ## Installation
 sigfit is an R package. As it is in early development it is not yet on CRAN, but can be installed from inside an R session using the [devtools](https://cran.r-project.org/web/packages/devtools/index.html) package.
 
-    devtools::install_github("kgori/sigfit", args = "--preclean", build_vignettes = TRUE)
+    devtools::install_github("kgori/sigfit", build_opts = c("--no-resave-data", "--no-manual"))
+    
+`build_opts` can be omitted, but it will not build the package vignettes in this case.
+
+#### Troubleshooting installation
+
+Problem:
+
+    Error: 'rstan_config' is not an exported object from 'namespace:rstantools'
+    
+Solution:
+Update rstantools: `devtools::install_github("stan-dev/rstantools")`
+
+Problem:
+
+    C++14 standard requested but CXX14 is not defined
+    
+Solution:
+Provide R with c++14 options via the file `~/.R/Makevars`, e.g.
+
+    CXX14 = g++
+    CXX14FLAGS = -g -O2
+    CXX14PICFLAGS = -fpic
+    CXX14STD = -std=gnu++14
 
 
 ## Usage guide
