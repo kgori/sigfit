@@ -2,7 +2,7 @@
 % Please edit documentation in R/sigfit_utility.R
 \name{fetch_cosmic_data}
 \alias{fetch_cosmic_data}
-\title{Fetch COSMIC mutational signatures}
+\title{Fetch COSMIC mutational signatures (deprecated)}
 \usage{
 fetch_cosmic_data(reorder = TRUE, remove_zeros = TRUE)
 }
@@ -20,4 +20,6 @@ the 96 trinucleotide mutation types.
 \code{fetch_cosmic_data} downloads the latest release of signatures from COSMIC
 (http://cancer.sanger.ac.uk/cosmic/signatures) and produces a matrix of signatures
 that can be used for signature fitting.
+NB. COSMIC signatures are also available in sigfit via the functions
+\code{data("cosmic_signatures_v2")} and \code{data("cosmic_signatures_v3")}.
 }

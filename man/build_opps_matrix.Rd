@@ -2,10 +2,10 @@
 % Please edit documentation in R/sigfit_utility.R
 \name{build_opps_matrix}
 \alias{build_opps_matrix}
-\title{Build a opportunities matrix}
+\title{Build an opportunities matrix}
 \usage{
-build_opps_matrix(nsamples, ncat, keyword)
+build_opps_matrix(nsamples, ncat, opps)
 }
 \description{
-Build a opportunities matrix
+Build an opportunities matrix
 }

@@ -4,41 +4,56 @@
 \alias{fit_extract_signatures}
 \title{Fit-and-extract mutational signatures}
 \usage{
-fit_extract_signatures(counts, signatures, num_extra_sigs, model = "nmf",
-  opportunities = NULL, sig_prior = NULL, exp_prior = 1,
-  stanfunc = "sampling", ...)
+fit_extract_signatures(counts, signatures, num_extra_sigs,
+  model = "multinomial", opportunities = NULL, sig_prior = NULL,
+  exp_prior = NULL, dpp = FALSE, dpp_conc = 1,
+  stanfunc = "sampling", chains = 1, ...)
 }
 \arguments{
-\item{counts}{Integer matrix of observed mutation counts, with one row per sample and
-one column per mutation type. Any decimal values will be rounded to integers.}
+\item{counts}{Numeric matrix of observed mutation counts, with one row per sample and
+one column per mutation type.}
 
-\item{signatures}{Fixed mutational signatures to be fitted. Either a numeric matrix with one row
-per signature and one column per mutation type, or a list of matrices generated via
+\item{signatures}{'Fixed' mutational signatures to be fitted; either a numeric matrix with one
+row per signature and one column per mutation type, or a list of matrices generated via
 \code{\link{retrieve_pars}}.}
 
-\item{num_extra_sigs}{Numeric indicating the number of additional signatures to be extracted.}
+\item{num_extra_sigs}{Numeric indicating the number of 'additional' signatures to be extracted.}
 
-\item{model}{Character indicating the model to sample from. Admits values \code{"nmf"} (default) or \code{"emu"}.}
+\item{model}{Name of the model to sample from. Admits character values \code{"multinomial"}
+(default), \code{"poisson"}, \code{"negbin"}, \code{"normal"}, \code{"nmf"} (an alias for
+\code{"multinomial"}), and \code{"emu"} (an alias for \code{"poisson"}).}
 
-\item{opportunities}{Numeric matrix of optional mutational opportunities for the "EMu" model
-(\code{model = "emu"}). Must be a matrix with same dimension as \code{counts}.
-Alternatively, it also admits character values \code{"human-genome"} or \code{"human-exome"},
-in which case the reference human genome/exome opportunities will be used for every sample.}
+\item{opportunities}{Numeric matrix of optional mutational opportunities, with one row per sample
+and one column per mutation type. It also admits character values \code{"human-genome"} or
+\code{"human-exome"}, in which case the mutational opportunities of the reference human
+genome/exome will be used for every sample.}
 
-\item{sig_prior}{Numeric matrix with one row per additional signature and one column per category, to be used as the
-Dirichlet priors for the additional signatures to be extracted. Default priors are uniform (uninformative).}
+\item{sig_prior}{Numeric matrix with one row per 'additional' signature and one column per
+mutation type, to be used as the Dirichlet priors for the additional signatures to be extracted.
+Default priors are uniform.}
 
-\item{exp_prior}{Numeric; hyperparameter of the Dirichlet prior given to the exposures. 
-Default value is 1 (uniform, uninformative).}
+\item{exp_prior}{Numeric matrix with one row per sample and one column per signature (including
+both 'fixed' and 'additional' signatures), to be used as the Dirichlet priors for the signature
+exposures. Default priors are uniform.}
 
-\item{stanfunc}{Character indicating the choice of rstan inference strategy. Admits values \code{"sampling"}, 
-\code{"optimizing"} and \code{"vb"}. The default value is
-\code{"sampling"}, which corresponds to the full Bayesian MCMC approach. Alternatively, 
-\code{"optimizing"} returns the Maximum a Posteriori (MAP) point estimates via numerical 
+\item{dpp}{Logical indicating whether to use a Dirichlet process prior to infer the number of
+mutational signatures (default is \code{FALSE}).}
+
+\item{dpp_conc}{Numeric indicating the value of the concentration parameter for the Dirichlet
+process prior (default is 1). Only used if \code{dpp=TRUE}.}
+
+\item{stanfunc}{Character indicating the choice of rstan inference strategy.
+Admits values \code{"sampling"}, \code{"optimizing"} and \code{"vb"}. The default value is
+\code{"sampling"}, which corresponds to the full Bayesian MCMC approach. Alternatively,
+\code{"optimizing"} returns the Maximum a Posteriori (MAP) point estimates via numerical
 optimization, while \code{"vb"} uses Variational Bayes to approximate the full posterior.}
 
-\item{...}{Any additional parameters to pass to the sampling function (by default, \code{rstan::sampling}).
-(Note that the number of chains is set to 1 and cannot be changed, to prevent 'label switching' problems.)}
+\item{chains}{Integer indicating the number of chains used for MCMC (default is 1). The use of
+multiple chains for signature extraction is discouraged, as it can result in an inference problem
+called 'label switching'. This value is passed to \code{\link{rstan::sampling}}.}
+
+\item{...}{Additional arguments to be passed to the sampling function (by default,
+\code{\link{rstan::sampling}}).}
 }
 \value{
 A list with two elements:
@@ -50,8 +65,14 @@ The model parameters (such as signatures and exposures) can be extracted from th
 object using \code{\link{retrieve_pars}}.
 }
 \description{
-\code{fit_extract_signatures} fits signatures to estimate exposures in a set of mutation counts
-and simultaneously extracts additional signatures present in the samples.
+\code{fit_extract_signatures} performs MCMC sampling to simultaneously fit a set of 'fixed'
+signatures to a collection of mutational catalogues (as in \code{\link{fit_signatures}}) and
+extract a number of 'additional' signatures from the catalogues (as in
+\code{\link{extract_signatures}}). Four models of signatures are available: multinomial, Poisson,
+normal and negative binomial. The normal model can be used when \code{counts} contains continuous
+(non-integer) values, while the negative binomial model is a more noise-robust version of the
+Poisson model. (However, the use of the negative binomial model for signature extraction is
+discouraged due to its inefficiency.)
 }
 \examples{
 # Fetch COSMIC signatures

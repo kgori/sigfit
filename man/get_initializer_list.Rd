@@ -8,19 +8,19 @@ extraction.}
 get_initializer_list(fitobj, chains = 1)
 }
 \arguments{
-\item{fitobj}{Result of a sigfit signature extraction}
+\item{fitobj}{Result of a sigfit signature extraction.}
 
-\item{chains}{(integer) return a copy of the parameter list for each of \code{chains}. Used
+\item{chains}{Integer indicating the number of copies of the parameter list to be returned. Used
 to initialize multiple chains.}
 }
 \value{
-list of parameter lists.
+A list of parameter lists.
 }
 \description{
-\code{get_initializer_list} extracts parameter values from an extraction that can be
+\code{get_initializer_list} extracts parameter values from an extraction which can be
 used to initialise a follow-up extraction. One use case is to use a short, single-chain
 extraction to initialise a longer, multi-chain extraction. This can mitigate against
 label switching using the "Initialization around a single mode" strategy described in
-the Stan documentation 
+the Stan documentation
 \url{https://mc-stan.org/docs/2_18/stan-users-guide/label-switching-problematic-section.html}
 }

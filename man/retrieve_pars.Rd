@@ -7,22 +7,23 @@
 retrieve_pars(mcmc_samples, par, hpd_prob = 0.95)
 }
 \arguments{
-\item{mcmc_samples}{List with elements \code{\`data\`} and \code{\`results\`}, produced via either
-\code{\link{fit_signatures}}, \code{\link{extract_signatures}} or \code{\link{fit_extract_signatures}}.}
+\item{mcmc_samples}{List with two elements named \code{`data`} and \code{`results`}, produced via
+\code{\link{fit_signatures}}, \code{\link{extract_signatures}}, or
+\code{\link{fit_extract_signatures}}.}
 
-\item{par}{Character; name of the parameter set to extract. Can take values: \code{"signatures"},
+\item{par}{Name of the parameter set to extract. Admits character values \code{"signatures"},
 \code{"exposures"}, \code{"activities"} or \code{"reconstructions"}.}
 
-\item{hpd_prob}{Numeric; a value in the interval (0, 1), indicating the desired probability content of
-the HPD intervals (default is 0.95).}
+\item{hpd_prob}{Numeric value in the interval (0, 1), indicating the desired probability content
+of HPD intervals (default is 0.95).}
 }
 \value{
-A list of three matrices, which respectively contain the values corresponding to the
-mean of the model parameter of interest, and those corresponding to the lower and upper ends of its HPD interval.
+A list of three matrices, which contain the values corresponding to the means of the
+model parameters and to the lower and upper ends of their HPD intervals, respectively.
 }
 \description{
-\code{retrieve_pars} obtains summary values for a set of model parameters (signatures or exposures) 
-from a stanfit object.
+\code{retrieve_pars} obtains summary values for a set of model parameters (signatures, exposures,
+activities or spectrum reconstructions) from a stanfit object.
 }
 \examples{
 # Load example mutational catalogues

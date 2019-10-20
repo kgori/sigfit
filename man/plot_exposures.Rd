@@ -7,64 +7,69 @@
 plot_exposures(mcmc_samples = NULL, pdf_path = NULL, counts = NULL,
   exposures = NULL, signature_names = NULL, thresh = 0.01,
   hpd_prob = 0.95, pdf_width = 24, pdf_height = 10,
-  margin_bottom = 10.5, cex_names = 1.9, legend_pos = "topright",
-  sig_color_palette = NULL)
+  margin_bottom = 10.5, legend_pos = "topleft", legend_cex = 2,
+  cex_names = 1.9, sig_color_palette = NULL)
 }
 \arguments{
-\item{mcmc_samples}{List with elements \code{$data} and \code{$results}, produced via either
-\code{\link{fit_signatures}}, \code{\link{extract_signatures}} or \code{\link{fit_extract_signatures}}.
-This is the preferred option for supplying data and results, but can be replaced by the
-combination of arguments \code{counts}, \code{exposures} and \code{signature_names}.}
+\item{mcmc_samples}{List with two elements named \code{`data`} and \code{`results`}, produced via
+\code{\link{fit_signatures}}, \code{\link{extract_signatures}}, or
+\code{\link{fit_extract_signatures}}. This is the preferred option for supplying data and
+results, but can be replaced by the combination of arguments \code{counts}, \code{exposures} and
+\code{signature_names}.}
 
-\item{pdf_path}{Character; if provided, the plots will be output to a PDF file with the provided 
-path. The PDF dimensions and graphical parameters will be automatically set to appropriate values,
-unless custom dimensions are specified via the arguments \code{pdf_width} and \code{pdf_height}.}
+\item{pdf_path}{Character indicating the path to an optional output PDF file for the plots. The
+PDF dimensions and graphical parameters are automatically set to appropriate values, but custom
+dimensions can be specified via the arguments \code{pdf_width} and \code{pdf_height}.}
 
-\item{counts}{Integer matrix of observed mutation counts, with one row per sample and
-column for each mutation type. Only needed if \code{mcmc_samples} is not provided.}
+\item{counts}{Numeric matrix of observed mutation counts, with one row per sample and
+one column per mutation type. Only needed if \code{mcmc_samples} is not provided.}
 
 \item{exposures}{Either a numeric matrix of signature exposures, with one row per sample and one
-column per signature, or a list of exposures as produced by \code{\link{retrieve_pars}}.
-Only needed if \code{mcmc_samples} is not provided.}
+column per signature, or a list of matrices generated via \code{\link{retrieve_pars}}. Only
+needed if \code{mcmc_samples} is not provided.}
 
-\item{signature_names}{Character vector containing the signature names. Only needed if \code{mcmc_samples}
-is not provided and the exposures were obtained through signature fitting (as opposed to extraction).}
+\item{signature_names}{Character vector containing the name of each signature. Only needed if
+\code{mcmc_samples} is not provided and the exposures were obtained via signature fitting
+(rather than extraction).}
 
-\item{thresh}{Numeric; minimum required value for the lower bound of HPD intervals of signature
-exposures (default is 0.01). Those exposures for which the lower bound is below this value will be 
-colored in grey.}
+\item{thresh}{Numeric indicating the minimum threshold for the lower HPD limits of signature
+exposures (default is 0.01). Exposures with a lower HPD limit below this value will be shown in
+grey.}
 
-\item{hpd_prob}{Numeric; a value in the interval (0, 1), indicating the desired probability content of
-the HPD intervals (default is 0.95).}
+\item{hpd_prob}{Numeric value in the interval (0, 1), indicating the desired probability content
+of HPD intervals (default is 0.95).}
 
-\item{pdf_width}{Integer indicating the width of the output PDF (in inches; default value depends
-on the number of samples). Only used if \code{pdf_path} is provided.}
-
-\item{pdf_height}{Integer indicating the height of the output PDF (in inches, default is 8). 
+\item{pdf_width}{Numeric indicating the width of the output PDF, in inches (default is 24).
 Only used if \code{pdf_path} is provided.}
 
-\item{margin_bottom}{Numeric; bottom margin of the plot (in inches, default is 10.5).
+\item{pdf_height}{Numeric indicating the height of the output PDF, in inches (default is 10).
 Only used if \code{pdf_path} is provided.}
 
-\item{cex_names}{Numeric; relative size of sample labels in the exposures barplot (default is 1.9).}
+\item{margin_bottom}{Numeric indicating the width of the bottom margin, in inches (default
+is 10.5).}
 
-\item{legend_pos}{Character indicating the position of the legend in the exposures barplot. Admits 
-values \code{"top"}, \code{"bottom"}, \code{"center"}, \code{"left"}, \code{"right"}, 
-\code{"topleft"}, \code{"topright"} (the default), \code{"bottomleft"} and \code{"bottomright"}.}
+\item{legend_pos}{Character indicating the position of the legend. Admits values \code{"top"},
+\code{"bottom"}, \code{"center"}, \code{"left"}, \code{"right"}, \code{"topleft"},
+\code{"topright"}, \code{"bottomleft"} and \code{"bottomright"} (default is \code{"topleft"}).}
 
-\item{sig_color_palette}{Character vector of custom color names or hexadecimal codes to use for 
-each signature. Must have at least as many elements as the number of signatures.}
+\item{legend_cex}{Numeric indicating the relative size of the legend (default is 2).}
+
+\item{cex_names}{Numeric indicating the relative size of sample labels (default is 1.9).}
+
+\item{sig_color_palette}{Character vector of custom color names or hexadecimal codes to use for
+each signature in exposure and reconstruction plots. Must have at least as many elements as the
+number of signatures.}
 }
 \description{
-\code{plot_exposures} plots the distribution of signature exposures across the samples.
+\code{plot_exposures} plots the distribution of signature exposures across samples.
 }
 \examples{
 # Load example mutational catalogues and COSMIC signatures
 data("counts_21breast")
-data("cosmic_signatures")
+data("cosmic_signatures_v2")
 
 # Fit signatures and retrieve exposures
-samples <- fit_signatures(counts_21breast, cosmic_signatures)
+samples <- fit_signatures(counts_21breast, cosmic_signatures_v2)
 exposures <- retrieve_pars(samples, "exposures")
 
 # Plot exposures using MCMC samples
@@ -72,6 +77,6 @@ plot_exposures(mcmc_samples = samples, pdf_path = "Exposures.pdf")
 
 # Plot exposures using retrieved exposures matrix
 plot_exposures(counts = counts_21breast, exposures = exposures,
-               signature_names = rownames(cosmic_signatures),
+               signature_names = rownames(cosmic_signatures_v2),
                pdf_path = "Exposures.pdf")
 }

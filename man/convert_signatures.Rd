@@ -7,25 +7,25 @@
 convert_signatures(signatures, ref_opportunities, model_to)
 }
 \arguments{
-\item{signatures}{Either a numeric matrix of mutational signatures, with one row per signature and one
-one column per mutation type, or a list of matrices generated via
-\code{\link{retrieve_pars}}.}
+\item{signatures}{Either a numeric matrix of mutational signatures, with one row per signature
+and one column per mutation type, or a list of matrices generated via \code{\link{retrieve_pars}}.}
 
 \item{ref_opportunities}{Numeric vector of reference or average mutational opportunities, with
-one element per mutation type. It can also take character values \code{"human-genome"} or
-\code{"human-exome"}, in which case the reference human genome/exome mutational opportunities will be used.}
+one element per mutation type. It also admits character values \code{"human-genome"} or
+\code{"human-exome"}, in which case the mutational opportunities of the reference human
+genome/exome will be used.}
 
-\item{model_to}{Character; model to convert to: either \code{"nmf"} (in which case the signatures will
-be multiplied by the opportunities) or \code{"emu"} (in which case the signatures will be divided
-by the opportunities).}
+\item{model_to}{Model to convert to; admits character values \code{"nmf"} (in which case the
+signatures will be multiplied by the opportunities) or \code{"emu"} (in which case the signatures
+will be divided by the opportunities).}
 }
 \value{
 A numeric matrix of transformed signatures with the same dimensions as \code{signatures}.
 }
 \description{
-\code{convert_signatures} converts between the representation of signatures used
-in the NMF model (which is relative to the reference mutational opportunities), and
-the representation used in the EMu model (which is not relative to mutational opportunities).
+\code{convert_signatures} converts between a representation of signatures relative to the
+reference mutational opportunities (such as used in conventional NMF approaches), and a
+representation which is not relative to the mutational opportunities (as used in the EMu software).
 This is done by multiplying or dividing each signature by the average mutational opportunities
 of the samples, or by the human genome/exome reference trinucleotide frequencies.
 }
@@ -33,14 +33,14 @@ of the samples, or by the human genome/exome reference trinucleotide frequencies
 # Load COSMIC signatures
 # These are in "NMF" format, i.e. they are relative
 # to the human genome mutational opportunities
-data("cosmic_signatures")
+data("cosmic_signatures_v2")
 
 # Plot COSMIC signature 1
-barplot(cosmic_signatures[1,])
+barplot(cosmic_signatures_v2[1,])
 
 # Convert signatures to the "EMu" format, i.e. make
 # them not relative to mutational opportunities
-converted_signatures <- convert_signatures(cosmic_signatures,
+converted_signatures <- convert_signatures(cosmic_signatures_v2,
                                            ref_opportunities = "human-genome",
                                            model_to = "emu")
 

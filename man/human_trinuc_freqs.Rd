@@ -7,14 +7,14 @@
 human_trinuc_freqs(type = "human-genome", strand = FALSE)
 }
 \arguments{
-\item{type}{Character; either \code{"genome"} (default) or \code{"exome"}.}
+\item{type}{Character; admits values \code{"genome"} (default) or \code{"exome"}.}
 
-\item{strand}{Logical; if \code{TRUE}, a strandwise representation of catalogues
-and signatures will be used.}
+\item{strand}{Logical; if \code{TRUE}, transcriptional strand-wise representations of
+catalogues and signatures will be used (default is \code{FALSE}).}
 }
 \value{
-A numeric vector containinig 96 frequency values (one per trinucleotide type), if
-\code{strand=FALSE}, or 192 frequency values (one per trinucleotide and strand type), if
+A numeric vector containing 96 frequency values (one per trinucleotide mutation type),
+if \code{strand=FALSE}, or 192 frequency values (one per mutation and strand type), if
 \code{strand=TRUE}. In the latter case, the trinucleotide frequencies are assumed to be
 equally distributed between the two strands.
 }

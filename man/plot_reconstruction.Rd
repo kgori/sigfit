@@ -6,54 +6,63 @@
 \usage{
 plot_reconstruction(mcmc_samples = NULL, pdf_path = NULL,
   counts = NULL, signatures = NULL, exposures = NULL,
-  opportunities = NULL, pdf_width = 24, pdf_height = 17,
-  legend_pos = "topright", sig_color_palette = NULL)
+  opportunities = NULL, pdf_width = 24, pdf_height = 15,
+  legend_pos = "topleft", legend_cex = 2, sig_color_palette = NULL,
+  boxes = TRUE)
 }
 \arguments{
-\item{mcmc_samples}{List with elements \code{$data} and \code{$results}, produced via either
-\code{\link{fit_signatures}}, \code{\link{extract_signatures}} or \code{\link{fit_extract_signatures}}.
-This is the preferred option for supplying data and results, but can be replaced by the
-combination of arguments \code{counts}, \code{signatures}, \code{exposures} and \code{opportunities}.}
+\item{mcmc_samples}{List with two elements named \code{`data`} and \code{`results`}, produced via
+\code{\link{fit_signatures}}, \code{\link{extract_signatures}}, or
+\code{\link{fit_extract_signatures}}. This is the preferred option for supplying data and
+results, but can be replaced by the combination of arguments \code{counts}, \code{signatures},
+\code{exposures} and \code{opportunities}.}
 
-\item{pdf_path}{Character; if provided, the plots will be output to a PDF file with the provided 
-path. The PDF dimensions and graphical parameters will be automatically set to appropriate values,
-unless custom dimensions are specified via the arguments \code{pdf_width} and \code{pdf_height}.}
+\item{pdf_path}{Character indicating the path to an optional output PDF file for the plots. The
+PDF dimensions and graphical parameters are automatically set to appropriate values, but custom
+dimensions can be specified via the arguments \code{pdf_width} and \code{pdf_height}.}
 
-\item{counts}{Integer matrix of observed mutation counts, with one row per sample and
-column for each mutation type. Only needed if \code{mcmc_samples} is not provided.}
+\item{counts}{Numeric matrix of observed mutation counts, with one row per sample and
+one column per mutation type. Only needed if \code{mcmc_samples} is not provided.}
 
-\item{signatures}{Either a numeric matrix of mutational signatures, with one row per signature and
-one column per mutation type, or a list of matrices generated via
-\code{\link{retrieve_pars}}. Only needed if \code{mcmc_samples} is not provided.}
-
-\item{exposures}{Either a numeric matrix of signature exposures, with one row per sample and one
-column per signature, or a list of exposures as produced by \code{\link{retrieve_pars}}.
+\item{signatures}{Either a numeric matrix of mutational signatures, with one row per signature
+and one column per mutation type, or a list of matrices generated via \code{\link{retrieve_pars}}.
 Only needed if \code{mcmc_samples} is not provided.}
 
-\item{opportunities}{Integer matrix of mutational opportunities; it also admits character values 
-\code{"human-genome"} and \code{"human-exome"}. Only needed if \code{mcmc_samples} is not provided 
-and \code{signatures} and/or \code{exposures} were obtained using the "EMu" model (\code{model = "emu"}).
-In that case, these should be the mutational opportunities used for extraction/fitting.}
+\item{exposures}{Either a numeric matrix of signature exposures, with one row per sample and one
+column per signature, or a list of matrices generated via \code{\link{retrieve_pars}}. Only
+needed if \code{mcmc_samples} is not provided.}
 
-\item{pdf_width}{Integer indicating the width of the output PDF (in inches, default is 24). 
+\item{opportunities}{Numeric matrix of mutational opportunities, with one row per signature and
+one column per mutation type. It also admits character values \code{"human-genome"} or
+\code{"human-exome"}, in which case the mutational opportunities of the reference human
+genome/exome will be used. Only needed if \code{mcmc_samples} is not provided and opportunities
+were used during signature extraction or fitting.}
+
+\item{pdf_width}{Numeric indicating the width of the output PDF, in inches (default is 24).
 Only used if \code{pdf_path} is provided.}
 
-\item{pdf_height}{Integer indicating the height of the output PDF (in inches, default is 17). 
+\item{pdf_height}{Numeric indicating the height of the output PDF, in inches (default is 15).
 Only used if \code{pdf_path} is provided.}
 
-\item{legend_pos}{Character indicating the position of the legend in the reconstructed spectrum. 
-Admits values \code{"top"}, \code{"bottom"}, \code{"center"}, \code{"left"}, \code{"right"}, 
-\code{"topleft"}, \code{"topright"} (the default), \code{"bottomleft"} and \code{"bottomright"}.}
+\item{legend_pos}{Character indicating the position of the legend in the plots. Admits values
+\code{"top"}, \code{"bottom"}, \code{"center"}, \code{"left"}, \code{"right"}, \code{"topleft"},
+\code{"topright"}, \code{"bottomleft"} and \code{"bottomright"} (default is \code{"topleft"}).}
 
-\item{sig_color_palette}{Character vector of custom color names or hexadecimal codes to use for 
-each signature. Must have at least as many elements as the number of signatures.}
+\item{legend_cex}{Numeric indicating the relative size of the legend (default is 2).}
+
+\item{sig_color_palette}{Character vector of custom color names or hexadecimal codes to use for
+each signature in exposure and reconstruction plots. Must have at least as many elements as the
+number of signatures.}
+
+\item{boxes}{Logical indicating whether boxes should be drawn around the plots (default is
+\code{TRUE}).}
 }
 \description{
-\code{plot_reconstruction} plots the reconstructions of the original mutational catalogues using the
-signatures and/or exposures obtained through extraction or fitting. If provided with multiple catalogues,
-it generates one plot per catalogue. Fitting or extraction results can be provided either as a single
-stanfit object (generated via \code{\link{fit_signatures}} or \code{\link{extract_signatures}}),
-or as separate signatures and exposures matrices (or lists produced via \code{\link{retrieve_pars}}).
+\code{plot_reconstruction} plots reconstructions of the original mutational catalogues obtained
+using the inferred signatures and/or exposures. If provided with multiple catalogues, it produces
+one plot per catalogue. Fitting or extraction results can be provided either as a single stanfit
+object (generated via \code{\link{fit_signatures}} or \code{\link{extract_signatures}}), or as
+separate signatures and exposures matrices (or lists produced via \code{\link{retrieve_pars}}).
 Only the former option allows the incorporation of HPD intervals to the reconstructed catalogue.
 }
 \examples{

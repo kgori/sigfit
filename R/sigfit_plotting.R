@@ -20,12 +20,13 @@ make_colors <- function(c, c_ppc, sample = 1) {
 }
 
 #' Plot result of posterior predictive check
+#' 
 #' black = observed value is not extreme compared to the simulated distribution
 #' yellow = observed value is in top or bottom 2.5% of ppc simulations
 #' red = observed value is outside ppc simulations
 #' @param c Integer matrix of observed counts.
 #' @param c_ppc Simulated posterior predictive counts obtained from
-#' MCMC samples using \code{extract(samples)$counts_ppc}
+#' MCMC samples using \code{extract(samples)$counts_ppc}.
 #' @export
 plot_ppc <- function(c, c_ppc, sample = 1) {
     plot(c[sample, ], type = "n")
@@ -52,15 +53,15 @@ plot_ppc <- function(c, c_ppc, sample = 1) {
            cex=0.8)
 }
 
-#' Plot goodness of fit
+#' Plot goodness-of-fit
 #'
-#' \code{plot_gof} plots the goodness of fit of a set of samples, each of which
-#' has typically been sampled using an extraction model (EMu or NMF) with a
-#' different number of signatures.
-#' @param sample_list List containing the results of signature extraction
-#' (\code{\link{extract_signatures}}) using  multiple numbers of signatures.
-#' @param stat Character; function for measuring goodness of fit. Admits values \code{"cosine"}
-#' (default, cosine similarity) or \code{"L2"} (L2 norm or Euclidean distance).
+#' \code{plot_gof} plots the goodness-of-fit of a set of samples, each of which has typically been
+#' sampled using an signature extraction model with a different number of signatures.
+#' @param sample_list List containing the results of signature extraction using
+#' \code{\link{extract_signatures}} with multiple numbers of signatures (see argument
+#' \code{nsignatures} in \code{\link{extract_signatures}}).
+#' @param stat Function for measuring goodness-of-fit. Admits character values \code{"cosine"}
+#' (cosine similarity, default) or \code{"L2"} (L2 norm or Euclidean distance).
 #' @importFrom "rstan" extract
 #' @export
 plot_gof <- function(sample_list, stat = "cosine") {
@@ -129,48 +130,58 @@ plot_gof <- function(sample_list, stat = "cosine") {
 #'  \item{Signature exposures (via \code{\link{plot_exposures}})}
 #'  \item{All the reconstructed mutational spectra (via \code{\link{plot_reconstruction}})}
 #' }
-#' @param mcmc_samples List with elements \code{$data} and \code{$results}, produced via either
-#' \code{\link{fit_signatures}}, \code{\link{extract_signatures}} or \code{\link{fit_extract_signatures}}.
-#' This is the preferred option for supplying data and results, but can be replaced by the
-#' combination of arguments \code{counts}, \code{signatures}, \code{exposures} and \code{opportunities}.
-#' @param out_path Character; path to the directory where the output PDF files will be stored.
-#' Will be created if it does not exist.
-#' @param prefix Character; optional prefix to be added to the output file names.
-#' @param counts Integer matrix of observed mutation counts, with one row per sample and
+#' @param mcmc_samples List with two elements named \code{`data`} and \code{`results`}, produced via
+#' \code{\link{fit_signatures}}, \code{\link{extract_signatures}}, or
+#' \code{\link{fit_extract_signatures}}. This is the preferred option for supplying data and
+#' results, but can be replaced by the combination of arguments \code{counts}, \code{signatures},
+#' \code{exposures} and \code{opportunities}.
+#' @param out_path Character indicating the path to the directory where the output PDF files will
+#' be stored. The directory will be created if it does not exist.
+#' @param prefix Character indicating an optional prefix to be added to output file names.
+#' @param counts Numeric matrix of observed mutation counts, with one row per sample and
 #' one column per mutation type. Only needed if \code{mcmc_samples} is not provided.
-#' @param signatures Either a numeric matrix of mutational signatures, with one row per signature and
-#' one column per mutation type, or a list of matrices generated via
-#' \code{\link{retrieve_pars}}. Only needed if \code{mcmc_samples} is not provided.
-#' @param exposures Either a numeric matrix of signature exposures, with one row per sample and one
-#' column per signature, or a list of exposures as produced by \code{\link{retrieve_pars}}.
+#' @param signatures Either a numeric matrix of mutational signatures, with one row per signature
+#' and one column per mutation type, or a list of matrices generated via \code{\link{retrieve_pars}}.
 #' Only needed if \code{mcmc_samples} is not provided.
-#' @param opportunities Integer matrix of mutational opportunities; it also admits character values
-#' \code{"human-genome"} and \code{"human-exome"}. Only needed if \code{mcmc_samples} is not provided
-#' and \code{signatures} and/or \code{exposures} were obtained using the "EMu" model (\code{model = "emu"}).
-#' In that case, these should be the mutational opportunities used for extraction/fitting.
-#' @param thresh Numeric; minimum required value for the lower bound of HPD intervals of signature
-#' exposures. Those exposures for which the lower bound is below this value will be colored in grey.
-#' This value is passed to the \code{\link{plot_exposures}} function.
-#' @param hpd_prob Numeric; a value in the interval (0, 1), indicating the desired probability content of
-#' the HPD intervals. This value is passed to the \code{\link{plot_exposures}} function.
-#' @param exp_margin_bottom Numeric; bottom margin of the exposures barplots (in inches, default is 10.5).
-#' This value is passed to the \code{\link{plot_exposures}} function.
-#' @param signature_names Character vector containing the signature names. Only needed if \code{mcmc_samples}
-#' is not provided and the exposures were obtained through signature fitting (as opposed to extraction).
-#' This value is passed to the \code{\link{plot_exposures}} function.
-#' @param exp_legend_pos Character indicating the position of the legend in the exposures barplot. Admits 
-#' values \code{"top"}, \code{"bottom"}, \code{"center"}, \code{"left"}, \code{"right"}, 
-#' \code{"topleft"} (the default), \code{"topright"}, \code{"bottomleft"} and \code{"bottomright"}. 
-#' This value is passed to the \code{\link{plot_exposures}} function.
-#' @param exp_cex_names Numeric; relative size of sample labels in the exposures barplot (default is 1.9).
-#' This value is passed to the \code{\link{plot_exposures}} function.
-#' @param rec_legend_pos Character indicating the position of the legend in the reconstructed spectrum. 
+#' @param exposures Either a numeric matrix of signature exposures, with one row per sample and one
+#' column per signature, or a list of matrices generated via \code{\link{retrieve_pars}}. Only
+#' needed if \code{mcmc_samples} is not provided.
+#' @param opportunities Numeric matrix of mutational opportunities, with one row per signature and
+#' one column per mutation type. It also admits character values \code{"human-genome"} or
+#' \code{"human-exome"}, in which case the mutational opportunities of the reference human
+#' genome/exome will be used. Only needed if \code{mcmc_samples} is not provided and opportunities
+#' were used during signature extraction or fitting.
+#' @param thresh Numeric indicating the minimum threshold for the lower HPD limits of signature
+#' exposures (default is 0.01). Exposures with a lower HPD limit below this value will be shown in
+#' grey. This value is passed to \code{\link{plot_exposures}}.
+#' @param hpd_prob Numeric value in the interval (0, 1), indicating the desired probability content
+#' of HPD intervals (default is 0.95). This value is passed to \code{\link{plot_exposures}}.
+#' @param signature_names Character vector containing the name of each signature. Only needed if
+#' \code{mcmc_samples} is not provided and the exposures were obtained via signature fitting
+#' (rather than extraction). This value is passed to \code{\link{plot_exposures}}.
+#' @param exp_margin_bottom Numeric indicating the bottom margin of the exposures barplots, in
+#' inches (default is 10.5). This value is passed to \code{\link{plot_exposures}}.
+#' @param exp_legend_pos Character indicating the position of the legend in the exposures barplot.
 #' Admits values \code{"top"}, \code{"bottom"}, \code{"center"}, \code{"left"}, \code{"right"}, 
-#' \code{"topleft"} (the default), \code{"topright"}, \code{"bottomleft"} and \code{"bottomright"}. 
-#' This value is passed to the \code{\link{plot_reconstruction}} function.
+#' \code{"topleft"}, \code{"topright"}, \code{"bottomleft"} and \code{"bottomright"} (default is
+#' \code{"topleft"}). This value is passed to \code{\link{plot_exposures}}.
+#' @param exp_legend_cex Numeric indicating the relative size of the legend in the exposures
+#' barplot (default is 2). This value is passed to \code{\link{plot_exposures}}.
+#' @param exp_cex_names Numeric indicating the relative size of sample labels in the exposures
+#' barplot (default is 1.9). This value is passed to \code{\link{plot_exposures}}.
+#' @param rec_legend_pos Character indicating the position of the legend in the spectrum
+#' reconstruction plots. Admits values \code{"top"}, \code{"bottom"}, \code{"center"}, \code{"left"},
+#' \code{"right"}, \code{"topleft"}, \code{"topright"}, \code{"bottomleft"} and \code{"bottomright"}
+#' (default is \code{"topleft"}). This value is passed to \code{\link{plot_reconstruction}}.
+#' @param rec_legend_cex Numeric indicating the relative size of the legend in the reconstruction
+#' plots (default is 2). This value is passed to \code{\link{plot_reconstruction}}.
 #' @param sig_color_palette Character vector of custom color names or hexadecimal codes to use for
-#' each signature. Must have at least as many elements as the number of signatures. This value is passed
-#' to the \code{\link{plot_exposures}} and \code{\link{plot_reconstruction}} functions.
+#' each signature in exposure and reconstruction plots. Must have at least as many elements as the
+#' number of signatures. This value is passed to \code{\link{plot_exposures}} and
+#' \code{\link{plot_reconstruction}}.
+#' @param boxes Logical indicating whether boxes should be drawn around spectrum, signature and
+#' reconstruction plots (default is \code{TRUE}). This value is passed to
+#' \code{\link{plot_spectrum}} and \code{\link{plot_reconstruction}}.
 #' @examples
 #' # Load example mutational catalogues
 #' data("counts_21breast")
@@ -259,47 +270,53 @@ plot_all <- function(mcmc_samples = NULL, out_path, prefix = NULL, counts = NULL
 
         plot_reconstruction(mcmc_samples = mcmc_samples,
                             legend_pos = rec_legend_pos, legend_cex = rec_legend_cex,
-                            sig_color_palette = sig_color_palette,
+                            sig_color_palette = sig_color_palette, boxes=boxes,
                             pdf_path = file.path(out_path, paste0(prefix, "Reconstructions_", Sys.Date(), ".pdf")))
     }
 }
 
 #' Plot mutational spectrum reconstructions
 #'
-#' \code{plot_reconstruction} plots the reconstructions of the original mutational catalogues using the
-#' signatures and/or exposures obtained through extraction or fitting. If provided with multiple catalogues,
-#' it generates one plot per catalogue. Fitting or extraction results can be provided either as a single
-#' stanfit object (generated via \code{\link{fit_signatures}} or \code{\link{extract_signatures}}),
-#' or as separate signatures and exposures matrices (or lists produced via \code{\link{retrieve_pars}}).
+#' \code{plot_reconstruction} plots reconstructions of the original mutational catalogues obtained
+#' using the inferred signatures and/or exposures. If provided with multiple catalogues, it produces
+#' one plot per catalogue. Fitting or extraction results can be provided either as a single stanfit
+#' object (generated via \code{\link{fit_signatures}} or \code{\link{extract_signatures}}), or as
+#' separate signatures and exposures matrices (or lists produced via \code{\link{retrieve_pars}}).
 #' Only the former option allows the incorporation of HPD intervals to the reconstructed catalogue.
-#' @param mcmc_samples List with elements \code{$data} and \code{$results}, produced via either
-#' \code{\link{fit_signatures}}, \code{\link{extract_signatures}} or \code{\link{fit_extract_signatures}}.
-#' This is the preferred option for supplying data and results, but can be replaced by the
-#' combination of arguments \code{counts}, \code{signatures}, \code{exposures} and \code{opportunities}.
-#' @param pdf_path Character; if provided, the plots will be output to a PDF file with the provided
-#' path. The PDF dimensions and graphical parameters will be automatically set to appropriate values,
-#' unless custom dimensions are specified via the arguments \code{pdf_width} and \code{pdf_height}.
-#' @param counts Integer matrix of observed mutation counts, with one row per sample and
-#' column for each mutation type. Only needed if \code{mcmc_samples} is not provided.
-##' @param signatures Either a numeric matrix of mutational signatures, with one row per signature and
-#' one column per mutation type, or a list of matrices generated via
-#' \code{\link{retrieve_pars}}. Only needed if \code{mcmc_samples} is not provided.
-#' @param exposures Either a numeric matrix of signature exposures, with one row per sample and one
-#' column per signature, or a list of exposures as produced by \code{\link{retrieve_pars}}.
+#' @param mcmc_samples List with two elements named \code{`data`} and \code{`results`}, produced via
+#' \code{\link{fit_signatures}}, \code{\link{extract_signatures}}, or
+#' \code{\link{fit_extract_signatures}}. This is the preferred option for supplying data and
+#' results, but can be replaced by the combination of arguments \code{counts}, \code{signatures},
+#' \code{exposures} and \code{opportunities}.
+#' @param pdf_path Character indicating the path to an optional output PDF file for the plots. The
+#' PDF dimensions and graphical parameters are automatically set to appropriate values, but custom
+#' dimensions can be specified via the arguments \code{pdf_width} and \code{pdf_height}.
+#' @param counts Numeric matrix of observed mutation counts, with one row per sample and
+#' one column per mutation type. Only needed if \code{mcmc_samples} is not provided.
+#' @param signatures Either a numeric matrix of mutational signatures, with one row per signature
+#' and one column per mutation type, or a list of matrices generated via \code{\link{retrieve_pars}}.
 #' Only needed if \code{mcmc_samples} is not provided.
-#' @param opportunities Integer matrix of mutational opportunities; it also admits character values
-#' \code{"human-genome"} and \code{"human-exome"}. Only needed if \code{mcmc_samples} is not provided
-#' and \code{signatures} and/or \code{exposures} were obtained using the "EMu" model (\code{model = "emu"}).
-#' In that case, these should be the mutational opportunities used for extraction/fitting.
-#' @param pdf_width Integer indicating the width of the output PDF (in inches, default is 24).
+#' @param exposures Either a numeric matrix of signature exposures, with one row per sample and one
+#' column per signature, or a list of matrices generated via \code{\link{retrieve_pars}}. Only
+#' needed if \code{mcmc_samples} is not provided.
+#' @param opportunities Numeric matrix of mutational opportunities, with one row per signature and
+#' one column per mutation type. It also admits character values \code{"human-genome"} or
+#' \code{"human-exome"}, in which case the mutational opportunities of the reference human
+#' genome/exome will be used. Only needed if \code{mcmc_samples} is not provided and opportunities
+#' were used during signature extraction or fitting.
+#' @param pdf_width Numeric indicating the width of the output PDF, in inches (default is 24).
 #' Only used if \code{pdf_path} is provided.
-#' @param pdf_height Integer indicating the height of the output PDF (in inches, default is 17).
+#' @param pdf_height Numeric indicating the height of the output PDF, in inches (default is 15).
 #' Only used if \code{pdf_path} is provided.
-#' @param legend_pos Character indicating the position of the legend in the reconstructed spectrum. 
-#' Admits values \code{"top"}, \code{"bottom"}, \code{"center"}, \code{"left"}, \code{"right"}, 
-#' \code{"topleft"} (the default), \code{"topright"}, \code{"bottomleft"} and \code{"bottomright"}.
-#' @param sig_color_palette Character vector of custom color names or hexadecimal codes to use for 
-#' each signature. Must have at least as many elements as the number of signatures.
+#' @param legend_pos Character indicating the position of the legend in the plots. Admits values
+#' \code{"top"}, \code{"bottom"}, \code{"center"}, \code{"left"}, \code{"right"}, \code{"topleft"},
+#' \code{"topright"}, \code{"bottomleft"} and \code{"bottomright"} (default is \code{"topleft"}).
+#' @param legend_cex Numeric indicating the relative size of the legend (default is 2).
+#' @param sig_color_palette Character vector of custom color names or hexadecimal codes to use for
+#' each signature in exposure and reconstruction plots. Must have at least as many elements as the
+#' number of signatures.
+#' @param boxes Logical indicating whether boxes should be drawn around the plots (default is
+#' \code{TRUE}).
 #' @examples
 #' # Load example mutational catalogues
 #' data("counts_21breast")
@@ -620,25 +637,30 @@ plot_reconstruction <- function(mcmc_samples = NULL, pdf_path = NULL, counts = N
 
 #' Plot mutational spectra
 #'
-#' \code{plot_spectrum} generates plots of one or more spectra, which can be either mutational
-#' catalogues or mutational signatures. If the spectra contain values greater than unity, the
-#' values will be interpreted as mutation counts (as in a catalogue); otherwise, they will be
-#' interpreted as mutation probabilities (as in a signature). If multiple spectra are provided,
-#' one plot per spectrum is produced.
-#' @param spectra Either a numeric vector with one element per mutation type,
-#' or a numeric matrix with one row per signature/catalogue and one column per mutation type,
-#' or a list of signature matrices as produced by \code{\link{retrieve_pars}}. In the latter case,
-#' HPD intervals will also be plotted. Row names will be used as the sample/signature names.
-#' @param pdf_path Character; if provided, the plots will be output to a PDF file with the provided
-#' path. The PDF dimensions and graphical parameters will be automatically set to appropriate values,
-#' unless custom dimensions are specified via the arguments \code{pdf_width} and \code{pdf_height}.
-#' @param pdf_width Integer indicating the width of the output PDF (in inches, default is 24).
+#' \code{plot_spectrum} generates plots of one or more mutational spectra, which can be either
+#' mutational catalogues or mutational signatures. If provided with multiple spectra, it produces
+#' one plot per spectrum. If the spectra contain values greater than 1, the values will be
+#' interpreted as mutation counts (as in a catalogue); otherwise, they will be interpreted as
+#' mutation probabilities (as in a signature).
+#' @param spectra This can be a numeric vector with one element per mutation type, a numeric matrix
+#' with one row per signature/catalogue and one column per mutation type, or a list of signature
+#' matrices as produced by \code{\link{retrieve_pars}}. In the latter case, HPD intervals will be 
+#' included in the plots. Row names will be used as the catalogue/signature names.
+#' @param pdf_path Character indicating the path to an optional output PDF file for the plots. The
+#' PDF dimensions and graphical parameters are automatically set to appropriate values, but custom
+#' dimensions can be specified via the arguments \code{pdf_width} and \code{pdf_height}.
+#' @param pdf_width Numeric indicating the width of the output PDF, in inches (default is 24).
 #' Only used if \code{pdf_path} is provided.
-#' @param pdf_height Integer indicating the height of the output PDF (in inches, default is 8).
+#' @param pdf_height Numeric indicating the height of the output PDF, in inches (default is 8).
 #' Only used if \code{pdf_path} is provided.
-#' @param name Character indicating a name to include in the plot title.
-#' Useful when plotting a single spectrum.
-#' @param max_y Numeric indicating an optional fixed higher limit for the vertical axis.
+#' @param name Character indicating a name to include in the plot title; useful when plotting a
+#' single spectrum.
+#' @param max_y Numeric indicating an optional upper limit for the vertical axis.
+#' @param colors Character vector of custom color names or hexadecimal codes to use for the spectrum
+#' bars. Only used if the number of mutation types in the spectrum is not 96 or 192. Must contain
+#' either a single value, or as many values as the number of mutation types in the spectrum.
+#' @param boxes Logical indicating whether boxes should be drawn around the plots (default is
+#' \code{TRUE}).
 #' @examples
 #' # Load example mutational catalogues
 #' data("counts_21breast")
@@ -922,38 +944,42 @@ plot_spectrum <- function(spectra, pdf_path = NULL, pdf_width = 24, pdf_height =
 
 #' Plot signature exposures
 #'
-#' \code{plot_exposures} plots the distribution of signature exposures across the samples.
-#' @param mcmc_samples List with elements \code{$data} and \code{$results}, produced via either
-#' \code{\link{fit_signatures}}, \code{\link{extract_signatures}} or \code{\link{fit_extract_signatures}}.
-#' This is the preferred option for supplying data and results, but can be replaced by the
-#' combination of arguments \code{counts}, \code{exposures} and \code{signature_names}.
-#' @param pdf_path Character; if provided, the plots will be output to a PDF file with the provided
-#' path. The PDF dimensions and graphical parameters will be automatically set to appropriate values,
-#' unless custom dimensions are specified via the arguments \code{pdf_width} and \code{pdf_height}.
-#' @param counts Integer matrix of observed mutation counts, with one row per sample and
-#' column for each mutation type. Only needed if \code{mcmc_samples} is not provided.
+#' \code{plot_exposures} plots the distribution of signature exposures across samples.
+#' @param mcmc_samples List with two elements named \code{`data`} and \code{`results`}, produced via
+#' \code{\link{fit_signatures}}, \code{\link{extract_signatures}}, or
+#' \code{\link{fit_extract_signatures}}. This is the preferred option for supplying data and
+#' results, but can be replaced by the combination of arguments \code{counts}, \code{exposures} and
+#' \code{signature_names}.
+#' @param pdf_path Character indicating the path to an optional output PDF file for the plots. The
+#' PDF dimensions and graphical parameters are automatically set to appropriate values, but custom
+#' dimensions can be specified via the arguments \code{pdf_width} and \code{pdf_height}.
+#' @param counts Numeric matrix of observed mutation counts, with one row per sample and
+#' one column per mutation type. Only needed if \code{mcmc_samples} is not provided.
 #' @param exposures Either a numeric matrix of signature exposures, with one row per sample and one
-#' column per signature, or a list of exposures as produced by \code{\link{retrieve_pars}}.
-#' Only needed if \code{mcmc_samples} is not provided.
-#' @param signature_names Character vector containing the signature names. Only needed if \code{mcmc_samples}
-#' is not provided and the exposures were obtained through signature fitting (as opposed to extraction).
-#' @param thresh Numeric; minimum required value for the lower bound of HPD intervals of signature
-#' exposures (default is 0.01). Those exposures for which the lower bound is below this value will be
-#' colored in grey.
-#' @param hpd_prob Numeric; a value in the interval (0, 1), indicating the desired probability content of
-#' the HPD intervals (default is 0.95).
-#' @param pdf_width Integer indicating the width of the output PDF (in inches; default value depends
-#' on the number of samples). Only used if \code{pdf_path} is provided.
-#' @param pdf_height Integer indicating the height of the output PDF (in inches, default is 8).
+#' column per signature, or a list of matrices generated via \code{\link{retrieve_pars}}. Only
+#' needed if \code{mcmc_samples} is not provided.
+#' @param signature_names Character vector containing the name of each signature. Only needed if
+#' \code{mcmc_samples} is not provided and the exposures were obtained via signature fitting
+#' (rather than extraction).
+#' @param thresh Numeric indicating the minimum threshold for the lower HPD limits of signature
+#' exposures (default is 0.01). Exposures with a lower HPD limit below this value will be shown in
+#' grey.
+#' @param hpd_prob Numeric value in the interval (0, 1), indicating the desired probability content
+#' of HPD intervals (default is 0.95).
+#' @param pdf_width Numeric indicating the width of the output PDF, in inches (default is 24).
 #' Only used if \code{pdf_path} is provided.
-#' @param margin_bottom Numeric; bottom margin of the plot (in inches, default is 10.5).
+#' @param pdf_height Numeric indicating the height of the output PDF, in inches (default is 10).
 #' Only used if \code{pdf_path} is provided.
-#' @param cex_names Numeric; relative size of sample labels in the exposures barplot (default is 1.9).
-#' @param legend_pos Character indicating the position of the legend in the exposures barplot. Admits 
-#' values \code{"top"}, \code{"bottom"}, \code{"center"}, \code{"left"}, \code{"right"}, 
-#' \code{"topleft"} (the default), \code{"topright"}, \code{"bottomleft"} and \code{"bottomright"}.
-#' @param sig_color_palette Character vector of custom color names or hexadecimal codes to use for 
-#' each signature. Must have at least as many elements as the number of signatures.
+#' @param margin_bottom Numeric indicating the width of the bottom margin, in inches (default
+#' is 10.5).
+#' @param legend_pos Character indicating the position of the legend. Admits values \code{"top"},
+#' \code{"bottom"}, \code{"center"}, \code{"left"}, \code{"right"}, \code{"topleft"},
+#' \code{"topright"}, \code{"bottomleft"} and \code{"bottomright"} (default is \code{"topleft"}).
+#' @param legend_cex Numeric indicating the relative size of the legend (default is 2).
+#' @param cex_names Numeric indicating the relative size of sample labels (default is 1.9).
+#' @param sig_color_palette Character vector of custom color names or hexadecimal codes to use for
+#' each signature in exposure and reconstruction plots. Must have at least as many elements as the
+#' number of signatures.
 #' @importFrom "graphics" arrows axis barplot legend lines mtext par plot points rect text title
 #' @importFrom "grDevices" pdf dev.off rgb
 #' @examples
@@ -977,8 +1003,8 @@ plot_spectrum <- function(spectra, pdf_path = NULL, pdf_width = 24, pdf_height =
 #' @export
 plot_exposures <- function(mcmc_samples = NULL, pdf_path = NULL, counts = NULL, exposures = NULL,
                            signature_names = NULL, thresh = 0.01, hpd_prob = 0.95, pdf_width = 24,
-                           pdf_height = 10, margin_bottom = 10.5, cex_names = 1.9, 
-                           legend_pos = "topleft", legend_cex = 2, sig_color_palette = NULL) {
+                           pdf_height = 10, margin_bottom = 10.5, legend_pos = "topleft",
+                           legend_cex = 2, cex_names = 1.9, sig_color_palette = NULL) {
     if (is.null(mcmc_samples) & (is.null(counts) | is.null(exposures))) {
         stop("Either 'mcmc_samples', or both 'counts' and 'exposures', must be provided.")
     }

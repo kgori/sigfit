@@ -5,35 +5,43 @@
 \title{Plot mutational spectra}
 \usage{
 plot_spectrum(spectra, pdf_path = NULL, pdf_width = 24,
-  pdf_height = 8, name = NULL, max_y = NULL)
+  pdf_height = 8, name = NULL, max_y = NULL, colors = NULL,
+  boxes = TRUE)
 }
 \arguments{
-\item{spectra}{Either a numeric vector with one element per mutation type,
-or a numeric matrix with one row per signature/catalogue and one column per mutation type, 
-or a list of signature matrices as produced by \code{\link{retrieve_pars}}. In the latter case, 
-HPD intervals will also be plotted. Row names will be used as the sample/signature names.}
+\item{spectra}{This can be a numeric vector with one element per mutation type, a numeric matrix
+with one row per signature/catalogue and one column per mutation type, or a list of signature
+matrices as produced by \code{\link{retrieve_pars}}. In the latter case, HPD intervals will be 
+included in the plots. Row names will be used as the catalogue/signature names.}
 
-\item{pdf_path}{Character; if provided, the plots will be output to a PDF file with the provided 
-path. The PDF dimensions and graphical parameters will be automatically set to appropriate values,
-unless custom dimensions are specified via the arguments \code{pdf_width} and \code{pdf_height}.}
+\item{pdf_path}{Character indicating the path to an optional output PDF file for the plots. The
+PDF dimensions and graphical parameters are automatically set to appropriate values, but custom
+dimensions can be specified via the arguments \code{pdf_width} and \code{pdf_height}.}
 
-\item{pdf_width}{Integer indicating the width of the output PDF (in inches, default is 24). 
+\item{pdf_width}{Numeric indicating the width of the output PDF, in inches (default is 24).
 Only used if \code{pdf_path} is provided.}
 
-\item{pdf_height}{Integer indicating the height of the output PDF (in inches, default is 8). 
+\item{pdf_height}{Numeric indicating the height of the output PDF, in inches (default is 8).
 Only used if \code{pdf_path} is provided.}
 
-\item{name}{Character indicating a name to include in the plot title.
-Useful when plotting a single spectrum.}
+\item{name}{Character indicating a name to include in the plot title; useful when plotting a
+single spectrum.}
 
-\item{max_y}{Numeric indicating an optional fixed higher limit for the vertical axis.}
+\item{max_y}{Numeric indicating an optional upper limit for the vertical axis.}
+
+\item{colors}{Character vector of custom color names or hexadecimal codes to use for the spectrum
+bars. Only used if the number of mutation types in the spectrum is not 96 or 192. Must contain
+either a single value, or as many values as the number of mutation types in the spectrum.}
+
+\item{boxes}{Logical indicating whether boxes should be drawn around the plots (default is
+\code{TRUE}).}
 }
 \description{
-\code{plot_spectrum} generates plots of one or more spectra, which can be either mutational
-catalogues or mutational signatures. If the spectra contain values greater than unity, the 
-values will be interpreted as mutation counts (as in a catalogue); otherwise, they will be 
-interpreted as mutation probabilities (as in a signature). If multiple spectra are provided, 
-one plot per spectrum is produced.
+\code{plot_spectrum} generates plots of one or more mutational spectra, which can be either
+mutational catalogues or mutational signatures. If provided with multiple spectra, it produces
+one plot per spectrum. If the spectra contain values greater than 1, the values will be
+interpreted as mutation counts (as in a catalogue); otherwise, they will be interpreted as
+mutation probabilities (as in a signature).
 }
 \examples{
 # Load example mutational catalogues

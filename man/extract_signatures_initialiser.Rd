@@ -4,31 +4,32 @@
 \alias{extract_signatures_initialiser}
 \title{Use optimization to generate initial parameter values for MCMC sampling}
 \usage{
-extract_signatures_initialiser(counts, nsignatures, model = "emu",
-  opportunities = NULL, sig_prior = NULL, exp_prior = 1,
-  chains = 1, ...)
+extract_signatures_initialiser(counts, nsignatures,
+  model = "multinomial", opportunities = NULL, sig_prior = NULL,
+  exp_prior = NULL, chains = 1, ...)
 }
 \arguments{
-\item{counts}{Integer matrix of observed mutation counts, with one row per sample and
-one column per mutation type. Any decimal values will be rounded to integers.}
+\item{counts}{Numeric matrix of observed mutation counts, with one row per sample and
+one column per mutation type.}
 
 \item{nsignatures}{Integer or integer vector indicating the number(s) of signatures to extract.}
 
-\item{model}{Character indicating the model to sample from. Admits values \code{"nmf"} or 
-\code{"emu"} (the default).}
+\item{model}{Name of the model to sample from. Admits character values \code{"multinomial"}
+(default), \code{"poisson"}, \code{"negbin"}, \code{"normal"}, \code{"nmf"} (an alias for
+\code{"multinomial"}), and \code{"emu"} (an alias for \code{"poisson"}).}
 
-\item{opportunities}{Numeric matrix of optional mutational opportunities for the "EMu" model
-(\code{model = "emu"}). Must be a matrix with same dimension as \code{counts}.
-Alternatively, it also admits character values \code{"human-genome"} or \code{"human-exome"},
-in which case the reference human genome/exome opportunities will be used for every sample.}
+\item{opportunities}{Numeric matrix of optional mutational opportunities, with one row per sample
+and one column per mutation type. It also admits character values \code{"human-genome"} or
+\code{"human-exome"}, in which case the mutational opportunities of the reference human
+genome/exome will be used for every sample.}
 
-\item{sig_prior}{Numeric matrix with one row per signature and one column per mutation type, 
-to be used as the Dirichlet priors for the signatures to be extracted. Only used when 
-\code{nsignatures} is a scalar. Default priors are uniform (uninformative).}
+\item{sig_prior}{Numeric matrix with one row per signature and one column per mutation type,
+to be used as the Dirichlet priors for the mutational signatures. Only used when a single value
+is provided for \code{nsignatures}. Default priors are uniform.}
 
 \item{chains}{Integer indicating number of chains to be initialised (default is 1).}
 
-\item{...}{Additional arguments to pass to \code{rstan::optimizing}.}
+\item{...}{Additional arguments to be passed to \code{\link{rstan::optimizing}}.}
 }
 \value{
 List of initial values to be passed to \code{\link{extract_signatures}} via the

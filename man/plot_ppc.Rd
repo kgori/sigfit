@@ -2,10 +2,7 @@
 % Please edit documentation in R/sigfit_plotting.R
 \name{plot_ppc}
 \alias{plot_ppc}
-\title{Plot result of posterior predictive check
-black = observed value is not extreme compared to the simulated distribution
-yellow = observed value is in top or bottom 2.5% of ppc simulations
-red = observed value is outside ppc simulations}
+\title{Plot result of posterior predictive check}
 \usage{
 plot_ppc(c, c_ppc, sample = 1)
 }
@@ -13,10 +10,9 @@ plot_ppc(c, c_ppc, sample = 1)
 \item{c}{Integer matrix of observed counts.}
 
 \item{c_ppc}{Simulated posterior predictive counts obtained from
-MCMC samples using \code{extract(samples)$counts_ppc}}
+MCMC samples using \code{extract(samples)$counts_ppc}.}
 }
 \description{
-Plot result of posterior predictive check
 black = observed value is not extreme compared to the simulated distribution
 yellow = observed value is in top or bottom 2.5% of ppc simulations
 red = observed value is outside ppc simulations

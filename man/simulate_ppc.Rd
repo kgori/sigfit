@@ -7,8 +7,9 @@
 simulate_ppc(mcmc_samples)
 }
 \arguments{
-\item{mcmc_samples}{List with elements \code{\`data\`} and \code{\`results\`}, produced via either
-\code{\link{fit_signatures}}, \code{\link{extract_signatures}} or \code{\link{fit_extract_signatures}}.}
+\item{mcmc_samples}{List with two elements named \code{`data`} and \code{`results`}, produced via
+\code{\link{fit_signatures}}, \code{\link{extract_signatures}}, or
+\code{\link{fit_extract_signatures}}.}
 }
 \description{
 Generate posterior predictive check values from a model
