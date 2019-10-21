@@ -214,10 +214,12 @@ get_reconstructions <- function(mcmc_samples) {
 #' (http://cancer.sanger.ac.uk/cosmic/signatures) and produces a matrix of signatures
 #' that can be used for signature fitting.
 #' NB. COSMIC signatures are also available in sigfit via the functions
-#' \code{data("cosmic_signatures_v2")} and \code{data("cosmic_signatures_v3")}.
-#' @param reorder Logical; if \code{TRUE} (default), the matrix will be reordered by substitution type and trinucleotide.
-#' @param remove_zeros Logical; if \code{TRUE} (default), pseudocounts will be added to prevent the signatures from
-#' containing any zeros, which can affect computation of the log likelihood.
+#' \code{data("cosmic_signatures_v2")}, \code{data("cosmic_signatures_v3") and
+#' \code{data("cosmic_signatures_v3_strand")}.
+#' @param reorder Logical; if \code{TRUE} (default), the matrix will be reordered by substitution
+#' type and trinucleotide.
+#' @param remove_zeros Logical; if \code{TRUE} (default), pseudocounts will be added to prevent the
+#' signatures from containing any zeros, which can affect computation of the log likelihood.
 #' @return Matrix of signatures, with one row per signature and one column for each of
 #' the 96 trinucleotide mutation types.
 #' @importFrom "utils" read.table

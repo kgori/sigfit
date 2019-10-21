@@ -111,9 +111,9 @@ plot_gof <- function(sample_list, stat = "cosine") {
                        which.max(deriv) + 1)  # highest positive curvature
     
         plot(nS, gof, type = "o", lty = 3, pch = 16, col = "dodgerblue4",
-             main = paste0("Goodness of fit (", stat, ")\nmodel: ", model),
+             main = paste0("Goodness-of-fit (", stat, ")\nmodel: ", model),
              xlab = "Number of signatures",
-             ylab = paste0("Goodness of fit (", stat, ")"))
+             ylab = paste0("Goodness-of-fit (", stat, ")"))
         points(nS[best], gof[best], pch = 16, col = "orangered", cex = 1.1)
     
         cat("Estimated best number of signatures:", nS[best], "\n")

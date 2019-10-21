@@ -200,6 +200,9 @@ extract_signatures <- function(counts, nsignatures, model = "multinomial", oppor
     if (length(chains) > 1 | !all.equal(chains, as.integer(chains))) {
         stop("'chains' must be a single positive integer.")
     }
+    if (chains > 1) {
+        warning("Using multiple chains for signature extraction can cause label switching problems and is discouraged.")
+    }
     
     # Force counts to matrix
     counts_real <- to_matrix(counts)
@@ -411,6 +414,9 @@ fit_extract_signatures <- function(counts, signatures, num_extra_sigs,
     }
     if (length(chains) > 1 | !all.equal(chains, as.integer(chains))) {
         stop("'chains' must be a single positive integer.")
+    }
+    if (chains > 1) {
+        warning("Using multiple chains for signature extraction can cause label switching problems and is discouraged.")
     }
     
     # Force counts and signatures to matrix
