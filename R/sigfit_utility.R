@@ -542,6 +542,7 @@ convert_signatures <- function(signatures, ref_opportunities, model_to) {
 #' @return A list of three matrices, which contain the values corresponding to the means of the
 #' model parameters and to the lower and upper ends of their HPD intervals, respectively.
 #' @examples
+#' \dontrun{
 #' # Load example mutational catalogues
 #' data("counts_21breast")
 #'
@@ -563,6 +564,7 @@ convert_signatures <- function(signatures, ref_opportunities, model_to) {
 #' plot_spectrum(signatures)
 #' plot_spectrum(reconstructions)
 #' barplot(t(exposures$mean))
+#' }
 #' @importFrom "rstan" extract
 #' @importFrom "coda" HPDinterval
 #' @importFrom "coda" as.mcmc

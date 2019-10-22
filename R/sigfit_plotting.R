@@ -183,6 +183,7 @@ plot_gof <- function(sample_list, stat = "cosine") {
 #' reconstruction plots (default is \code{TRUE}). This value is passed to
 #' \code{\link{plot_spectrum}} and \code{\link{plot_reconstruction}}.
 #' @examples
+#' \dontrun{
 #' # Load example mutational catalogues
 #' data("counts_21breast")
 #'
@@ -201,6 +202,7 @@ plot_gof <- function(sample_list, stat = "cosine") {
 #' plot_all(counts = counts_21breast, signatures = signatures,
 #'          exposures = exposures, opportunities = "human-genome",
 #'          out_path = ".", prefix = "Test2")
+#' }
 #' @importFrom "rstan" extract
 #' @export
 plot_all <- function(mcmc_samples = NULL, out_path, prefix = NULL, counts = NULL, signatures = NULL,
@@ -318,6 +320,7 @@ plot_all <- function(mcmc_samples = NULL, out_path, prefix = NULL, counts = NULL
 #' @param boxes Logical indicating whether boxes should be drawn around the plots (default is
 #' \code{TRUE}).
 #' @examples
+#' \dontrun{
 #' # Load example mutational catalogues
 #' data("counts_21breast")
 #'
@@ -335,6 +338,7 @@ plot_all <- function(mcmc_samples = NULL, out_path, prefix = NULL, counts = NULL
 #' # Plot reconstructed catalogues using retrieved signatures and exposures
 #' plot_reconstruction(counts = counts_21breast, signatures = signatures, exposures = exposures,
 #'                     opportunities = "human-genome", pdf_path = "Reconstructions_2.pdf")
+#' }
 #' @importFrom "rstan" extract
 #' @importFrom "coda" as.mcmc HPDinterval
 #' @importFrom "grDevices" cairo_pdf
@@ -662,14 +666,15 @@ plot_reconstruction <- function(mcmc_samples = NULL, pdf_path = NULL, counts = N
 #' @param boxes Logical indicating whether boxes should be drawn around the plots (default is
 #' \code{TRUE}).
 #' @examples
+#' \dontrun{
 #' # Load example mutational catalogues
 #' data("counts_21breast")
 #'
 #' # Plot catalogues
 #' plot_spectrum(counts_21breast, pdf_path = "Catalogues.pdf")
 #'
-#' # Extract signatures using the EMu (Poisson) model
-#' samples <- extract_signatures(counts_21breast, nsignatures = 2, model = "emu",
+#' # Extract signatures using the Poisson model
+#' samples <- extract_signatures(counts_21breast, nsignatures = 2, model = "poisson",
 #'                               opportunities = "human-genome", iter = 800)
 #'
 #' # Retrieve extracted signatures
@@ -677,6 +682,7 @@ plot_reconstruction <- function(mcmc_samples = NULL, pdf_path = NULL, counts = N
 #'
 #' # Plot signatures
 #' plot_spectrum(sigs, pdf_path = "Signatures.pdf")
+#' }
 #' @importFrom "grDevices" cairo_pdf
 #' @export
 plot_spectrum <- function(spectra, pdf_path = NULL, pdf_width = 24, pdf_height = 8,
@@ -729,7 +735,7 @@ plot_spectrum <- function(spectra, pdf_path = NULL, pdf_width = 24, pdf_height =
 
         for (i in 1:NSAMP) {
             if (is.null(max_y)) {
-                FACTOR <- 1
+                FACTOR <- 1.05
                 samp_max_y <- ifelse(is.null(upr), max(spec[i,]) * FACTOR, max(upr[i,]) * FACTOR)
             }
             else {
@@ -983,6 +989,7 @@ plot_spectrum <- function(spectra, pdf_path = NULL, pdf_width = 24, pdf_height =
 #' @importFrom "graphics" arrows axis barplot legend lines mtext par plot points rect text title
 #' @importFrom "grDevices" pdf dev.off rgb
 #' @examples
+#' \dontrun{
 #' # Load example mutational catalogues and COSMIC signatures
 #' data("counts_21breast")
 #' data("cosmic_signatures_v2")
@@ -998,6 +1005,7 @@ plot_spectrum <- function(spectra, pdf_path = NULL, pdf_width = 24, pdf_height =
 #' plot_exposures(counts = counts_21breast, exposures = exposures,
 #'                signature_names = rownames(cosmic_signatures_v2),
 #'                pdf_path = "Exposures.pdf")
+#' }
 #' @importFrom "grDevices" cairo_pdf
 #' @importFrom "graphics" segments
 #' @export

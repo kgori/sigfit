@@ -167,6 +167,7 @@ fit_signatures <- function(counts, signatures, exp_prior = NULL, model = "multin
 #' returned in which the N-th element contains the extraction results for N signatures, as a list
 #' with the structure described above.
 #' @examples
+#' \dontrun{
 #' # Load example mutational catalogues
 #' data("counts_21breast")
 #'
@@ -180,6 +181,7 @@ fit_signatures <- function(counts, signatures, exp_prior = NULL, model = "multin
 #' samples_emu <- extract_signatures(counts_21breast, nsignatures = 4, model = "emu",
 #'                                   opportunities = "human-genome",
 #'                                   iter = 1200, warmup = 400)
+#' }
 #' @importFrom "rstan" sampling
 #' @importFrom "rstan" optimizing
 #' @importFrom "rstan" vb
@@ -376,26 +378,26 @@ extract_signatures <- function(counts, nsignatures, model = "multinomial", oppor
 #' The model parameters (such as signatures and exposures) can be extracted from this
 #' object using \code{\link{retrieve_pars}}.
 #' @examples
-#' # Fetch COSMIC signatures
-#' signatures <- fetch_cosmic_data()
-#'
+#' \dontrun{
 #' # Simulate two catalogues using signatures 1, 4, 5, 7, with
 #' # proportions 4:2:3:1 and 2:3:4:1, respectively
-#' probs <- rbind(c(0.4, 0.2, 0.3, 0.1) %*% signatures[c(1, 4, 5, 7), ],
-#'                c(0.2, 0.3, 0.4, 0.1) %*% signatures[c(1, 4, 5, 7), ])
+#' data("cosmic_signatures_v2")
+#' probs <- rbind(c(0.4, 0.2, 0.3, 0.1) %*% cosmic_signatures_v2[c(1, 4, 5, 7), ],
+#'                c(0.2, 0.3, 0.4, 0.1) %*% cosmic_signatures_v2[c(1, 4, 5, 7), ])
 #' mutations <- rbind(t(rmultinom(1, 20000, probs[1, ])),
 #'                    t(rmultinom(1, 20000, probs[2, ])))
 #'
 #' # Assuming that we do not know signature 7 a priori, but we know the others
 #' # to be present, extract 1 signature while fitting signatures 1, 4 and 5.
 #' # (400 warmup iterations + 400 sampling iterations - use more in practice)
-#' mcmc_samples <- fit_extract_signatures(mutations, signatures = signatures[c(1, 4, 5), ],
+#' mcmc_samples <- fit_extract_signatures(mutations, cosmic_signatures_v2[c(1, 4, 5), ],
 #'                                        num_extra_sigs = 1, model = "nmf", iter = 800)
 #'
 #' # Plot original and extracted signature 7
 #' extr_sigs <- retrieve_pars(mcmc_samples, "signatures")
-#' plot_spectrum(signatures[7, ], pdf_path = "COSMIC_Sig7.pdf", name="COSMIC sig. 7")
+#' plot_spectrum(cosmic_signatures_v2[7, ], pdf_path = "COSMIC_Sig7.pdf", name="COSMIC sig. 7")
 #' plot_spectrum(extr_sigs, pdf_path = "Extracted_Sigs.pdf")
+#' }
 #' @importFrom "rstan" sampling
 #' @importFrom "rstan" optimizing
 #' @importFrom "rstan" vb
