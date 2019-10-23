@@ -364,21 +364,19 @@ In some analyses, signatures that have been inferred from whole-genome mutation 
 
 However, it is important to note that, unless appropriate mutational opportunities were used during signature extraction, the probability values of signatures that have been extracted from whole genomes (including the standard COSMIC signatures) are __relative__ to the specific mutational opportunities of that genome, and therefore should not be directly fitted to mutation counts obtained from exomes or from other genomes (such as genomes from different species). Instead, the signatures first need to be __converted__ so that they are relative to the new sequence.
 
-To convert a matrix of (human) genome-derived mutational signatures into their exome-relative representations, the `convert_signatures` function needs to be applied twice: once to __normalise__ the signatures by the whole-genome mutational opportunities (using arguments `ref_opportunities = "human-genome", model_to = "emu"`), and once again to __impose__ the whole-exome opportunities on the normalised signatures (using `ref_opportunities = "human-exome", model_to = "nmf"`). An example is given below.
+The `convert_signatures` function can be used to convert a matrix of (human) genome-derived mutational signatures into their exome-relative representations as follows.
 
 ```{r convert_sigs, eval=F}
 # (Following from the signature extraction example presented above)
 # Retrieve genome-derived signatures
 genome_signatures <- sigfit::retrieve_pars(mcmc_samples_extr[[4]],
                                            par = "signatures")
-# Normalise relative to genome opportunities
-normalised_signatures <- sigfit::convert_signatures(genome_signatures, 
-                                                    ref_opportunities = "human-genome",
-                                                    model_to = "emu")
-# Impose exome opportunities
-exome_signatures <- sigfit::convert_signatures(normalised_signatures, 
-                                               ref_opportunities = "human-exome",
-                                               model_to = "nmf")
+
+# Apply exome mutational opportunities
+exome_signatures <- sigfit::convert_signatures(genome_signatures, 
+                                               opportunities_from = "human-genome",
+                                               opportunities_to = "human-exome")
+
 par(mfrow = c(2, 1))
 sigfit::plot_spectrum(genome_signatures$mean[4,],
                       name = "Signature D, Genome-relative probabilities")
@@ -387,15 +385,15 @@ sigfit::plot_spectrum(exome_signatures[4,],
 ```
 
 ```{r convert_sigs_silent, echo=F, fig.width=22, fig.height=14, out.width="100%"}
-genome_signatures <- signatures
-normalised_signatures <- sigfit::convert_signatures(genome_signatures, ref_opportunities="human-genome", model_to="emu")
-exome_signatures <- sigfit::convert_signatures(normalised_signatures, ref_opportunities="human-exome", model_to="nmf")
+exome_signatures <- sigfit::convert_signatures(signatures, opportunities_from = "human-genome", opportunities_to = "human-exome")
 par(mfrow = c(2, 1), mar = c(5,5.5,6.5,1))
-sigfit::plot_spectrum(genome_signatures$mean[4,], name="Signature D, Genome-relative probabilities")
+sigfit::plot_spectrum(signatures$mean[4,], name="Signature D, Genome-relative probabilities")
 sigfit::plot_spectrum(exome_signatures[4,], name="Signature D, Exome-relative probabilities")
 ```
 
-Signatures can be similarly converted from exome-relative into normalised or genome-relative representations, or between any two given __matrices of opportunities__ (see previous section).
+Signatures can be similarly converted from exome-relative to genome-relative representations, or between any two given __matrices of opportunities__ (see previous section). In addition, if the `opportunities_to` argument is omitted, the signatures will only be __normalised__ by the original opportunities (given by `opportunities_from`), such that they will not be relative to any particular reference sequence. (Another way of obtaining sequence-independent signatures is to specify the mutational opportunities when running `extract_signatures`.)
+
+Conversely, if the `opportunities_from` argument is omitted, the signatures will be interpreted as being already normalised, and the desired opportunities (given by `opportunities_to`) will be directly __imposed__ on the signatures. For further details on signature conversion, type `?convert_signatures` to read the documentation.
 
 ### Using Fit-Ext models to discover rare or novel signatures
 
