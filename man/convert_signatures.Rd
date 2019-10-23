@@ -13,8 +13,8 @@ and one column per mutation type, or a list of matrices generated via \code{\lin
 
 \item{opportunities_from}{Mutational opportunities that are currently imposed on the signatures.
 This can be a numeric matrix of mutational opportunities, with one row per signature and
-one column per mutation type; if the signatures were inferred together, then every row should
-contain the same opportunities. Character values \code{"human-genome"} or \code{"human-exome"}
+one column per mutation type (if the signatures were inferred together, then every row should
+contain the same opportunities). Character values \code{"human-genome"} or \code{"human-exome"}
 are also admitted, in which case the mutational opportunities of the reference human
 genome/exome will be used for every signature. If this argument is provided, the signatures will
 be normalised (divided) by the opportunities. Otherwise (if \code{opportunities_from = NULL}),
@@ -31,13 +31,12 @@ opportunities).}
 A numeric matrix of transformed signatures with the same dimensions as \code{signatures}.
 }
 \description{
-\code{convert_signatures} converts between a set of mutational signatures between two different
-sets of mutational opportunities.
+\code{convert_signatures} converts mutational signatures between two representations relative to 
+different sets of mutational opportunities.
 }
 \examples{
 # Load COSMIC signatures
-# These are in "NMF" format, i.e. they are relative
-# to the human genome mutational opportunities
+# (these are relative to the human genome mutational opportunities)
 data("cosmic_signatures_v2")
 
 # Plot COSMIC signature 1

@@ -113,7 +113,7 @@ mut_types <- function(strand = FALSE) {
 }
 
 #' Generate log likelihood values from a model
-#' @param mcmc_samples List with elements \code{\`data\`} and \code{\`results\`}, produced via either
+#' @param mcmc_samples List with elements \code{`data`} and \code{`results`}, produced via either
 #' \code{\link{fit_signatures}}, \code{\link{extract_signatures}} or \code{\link{fit_extract_signatures}}.
 #' @importFrom "stats" dmultinom dpois
 get_loglik <- function(mcmc_samples) {
@@ -146,7 +146,7 @@ get_loglik <- function(mcmc_samples) {
 }
 
 #' Generate reconstructed mutation catalogues from parameters estimated from MCMC samples
-#' @param mcmc_samples List with elements \code{\`data\`} and \code{\`results\`}, produced via either
+#' @param mcmc_samples List with elements \code{`data`} and \code{`results`}, produced via either
 #' \code{\link{fit_signatures}}, \code{\link{extract_signatures}} or \code{\link{fit_extract_signatures}}.
 #' @importFrom "rstan" extract
 #' @importFrom "coda" HPDinterval
@@ -462,14 +462,14 @@ build_catalogues <- function(variants) {
 
 #' Convert signatures between models
 #'
-#' \code{convert_signatures} converts between a set of mutational signatures between two different
-#' sets of mutational opportunities.
+#' \code{convert_signatures} converts mutational signatures between two representations relative to 
+#' different sets of mutational opportunities.
 #' @param signatures Either a numeric matrix of mutational signatures, with one row per signature
 #' and one column per mutation type, or a list of matrices generated via \code{\link{retrieve_pars}}.
 #' @param opportunities_from Mutational opportunities that are currently imposed on the signatures.
 #' This can be a numeric matrix of mutational opportunities, with one row per signature and
-#' one column per mutation type; if the signatures were inferred together, then every row should
-#' contain the same opportunities. Character values \code{"human-genome"} or \code{"human-exome"}
+#' one column per mutation type (if the signatures were inferred together, then every row should
+#' contain the same opportunities). Character values \code{"human-genome"} or \code{"human-exome"}
 #' are also admitted, in which case the mutational opportunities of the reference human
 #' genome/exome will be used for every signature. If this argument is provided, the signatures will
 #' be normalised (divided) by the opportunities. Otherwise (if \code{opportunities_from = NULL}),
@@ -483,8 +483,7 @@ build_catalogues <- function(variants) {
 #' @return A numeric matrix of transformed signatures with the same dimensions as \code{signatures}.
 #' @examples
 #' # Load COSMIC signatures
-#' # These are in "NMF" format, i.e. they are relative
-#' # to the human genome mutational opportunities
+#' # (these are relative to the human genome mutational opportunities)
 #' data("cosmic_signatures_v2")
 #'
 #' # Plot COSMIC signature 1
