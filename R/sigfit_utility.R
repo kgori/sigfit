@@ -462,20 +462,24 @@ build_catalogues <- function(variants) {
 
 #' Convert signatures between models
 #'
-#' \code{convert_signatures} converts between a representation of signatures relative to the
-#' reference mutational opportunities (such as used in conventional NMF approaches), and a
-#' representation which is not relative to the mutational opportunities (as used in the EMu software).
-#' This is done by multiplying or dividing each signature by the average mutational opportunities
-#' of the samples, or by the human genome/exome reference trinucleotide frequencies.
+#' \code{convert_signatures} converts between a set of mutational signatures between two different
+#' sets of mutational opportunities.
 #' @param signatures Either a numeric matrix of mutational signatures, with one row per signature
 #' and one column per mutation type, or a list of matrices generated via \code{\link{retrieve_pars}}.
-#' @param ref_opportunities Numeric vector of reference or average mutational opportunities, with
-#' one element per mutation type. It also admits character values \code{"human-genome"} or
-#' \code{"human-exome"}, in which case the mutational opportunities of the reference human
-#' genome/exome will be used.
-#' @param model_to Model to convert to; admits character values \code{"nmf"} (in which case the
-#' signatures will be multiplied by the opportunities) or \code{"emu"} (in which case the signatures
-#' will be divided by the opportunities).
+#' @param opportunities_from Mutational opportunities that are currently imposed on the signatures.
+#' This can be a numeric matrix of mutational opportunities, with one row per signature and
+#' one column per mutation type; if the signatures were inferred together, then every row should
+#' contain the same opportunities. Character values \code{"human-genome"} or \code{"human-exome"}
+#' are also admitted, in which case the mutational opportunities of the reference human
+#' genome/exome will be used for every signature. If this argument is provided, the signatures will
+#' be normalised (divided) by the opportunities. Otherwise (if \code{opportunities_from = NULL}),
+#' the signatures will be interpreted as being already normalised (i.e. not relative to any
+#' opportunities).
+#' @param opportunities_to Mutational opportunities that are to be imposed on the signatures.
+#' Admits the same values as \code{opportunities_from}. If this argument is provided, the
+#' signatures will be multiplied by the opportunities. Otherwise (if \code{opportunities_to = NULL}),
+#' the signatures will be converted to a normalised representation (i.e. not relative to any
+#' opportunities).
 #' @return A numeric matrix of transformed signatures with the same dimensions as \code{signatures}.
 #' @examples
 #' # Load COSMIC signatures
@@ -486,46 +490,38 @@ build_catalogues <- function(variants) {
 #' # Plot COSMIC signature 1
 #' barplot(cosmic_signatures_v2[1,])
 #'
-#' # Convert signatures to the "EMu" format, i.e. make
-#' # them not relative to mutational opportunities
-#' converted_signatures <- convert_signatures(cosmic_signatures_v2,
-#'                                            ref_opportunities = "human-genome",
-#'                                            model_to = "emu")
-#'
-#' # Plot COSMIC signature 1, converted to "EMu" format
-#' barplot(converted_signatures[1,])
+#' # Convert signatures from genome-relative to exome-relative representation
+#' exome_sigs <- convert_signatures(cosmic_signatures_v2,
+#'                                  opportunities_from = "human-genome",
+#'                                  opportunities_to = "human-exome")
+#' barplot(exome_sigs[1,])
+#' 
+#' # Normalise signatures to a sequence-independent representation
+#' normalised_sigs <- convert_signatures(cosmic_signatures_v2,
+#'                                       opportunities_from = "human-genome",
+#'                                       opportunities_to = NULL)
+#' barplot(normalised_sigs[1,])
+#' 
+#' # Convert back to genome-relative opportunities
+#' genome_sigs <- convert_signatures(normalised_sigs,
+#'                                   opportunities_from = NULL,
+#'                                   opportunities_to = "human-genome")
+#' barplot(genome_sigs[1,])
 #' @export
-convert_signatures <- function(signatures, ref_opportunities, model_to) {
+convert_signatures <- function(signatures, opportunities_from = NULL, opportunities_to = NULL) {
+    if (is.null(opportunities_from) & is.null(opportunities_to)) {
+        stop("Either 'opportunities_from' or 'opportunities_to' must be provided.")
+    }
     signatures <- to_matrix(signatures)
-
-    if (ref_opportunities[1] %in% c("human-genome", "human-exome")) {
-        stopifnot(ncol(signatures) %in% c(96, 192))
-        strand <- ncol(signatures) == 192
-        if (strand) {
-            cat("'signatures' contains 192 mutations types: using transcriptional-strand-wise opportunities.\n")
-        }
-        ref_opportunities <- human_trinuc_freqs(type = ref_opportunities, strand = strand)
+    opportunities_from <- build_opps_matrix(nrow(signatures), ncol(signatures), opportunities_from)
+    opportunities_to <- build_opps_matrix(nrow(signatures), ncol(signatures), opportunities_to)
+    
+    conv_sigs <- signatures
+    for (i in 1:nrow(conv_sigs)) {
+        conv_sigs[i, ] <- conv_sigs[i, ] / opportunities_from[i, ] * opportunities_to[i, ]
+        conv_sigs[i, ] <- conv_sigs[i, ] / sum(conv_sigs[i, ])
     }
-    ref_opportunities <- as.numeric(ref_opportunities)
-    if (length(ref_opportunities) != ncol(signatures)) {
-        stop("'ref_opportunities' must have one element for each column in 'signatures'.")
-    }
-
-    if (model_to == "nmf") {
-        t(apply(signatures, 1, function(row) {
-            x <- row * ref_opportunities
-            x / sum(x)
-        }))
-    }
-    else if (model_to == "emu") {
-        t(apply(signatures, 1, function(row) {
-            x <- row / ref_opportunities
-            x / sum(x)
-        }))
-    }
-    else {
-        stop("'model_to' must be either \"nmf\" or \"emu\".")
-    }
+    conv_sigs
 }
 
 #' Retrieve model parameters
