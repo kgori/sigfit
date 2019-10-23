@@ -9,13 +9,14 @@ __sigfit__ is an R package to estimate signatures of mutational processes and th
 
 ### Improvements in version 2.0
 
-* __New signature models for analysis of real-valued catalogues ("normal") and robust signature fitting ("negbin")__
-* __Includes COSMIC signatures v3 (67 SBS signatures) and new test datasets__
-* __Support for non-standard signatures with arbitrary mutation categories, including generic spectrum plots__
+* __New models for analysis of real-valued data ("normal") and robust fitting to sparse data ("negbin")__
+* __New COSMIC v3 signatures (67 SBS signatures) and test datasets__
+* __Straightforward analysis and plotting of signatures defined over arbitrary mutation types__
 * __Support for mutational opportunities in all signature models__
-* __Support for signature and exposure priors__
+* __Support for signature and exposure priors in all signature models__
 * __Enhanced plotting functionalities__
 * __Increased MCMC sampling efficiency__
+* __Extended package vignette__
 
 ## Installation
 sigfit is an R package. As it is in early development it is not yet on CRAN, but can be installed from inside an R session using the [devtools](https://cran.r-project.org/web/packages/devtools/index.html) package.
