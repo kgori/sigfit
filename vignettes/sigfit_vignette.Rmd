@@ -238,6 +238,8 @@ Note that, for the correct determination of the number of signatures, `nsignatur
 
 With the exception of `chains`, the `extract_signatures` function recognises the same MCMC sampling options as `fit_signatures`  (`iter`, `warmup`, `seed`, etc.; see _Example 1_ above).
 
+Extraction of signatures _de novo_ from the 21 mutational catalogues is done for a range of 2–7 signatures as follows.
+
 ```{r extraction, eval=FALSE}
 mcmc_samples_extr <- sigfit::extract_signatures(counts = counts_21breast,
                                                 nsignatures = 2:7,
@@ -294,7 +296,7 @@ sigfit::plot_spectrum(signatures)
 
 The extracted signatures seem to be a combination of COSMIC signatures 1, 2, 3, 5 and 13. The signatures published in [COSMIC](http://cancer.sanger.ac.uk/cosmic/signatures) were obtained using a collection of hundreds of catalogues across many cancer types, which offered much higher statistical power than the 21 breast cancer catalogues employed here. Furthermore, the signatures obtained by sigfit show high similarity to those originally reported by [Nik-Zainal _et al._ (2012)](http://dx.doi.org/10.1016/j.cell.2012.04.024) (Fig. 2A). Note that signatures C and D in Nik-Zainal _et al._, which are very similar, have been identified by sigfit as a single signature (Signature B in the plot above).
 
-The extracted signatures can be __matched__ against a set of known signatures, such as the COSMIC signatures, to identify the best match for each signature, using the `match_signatures` function. This returns, for each signature in the first set, the index of the best match in the second signature set.
+The extracted signatures can be __matched__ against a set of known signatures, such as the COSMIC signatures, to identify the best match for each signature, using the `match_signatures` function. This returns, for each signature in the first set, the index of the __best match__ in the second signature set.
 
 ```{r match_sigs}
 data("cosmic_signatures_v2")
@@ -303,7 +305,7 @@ sigfit::match_signatures(signatures, cosmic_signatures_v2)
 
 In this case, the closest matches of the extracted signatures A, B, C and D are, respectively, COSMIC signatures 2, 3, 13 and 1.
 
-As a last remark, once that more-accurate signatures have been extracted by re-running `extract_signatures` for a single value of `nsignatures` (as recommended above), it might be useful to __re-fit__ these signatures back to the original catalogues, as this sometimes results in exposure estimates that are more accurate than the ones obtained by signature extraction. Assuming that the MCMC samples from the definitive signature extraction are stored in an object named `mcmc_samples_extr_2`, re-fitting is done as follows.
+As a last remark, once that more-accurate signatures have been extracted by re-running `extract_signatures` for a single value of `nsignatures` (as recommended above), it might be useful to __re-fit__ these signatures back to the original catalogues, as this sometimes results in exposure estimates that are __more accurate__ than the ones obtained by signature extraction. Assuming that the MCMC samples from the definitive signature extraction are stored in an object named `mcmc_samples_extr_2`, re-fitting is done as follows.
 
 ```{r refitting2, eval=FALSE}
 signatures <- retrieve_pars(mcmc_samples_extr_2, "signatures")
@@ -393,7 +395,7 @@ sigfit::plot_spectrum(genome_signatures$mean[4,], name="Signature D, Genome-rela
 sigfit::plot_spectrum(exome_signatures[4,], name="Signature D, Exome-relative probabilities")
 ```
 
-Signatures can be similarly converted from exome-relative into normalised or genome-relative representations, or between any two given sets of mutational opportunities (which should be provided as described in the previous section).
+Signatures can be similarly converted from exome-relative into normalised or genome-relative representations, or between any two given __matrices of opportunities__ (see previous section).
 
 ### Using Fit-Ext models to discover rare or novel signatures
 
