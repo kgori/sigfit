@@ -26,6 +26,7 @@ model parameters and to the lower and upper ends of their HPD intervals, respect
 activities or spectrum reconstructions) from a stanfit object.
 }
 \examples{
+\dontrun{
 # Load example mutational catalogues
 data("counts_21breast")
 
@@ -47,4 +48,5 @@ reconstructions <- retrieve_pars(samples, "reconstructions")
 plot_spectrum(signatures)
 plot_spectrum(reconstructions)
 barplot(t(exposures$mean))
+}
 }

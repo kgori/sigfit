@@ -4,30 +4,35 @@
 \alias{convert_signatures}
 \title{Convert signatures between models}
 \usage{
-convert_signatures(signatures, ref_opportunities, model_to)
+convert_signatures(signatures, opportunities_from = NULL,
+  opportunities_to = NULL)
 }
 \arguments{
 \item{signatures}{Either a numeric matrix of mutational signatures, with one row per signature
 and one column per mutation type, or a list of matrices generated via \code{\link{retrieve_pars}}.}
 
-\item{ref_opportunities}{Numeric vector of reference or average mutational opportunities, with
-one element per mutation type. It also admits character values \code{"human-genome"} or
-\code{"human-exome"}, in which case the mutational opportunities of the reference human
-genome/exome will be used.}
+\item{opportunities_from}{Mutational opportunities that are currently imposed on the signatures.
+This can be a numeric matrix of mutational opportunities, with one row per signature and
+one column per mutation type; if the signatures were inferred together, then every row should
+contain the same opportunities. Character values \code{"human-genome"} or \code{"human-exome"}
+are also admitted, in which case the mutational opportunities of the reference human
+genome/exome will be used for every signature. If this argument is provided, the signatures will
+be normalised (divided) by the opportunities. Otherwise (if \code{opportunities_from = NULL}),
+the signatures will be interpreted as being already normalised (i.e. not relative to any
+opportunities).}
 
-\item{model_to}{Model to convert to; admits character values \code{"nmf"} (in which case the
-signatures will be multiplied by the opportunities) or \code{"emu"} (in which case the signatures
-will be divided by the opportunities).}
+\item{opportunities_to}{Mutational opportunities that are to be imposed on the signatures.
+Admits the same values as \code{opportunities_from}. If this argument is provided, the
+signatures will be multiplied by the opportunities. Otherwise (if \code{opportunities_to = NULL}),
+the signatures will be converted to a normalised representation (i.e. not relative to any
+opportunities).}
 }
 \value{
 A numeric matrix of transformed signatures with the same dimensions as \code{signatures}.
 }
 \description{
-\code{convert_signatures} converts between a representation of signatures relative to the
-reference mutational opportunities (such as used in conventional NMF approaches), and a
-representation which is not relative to the mutational opportunities (as used in the EMu software).
-This is done by multiplying or dividing each signature by the average mutational opportunities
-of the samples, or by the human genome/exome reference trinucleotide frequencies.
+\code{convert_signatures} converts between a set of mutational signatures between two different
+sets of mutational opportunities.
 }
 \examples{
 # Load COSMIC signatures
@@ -38,12 +43,21 @@ data("cosmic_signatures_v2")
 # Plot COSMIC signature 1
 barplot(cosmic_signatures_v2[1,])
 
-# Convert signatures to the "EMu" format, i.e. make
-# them not relative to mutational opportunities
-converted_signatures <- convert_signatures(cosmic_signatures_v2,
-                                           ref_opportunities = "human-genome",
-                                           model_to = "emu")
+# Convert signatures from genome-relative to exome-relative representation
+exome_sigs <- convert_signatures(cosmic_signatures_v2,
+                                 opportunities_from = "human-genome",
+                                 opportunities_to = "human-exome")
+barplot(exome_sigs[1,])
 
-# Plot COSMIC signature 1, converted to "EMu" format
-barplot(converted_signatures[1,])
+# Normalise signatures to a sequence-independent representation
+normalised_sigs <- convert_signatures(cosmic_signatures_v2,
+                                      opportunities_from = "human-genome",
+                                      opportunities_to = NULL)
+barplot(normalised_sigs[1,])
+
+# Convert back to genome-relative opportunities
+genome_sigs <- convert_signatures(normalised_sigs,
+                                  opportunities_from = NULL,
+                                  opportunities_to = "human-genome")
+barplot(genome_sigs[1,])
 }

@@ -66,6 +66,7 @@ separate signatures and exposures matrices (or lists produced via \code{\link{re
 Only the former option allows the incorporation of HPD intervals to the reconstructed catalogue.
 }
 \examples{
+\dontrun{
 # Load example mutational catalogues
 data("counts_21breast")
 
@@ -83,4 +84,5 @@ plot_reconstruction(mcmc_samples = samples, pdf_path = "Reconstructions_1.pdf")
 # Plot reconstructed catalogues using retrieved signatures and exposures
 plot_reconstruction(counts = counts_21breast, signatures = signatures, exposures = exposures,
                     opportunities = "human-genome", pdf_path = "Reconstructions_2.pdf")
+}
 }

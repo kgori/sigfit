@@ -93,6 +93,7 @@ For a given set of signature fitting or extraction results, \code{plot_all} plot
 }
 }
 \examples{
+\dontrun{
 # Load example mutational catalogues
 data("counts_21breast")
 
@@ -111,4 +112,5 @@ plot_all(mcmc_samples = samples, out_path = ".", prefix = "Test1")
 plot_all(counts = counts_21breast, signatures = signatures,
          exposures = exposures, opportunities = "human-genome",
          out_path = ".", prefix = "Test2")
+}
 }

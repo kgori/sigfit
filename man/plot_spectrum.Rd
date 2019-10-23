@@ -44,14 +44,15 @@ interpreted as mutation counts (as in a catalogue); otherwise, they will be inte
 mutation probabilities (as in a signature).
 }
 \examples{
+\dontrun{
 # Load example mutational catalogues
 data("counts_21breast")
 
 # Plot catalogues
 plot_spectrum(counts_21breast, pdf_path = "Catalogues.pdf")
 
-# Extract signatures using the EMu (Poisson) model
-samples <- extract_signatures(counts_21breast, nsignatures = 2, model = "emu",
+# Extract signatures using the Poisson model
+samples <- extract_signatures(counts_21breast, nsignatures = 2, model = "poisson",
                               opportunities = "human-genome", iter = 800)
 
 # Retrieve extracted signatures
@@ -59,4 +60,5 @@ sigs <- retrieve_pars(samples, "signatures")
 
 # Plot signatures
 plot_spectrum(sigs, pdf_path = "Signatures.pdf")
+}
 }

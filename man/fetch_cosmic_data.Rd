@@ -7,19 +7,16 @@
 fetch_cosmic_data(reorder = TRUE, remove_zeros = TRUE)
 }
 \arguments{
-\item{reorder}{Logical; if \code{TRUE} (default), the matrix will be reordered by substitution type and trinucleotide.}
+\item{reorder}{Logical; if \code{TRUE} (default), the matrix will be reordered by substitution
+type and trinucleotide.}
 
-\item{remove_zeros}{Logical; if \code{TRUE} (default), pseudocounts will be added to prevent the signatures from
-containing any zeros, which can affect computation of the log likelihood.}
+\item{remove_zeros}{Logical; if \code{TRUE} (default), pseudocounts will be added to prevent the
+signatures from containing any zeros, which can affect computation of the log likelihood.}
 }
 \value{
 Matrix of signatures, with one row per signature and one column for each of
 the 96 trinucleotide mutation types.
 }
 \description{
-\code{fetch_cosmic_data} downloads the latest release of signatures from COSMIC
-(http://cancer.sanger.ac.uk/cosmic/signatures) and produces a matrix of signatures
-that can be used for signature fitting.
-NB. COSMIC signatures are also available in sigfit via the functions
-\code{data("cosmic_signatures_v2")} and \code{data("cosmic_signatures_v3")}.
+Fetch COSMIC mutational signatures (deprecated)
 }

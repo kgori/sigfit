@@ -71,6 +71,7 @@ more noise-robust version of the Poisson model. (However, the use of the negativ
 for signature extraction is discouraged due to its inefficiency.)
 }
 \examples{
+\dontrun{
 # Load example mutational catalogues
 data("counts_21breast")
 
@@ -84,4 +85,5 @@ samples_nmf <- extract_signatures(counts_21breast, nsignatures = 2:6,
 samples_emu <- extract_signatures(counts_21breast, nsignatures = 4, model = "emu",
                                   opportunities = "human-genome",
                                   iter = 1200, warmup = 400)
+}
 }

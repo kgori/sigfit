@@ -64,6 +64,7 @@ number of signatures.}
 \code{plot_exposures} plots the distribution of signature exposures across samples.
 }
 \examples{
+\dontrun{
 # Load example mutational catalogues and COSMIC signatures
 data("counts_21breast")
 data("cosmic_signatures_v2")
@@ -79,4 +80,5 @@ plot_exposures(mcmc_samples = samples, pdf_path = "Exposures.pdf")
 plot_exposures(counts = counts_21breast, exposures = exposures,
                signature_names = rownames(cosmic_signatures_v2),
                pdf_path = "Exposures.pdf")
+}
 }
