@@ -27,18 +27,18 @@ sigfit is an R package. As it is in early development it is not yet on CRAN, but
 
 #### Troubleshooting installation
 
-Problem:
+__Problem:__
 
     Error: 'rstan_config' is not an exported object from 'namespace:rstantools'
     
-Solution:
+__Solution:__  
 Update rstantools: `devtools::install_github("stan-dev/rstantools")`
 
-Problem:
+__Problem:__
 
     C++14 standard requested but CXX14 is not defined
     
-Solution:
+__Solution:__  
 Provide R with c++14 options via the file `~/.R/Makevars`, e.g.
 
     CXX14 = g++
