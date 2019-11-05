@@ -7,7 +7,7 @@
 
 __sigfit__ is an R package to estimate signatures of mutational processes and their activities on mutation count data. Starting from a set of single-nucleotide variants (SNVs), it allows both estimation of the exposure of samples to predefined mutational signatures (including whether the signatures are present at all), and identification of signatures _de novo_ from the mutation counts. These two procedures are often called, respectively, signature fitting and signature extraction. In addition, sigfit implements novel methodos to combine signature fitting and extraction into a single inferential process. The package provides interfaces to four different Bayesian models of signatures (multinomial, Poisson, normal and negative binomial), as well as a range of functions to generate publication-quality graphics of the corresponding mutational catalogues, signatures and exposures. Furthermore, the signature fitting and extraction methods in sigfit can be seamlessly applied to mutational profiles beyond SNV data, including indel or rearrangement count data, and even real-valued data such as DNA methylation profiles.
 
-### Enhancements in version 2.0 ('APOBEC Apocalypse', November 2019)
+### Enhancements in version 2.0 (November 2019)
 
 * New models for analysis of real-valued data ("normal") and robust fitting to sparse data ("negbin")
 * New COSMIC v3 signatures (67 SBS signatures) and test datasets
