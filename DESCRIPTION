@@ -2,15 +2,16 @@ Encoding: UTF-8
 Package: sigfit
 Type: Package
 Title: Flexible Bayesian inference of mutational signatures
-Version: 1.3.2
-Date: 2019-03-29
+Version: 2.0
+Date: 2019-11-08
 Authors@R: c(person("Kevin", "Gori", email = "kcg25@cam.ac.uk", role = c("aut", "cre")),
              person("Adrian", "Baez-Ortega", email = "ab2324@cam.ac.uk", role = "aut"))
-Description: This package implements Bayesian models for fitting and extracting
-    mixtures of mutational signatures from mutation count data. It provides
-    interfaces to a Poisson model and a Dirichlet-Multinomial NMF model, as well
-    as auxiliary functions for analysing and plotting resulting data. Markov Chain
-    Monte Carlo sampling is done using Stan.
+Description: This package implements Bayesian models for fitting and
+    extracting mixtures of mutational signatures from mutation count
+    data. It provides interfaces to four different Bayesian signature
+    models (multinomial, Poisson, normal and negative binomial), as
+    well as auxiliary functions for analysing and plotting resulting
+    data. Markov chain Monte Carlo sampling is performed using Stan.
 License: GPL (>=3)
 LazyData: true
 Biarch: true
@@ -20,7 +21,7 @@ Imports:
     methods,
     Rcpp (>= 0.12.0),
     rstan (>= 2.18.1),
-    rstantools (>= 2.0.0.9000),
+    rstantools (>= 2.0.0),
     coda (>= 0.19),
     clue (>= 0.3)
 LinkingTo: 
@@ -31,7 +32,6 @@ LinkingTo:
     StanHeaders (>= 2.18.0)
 SystemRequirements: GNU make
 RoxygenNote: 6.1.1
-Suggests: 
-    knitr,
-    rmarkdown
+NeedsCompilation: yes
+Suggests: knitr, rmarkdown
 VignetteBuilder: knitr

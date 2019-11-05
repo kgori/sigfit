@@ -2,19 +2,19 @@
 % Please edit documentation in R/sigfit_plotting.R
 \name{plot_gof}
 \alias{plot_gof}
-\title{Plot goodness of fit}
+\title{Plot goodness-of-fit}
 \usage{
 plot_gof(sample_list, stat = "cosine")
 }
 \arguments{
-\item{sample_list}{List containing the results of signature extraction
-(\code{\link{extract_signatures}}) using  multiple numbers of signatures.}
+\item{sample_list}{List containing the results of signature extraction using
+\code{\link{extract_signatures}} with multiple numbers of signatures (see argument
+\code{nsignatures} in \code{\link{extract_signatures}}).}
 
-\item{stat}{Character; function for measuring goodness of fit. Admits values \code{"cosine"}
-(default, cosine similarity) or \code{"L2"} (L2 norm or Euclidean distance).}
+\item{stat}{Function for measuring goodness-of-fit. Admits character values \code{"cosine"}
+(cosine similarity, default) or \code{"L2"} (L2 norm or Euclidean distance).}
 }
 \description{
-\code{plot_gof} plots the goodness of fit of a set of samples, each of which
-has typically been sampled using an extraction model (EMu or NMF) with a
-different number of signatures.
+\code{plot_gof} plots the goodness-of-fit of a set of samples, each of which has typically been
+sampled using an signature extraction model with a different number of signatures.
 }

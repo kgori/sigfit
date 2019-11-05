@@ -1,5 +1,18 @@
 CHANGE LOG
 
+2019/11/08
+Major changes introduced in v2.0 ('APOBEC Apocalypse')
+
+* New models for analysis of real-valued data ("normal") and robust fitting to sparse data ("negbin").
+* New COSMIC v3 signatures (67 SBS signatures) and test datasets.
+* Straightforward analysis and plotting of signatures defined over arbitrary mutation types.
+* Support for mutational opportunities in all signature models.
+* Support for signature and exposure priors in all signature models.
+* Enhanced plotting functionalities.
+* Increased MCMC sampling efficiency.
+* Extended package vignette.
+
+
 2019/03/29
 Major changes introduced in v1.3.1
 
