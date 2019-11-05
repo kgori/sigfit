@@ -3,7 +3,7 @@ Package: sigfit
 Type: Package
 Title: Flexible Bayesian inference of mutational signatures
 Version: 2.0
-Date: 2019-10-28
+Date: 2019-11-08
 Authors@R: c(person("Kevin", "Gori", email = "kcg25@cam.ac.uk", role = c("aut", "cre")),
              person("Adrian", "Baez-Ortega", email = "ab2324@cam.ac.uk", role = "aut"))
 Description: This package implements Bayesian models for fitting and
