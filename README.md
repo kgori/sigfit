@@ -23,7 +23,7 @@ sigfit is an R package. As it is in early development it is not yet on CRAN, but
 
     devtools::install_github("kgori/sigfit", build_opts = c("--no-resave-data", "--no-manual"))
     
-`build_opts` can be omitted, but it will not build the package vignette in this case.
+`build_opts` can be omitted, but the package vignette will not be built in this case.
 
 ### Troubleshooting installation
 
