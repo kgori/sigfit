@@ -51,6 +51,8 @@ __Vignette contents__
 
 * [Using Fit-Ext models to discover rare or novel signatures](#using-fit-ext-models-to-discover-rare-or-novel-signatures)
 
+* [Signature extraction using multiple chains](#signature-extraction-using-multiple-chains)
+
 * [Using the Dirichlet process prior to determine the number of signatures](#using-the-dirichlet-process-prior-to-determine-the-number-of-signatures)
 
 * [List of available data sets](#list-of-available-data-sets)
@@ -76,6 +78,7 @@ This example will use the mutational signatures from [COSMIC](http://cancer.sang
 First of all, we need some mutational signatures to fit to our data. The line below loads the 30 mutational signatures published in COSMIC (v2).
 
 ```{r fetch}
+library(sigfit)
 data("cosmic_signatures_v2")
 ```
 
@@ -92,47 +95,55 @@ Here is what the __mutational spectrum__ of our simulated counts looks like.
 
 ```{r plotsim, fig.width=20, fig.height=7, out.width="100%", echo=-1}
 par(mar = c(4.5,5.5,6.5,1))
-sigfit::plot_spectrum(mutations, name = "Simulated counts")
+plot_spectrum(mutations, name = "Simulated counts")
 ```
 
 ### Fitting mutational signatures
 
-Next, we can use the ```fit_signatures``` function in sigfit to __fit__ the COSMIC signatures, i.e. to estimate the __exposure__ to each signature (pretending we ignore that it was generated from signatures 1, 3, 7 and 11). This function uses the [Stan](http://mc-stan.org/) framework to produces Markov chain Monte Carlo (MCMC) samples from a Bayesian model of signatures. 
+Next, we can use the `fit_signatures` function in sigfit to __fit__ the COSMIC signatures, i.e. to estimate the __exposure__ to each signature (pretending we ignore that it was generated from signatures 1, 3, 7 and 11). This function uses the [Stan](http://mc-stan.org/) framework to produces Markov chain Monte Carlo (MCMC) samples from a Bayesian model of signatures. 
 
-Arguments to the ```rstan::sampling``` function, such as ```iter```, ```warmup```, ```chains```, ```seed```, etc., can be passed through the ```fit_signatures``` function. The arguments ```warmup``` and ```iter``` specify the number of __‘warm-up’__ (or ‘burn-in’) iterations and the total number of __sampling iterations__ (including warm-up iterations), respectively. We recommend that the value of ```warmup``` be between one-third and half the value of ```iter```. The behaviour of the MCMC sampler (which ultimately affects the quality of the analysis) depends on parameters set during the warm-up, so it is important to run enough warm-up iterations. By default, ```rstan::sampling``` uses ```iter = 2000``` and ```warmup = floor(iter/2)```; going below these values is generally not advised. The ```chains``` argument can be used to parallelise the sampling process by using multiple __Markov chains__, the number of which should never exceed the number of processors (the ```rstan::sampling``` function uses ```chains = 4``` by default). The ```seed``` argument can be used to make the MCMC samples __reproducible__ over different runs. For further sampling options, type ```?rstan::sampling``` to read the documentation.
+Arguments to the `rstan::sampling` function, such as `iter`, `warmup`, `chains`, `seed`, etc., can be passed through the `fit_signatures` function.
 
-> __In general, one should run as many MCMC iterations (```iter```) as one’s computer and patience allow, with runtime and memory being the major constraints.__
+* The arguments `warmup` and `iter` specify the number of __‘warm-up’__ (or ‘burn-in’) iterations and the total number of __sampling iterations__ (including warm-up iterations), respectively. We recommend that the value of `warmup` be between one-third and half the value of `iter`. The behaviour of the MCMC sampler (which ultimately affects the quality of the analysis) depends on parameters set during the warm-up, so it is important to run enough warm-up iterations. By default, `rstan::sampling` uses `iter = 2000` and `warmup = floor(iter/2)`; going below these values is generally not advised.
 
-The ```fit_signatures``` function can be used to fit the COSMIC signatures to the simulated counts as follows.
+> __In general, one should run as many MCMC iterations (`iter`) as one’s computer and patience allow, with runtime and memory being the major constraints.__
+
+* The `chains` argument can be used to parallelise the sampling process by using multiple __Markov chains__, the number of which should never exceed the number of processors (the `rstan::sampling` function uses `chains = 4` by default). To run multiple chains in parallel, the number of processors first needs to be set using `options(mc.cores = parallel::detectCores())`.
+
+* The `seed` argument can be used to make the MCMC samples __reproducible__ over different runs.
+
+* For further sampling options, type `?rstan::sampling` to read the documentation.
+
+The `fit_signatures` function can be used to fit the COSMIC signatures to the simulated counts as follows.
 
 ```{r fitting, warning=FALSE}
-mcmc_samples_fit <- sigfit::fit_signatures(counts = mutations, 
-                                           signatures = cosmic_signatures_v2,
-                                           iter = 2000, 
-                                           warmup = 1000, 
-                                           chains = 1, 
-                                           seed = 1756)
+mcmc_samples_fit <- fit_signatures(counts = mutations, 
+                                   signatures = cosmic_signatures_v2,
+                                   iter = 2000, 
+                                   warmup = 1000, 
+                                   chains = 1, 
+                                   seed = 1756)
 ```
 
-For details about further arguments of ```fit_signatures```, including alternative signature models, mutational opportunities and exposure priors, see the _Other functionalities_ section at the end of this vignette, or type ```?fit_signatures``` to read the documentation.
+For details about further arguments of `fit_signatures`, including alternative signature models, mutational opportunities and exposure priors, see the _Other functionalities_ section at the end of this vignette, or type `?fit_signatures` to read the documentation.
 
 ### Retrieving signature exposures
 
-Once we have the result of the MCMC sampling in ```mcmc_samples_fit```, we can __retrieve__ the estimated exposures from it using the ```retrieve_pars``` function. This returns a named list with three matrices, one containing the __mean__ exposures, and the others containing the values corresponding to the lower and upper limits of the highest posterior density (__HPD__) interval for each signature exposure in each sample (HPD intervals are the Bayesian alternative to classical confidence intervals). The ```prob``` argument can be used to indicate the target probability content of the HPD interval; by default, 95% HPD intervals are returned.
+Once we have the result of the MCMC sampling in `mcmc_samples_fit`, we can __retrieve__ the estimated exposures from it using the `retrieve_pars` function. This returns a named list with three matrices, one containing the __mean__ exposures, and the others containing the values corresponding to the lower and upper limits of the highest posterior density (__HPD__) interval for each signature exposure in each sample (HPD intervals are the Bayesian alternative to classical confidence intervals). The `prob` argument can be used to indicate the target probability content of the HPD interval; by default, 95% HPD intervals are returned.
 
 Since we are fitting known signatures instead of extracting them _de novo_, the exposures will be automatically labelled with the signature names. If the signatures have no names, or if they have been extracted instead of fitted, they will be labelled as ‘Signature A’, ‘Signature B’, etc.
 
 ```{r retrieve_exp}
-exposures <- sigfit::retrieve_pars(mcmc_samples_fit, 
-                                   par = "exposures", 
-                                   hpd_prob = 0.90)
+exposures <- retrieve_pars(mcmc_samples_fit, 
+                           par = "exposures", 
+                           hpd_prob = 0.90)
 names(exposures)
 exposures$mean
 ```
 
-In this case, because there is only one sample, the exposures are returned as a numeric vector. For cases with multiple `samples`, ```exposures$mean``` is a matrix with one row per sample and one column per signature.
+In this case, because there is only one sample, the exposures are returned as a numeric vector. For cases with multiple `samples`, `exposures$mean` is a matrix with one row per sample and one column per signature.
 
-The entire __posterior distribution__ of the signature exposures and other model parameters in the ```mcmc_samples_fit``` object can be further explored by means of the functions provided by the [rstan](http://mc-stan.org/rstan) package. In addition, [ShinyStan](http://mc-stan.org/users/interfaces/shinystan) can be easily used in R for visual exploration of the MCMC samples.
+The entire __posterior distribution__ of the signature exposures and other model parameters in the `mcmc_samples_fit` object can be further explored by means of the functions provided by the [rstan](http://mc-stan.org/rstan) package. In addition, [ShinyStan](http://mc-stan.org/users/interfaces/shinystan) can be easily used in R for visual exploration of the MCMC samples.
 
 ### Visualisation
 
@@ -146,7 +157,7 @@ The `plot_exposures` function produces barplots of the estimated __signature exp
 
 ```{r plot_exp, fig.width=17, fig.height=7, out.width='100%', fig.align="center", echo=-1}
 par(mar=c(8,5,3.5,0))
-sigfit::plot_exposures(mcmc_samples = mcmc_samples_fit)
+plot_exposures(mcmc_samples = mcmc_samples_fit)
 ```
 
 The bars in this plot are coloured __blue__ if the estimated exposure value is ‘sufficiently non-zero’, and __grey__ otherwise. It is difficult for the model to make hard assignments of which signatures are present or absent due to the non-negative constraint on the estimate, which means that the range of values in the sample will not normally include zero. In practice, ‘sufficiently non-zero’ means that the lower end of the Bayesian HPD interval (see the previous section) is above a threshold value close to zero (by default 0.01, and adjustable via the `thresh` argument). In this example, sigfit has identified the 4 signatures used to construct the sample.
@@ -155,27 +166,27 @@ Next, we would recommend re-running `fit_signatures`, this time to fit only thos
 
 ```{r refitting, eval=FALSE}
 selected_signatures <- c(1, 3, 7, 11)
-mcmc_samples_fit_2 <- sigfit::fit_signatures(mutations, 
-                                             cosmic_signatures_v2[selected_signatures, ],
-                                             iter = 2000, 
-                                             warmup = 1000, 
-                                             chains = 1, 
-                                             seed = 1756)
+mcmc_samples_fit_2 <- fit_signatures(mutations, 
+                                     cosmic_signatures_v2[selected_signatures, ],
+                                     iter = 2000, 
+                                     warmup = 1000, 
+                                     chains = 1, 
+                                     seed = 1756)
 ```
 
 We can also examine how effectively the estimated signatures and/or exposures can reconstruct the original mutational catalogues, by producing __spectrum reconstruction__ plots with the `plot_reconstruction` function.
 
 ```{r reconstruct, fig.width=25, fig.height=18.5, out.width='100%', warning=FALSE, results="hide", echo=-1}
 par(mar=c(5,6,6.5,1))
-sigfit::plot_reconstruction(mcmc_samples = mcmc_samples_fit)
+plot_reconstruction(mcmc_samples = mcmc_samples_fit)
 ```
 
 Finally, the `plot_all` function provides a simpler way of __simultaneously__ calling the `plot_spectrum`, `plot_exposures` and `plot_reconstructions` functions for a single set of results. This function plots exclusively to PDF files, and the `out_path` argument is used to indicate the path of the directory where the files should be produced (if the directory does not exist, it will be automatically created). The `prefix` argument applies to the output file names, and can be used to distinguish different sets of plots from each other. An example is shown below.
 
 ```{r plot_all, eval=FALSE}
-sigfit::plot_all(mcmc_samples = mcmc_samples_fit, 
-                 out_path = "your/output/dir/here",
-                 prefix = "Fitting")
+plot_all(mcmc_samples = mcmc_samples_fit, 
+         out_path = "your/output/dir/here",
+         prefix = "Fitting")
 ```
 
 
@@ -186,6 +197,7 @@ sigfit::plot_all(mcmc_samples = mcmc_samples_fit,
 In this second example, we will use single-nucleotide variant (SNV) data from the set of 21 breast cancer samples originally analysed by [Nik-Zainal _et al._ (2012)](http://dx.doi.org/10.1016/j.cell.2012.04.024). These data can be accessed using the `data` function as follows.
 
 ```{r load_mutations}
+library(sigfit)
 data("variants_21breast")
 head(variants_21breast)
 ```
@@ -211,7 +223,7 @@ unique(variants_21breast[, 1])
 The first step is to transform these variants into __mutational catalogues__, which is done by the `build_catalogues` function. (You can skip this step if you already have mutational catalogues for your samples.)
 
 ```{r build_catalogues}
-counts_21breast <- sigfit::build_catalogues(variants_21breast)
+counts_21breast <- build_catalogues(variants_21breast)
 dim(counts_21breast)
 counts_21breast[1:5, 1:8]
 ```
@@ -225,7 +237,7 @@ We can plot the __spectrum__ of each mutational catalogue using `plot_spectrum`,
 ```{r plot_spectra, fig.width=22, fig.height=23, out.width='100%', fig.align="center", echo=-1}
 par(mar = c(5,6,7,2))
 par(mfrow = c(7, 3))
-sigfit::plot_spectrum(counts_21breast)
+plot_spectrum(counts_21breast)
 ```
 
 ### Extracting mutational signatures _de novo_
@@ -241,10 +253,10 @@ With the exception of `chains`, the `extract_signatures` function recognises the
 Extraction of signatures _de novo_ from the 21 mutational catalogues is done for a range of 2–7 signatures as follows.
 
 ```{r extraction, eval=FALSE}
-mcmc_samples_extr <- sigfit::extract_signatures(counts = counts_21breast,
-                                                nsignatures = 2:7,
-                                                iter = 1000, 
-                                                seed = 1756)
+mcmc_samples_extr <- extract_signatures(counts = counts_21breast,
+                                        nsignatures = 2:7,
+                                        iter = 1000, 
+                                        seed = 1756)
 ```
 
 ```{r plot_gof_silent, echo=FALSE, fig.width=9, fig.height=6, out.width="100%"}
@@ -277,8 +289,8 @@ signatures <- extr_signatures
 ```
 ```{r retrieve_sigs, eval=FALSE}
 ## Note: mcmc_samples_extr[[N]] contains the extraction results for N signatures
-signatures <- sigfit::retrieve_pars(mcmc_samples_extr[[4]],
-                                    par = "signatures")
+signatures <- retrieve_pars(mcmc_samples_extr[[4]],
+                            par = "signatures")
 ```
 ```{r show_signames}
 rownames(signatures$mean)
@@ -291,7 +303,7 @@ Below we plot the signatures extracted from these 21 catalogues.
 ```{r plot_sigs, warning=FALSE, fig.width=25, fig.height=10, out.width='100%', fig.align="center", echo=-1}
 par(mar = c(6,7,6,1))
 par(mfrow = c(2, 2))
-sigfit::plot_spectrum(signatures)
+plot_spectrum(signatures)
 ```
 
 The extracted signatures seem to be a combination of COSMIC signatures 1, 2, 3, 5 and 13. The signatures published in [COSMIC](http://cancer.sanger.ac.uk/cosmic/signatures) were obtained using a collection of hundreds of catalogues across many cancer types, which offered much higher statistical power than the 21 breast cancer catalogues employed here. Furthermore, the signatures obtained by sigfit show high similarity to those originally reported by [Nik-Zainal _et al._ (2012)](http://dx.doi.org/10.1016/j.cell.2012.04.024) (Fig. 2A). Note that signatures C and D in Nik-Zainal _et al._, which are very similar, have been identified by sigfit as a single signature (Signature B in the plot above).
@@ -300,7 +312,7 @@ The extracted signatures can be __matched__ against a set of known signatures, s
 
 ```{r match_sigs}
 data("cosmic_signatures_v2")
-sigfit::match_signatures(signatures, cosmic_signatures_v2)
+match_signatures(signatures, cosmic_signatures_v2)
 ```
 
 In this case, the closest matches of the extracted signatures A, B, C and D are, respectively, COSMIC signatures 2, 3, 13 and 1.
@@ -369,26 +381,26 @@ The `convert_signatures` function can be used to convert a matrix of (human) gen
 ```{r convert_sigs, eval=F}
 # (Following from the signature extraction example presented above)
 # Retrieve genome-derived signatures
-genome_signatures <- sigfit::retrieve_pars(mcmc_samples_extr[[4]],
-                                           par = "signatures")
+genome_signatures <- retrieve_pars(mcmc_samples_extr[[4]],
+                                   par = "signatures")
 
 # Apply exome mutational opportunities
-exome_signatures <- sigfit::convert_signatures(genome_signatures, 
-                                               opportunities_from = "human-genome",
-                                               opportunities_to = "human-exome")
+exome_signatures <- convert_signatures(genome_signatures, 
+                                       opportunities_from = "human-genome",
+                                       opportunities_to = "human-exome")
 
 par(mfrow = c(2, 1))
-sigfit::plot_spectrum(genome_signatures$mean[4,],
-                      name = "Signature D, Genome-relative probabilities")
-sigfit::plot_spectrum(exome_signatures[4,],
-                      name = "Signature D, Exome-relative probabilities")
+plot_spectrum(genome_signatures$mean[4,],
+              name = "Signature D, Genome-relative probabilities")
+plot_spectrum(exome_signatures[4,],
+              name = "Signature D, Exome-relative probabilities")
 ```
 
 ```{r convert_sigs_silent, echo=F, fig.width=22, fig.height=14, out.width="100%"}
-exome_signatures <- sigfit::convert_signatures(signatures, opportunities_from = "human-genome", opportunities_to = "human-exome")
+exome_signatures <- convert_signatures(signatures, opportunities_from = "human-genome", opportunities_to = "human-exome")
 par(mfrow = c(2, 1), mar = c(5,5.5,6.5,1))
-sigfit::plot_spectrum(signatures$mean[4,], name="Signature D, Genome-relative probabilities")
-sigfit::plot_spectrum(exome_signatures[4,], name="Signature D, Exome-relative probabilities")
+plot_spectrum(signatures$mean[4,], name="Signature D, Genome-relative probabilities")
+plot_spectrum(exome_signatures[4,], name="Signature D, Exome-relative probabilities")
 ```
 
 Signatures can be similarly converted from exome-relative to genome-relative representations, or between any two given __matrices of opportunities__ (see previous section). In addition, if the `opportunities_to` argument is omitted, the signatures will only be __normalised__ by the original opportunities (given by `opportunities_from`), such that they will not be relative to any particular reference sequence. (Another way of obtaining sequence-independent signatures is to specify the mutational opportunities when running `extract_signatures`.)
@@ -403,9 +415,43 @@ The Fit-Ext models can be accessed via the `fit_extract_signatures` function. Th
 
 For further details on the Fit-Ext models, see the sigfit [paper](https://doi.org/10.1101/372896) or type `?fit_extract_signatures` to read the documentation.
 
+### Signature extraction using multiple chains
+
+__NOTE: This is an experimental feature and may not work properly.__
+
+As explained above, the use of multiple Markov chains for signature extraction can give rise to a problem known as ‘label switching’ which can invalidate the inferences (see _Example 2_). In many cases, this problem can be mitigated by initialising the sampler with parameter values obtained from a preliminary sampling run. To do this, we can run the `extract_signatures` functions on a single chain for a short number of iterations, and then use the `get_initializer_list` function to pass initial parameter values obtained from this short run to a longer, multi-chain extraction run, via the `init` argument. An example is given below.
+
+```{r multichain, eval=F}
+# Load mutation counts
+data("counts_21breast")
+
+# Set number of cores for multi-chain sampling
+ncores <- parallel::detectCores()
+options(mc.cores = ncores)
+
+# Run a short single chain to find initial parameter values
+ext_init <- extract_signatures(counts_21breast,
+                               nsignatures = 4,
+                               iter = 1000,
+                               chains = 1)
+
+# Obtain a list of initial parameter values
+inits <- get_initializer_list(ext_init, chains = ncores)
+
+# Run multiple chains in parallel, initialised at the values found in the short run
+# (make sure to use the same number of chains as in `get_initializer_list`)
+ext_multichain <- extract_signatures(counts_21breast,
+                                     nsignatures = 4,
+                                     iter = 5000,
+                                     chains = ncores,
+                                     init = inits)
+```
+
 ### Using the Dirichlet process prior to determine the number of signatures
 
-The Dirichlet process prior (DPP) allows the automatic determination of the number of signatures present in the data, without the need to perform signature extraction for different numbers of signatures. However, note that __this is an experimental feature__ and may not always work properly. We recommend using the standard goodness-of-fit procedure for the determination of the number of signatures, as shown in _Example 2_ (above).
+__NOTE: This is an experimental feature and may not work properly.__
+
+The Dirichlet process prior (DPP) allows the automatic determination of the number of signatures present in the data, without the need to perform signature extraction for different numbers of signatures. We recommend using the standard goodness-of-fit procedure for the determination of the number of signatures, as shown in _Example 2_ (above).
 
 The DPP can be activated in the functions `extract_signatures` and `fit_extract_signatures` using `dpp = TRUE`. The number of signatures to extract should be larger than the maximum number of signatures expected (e.g. `nsignatures = 20`). Those signatures whose presence is not supported by the data should collapse into random noise, such that the number of signatures is given by the signatures which did not collapse. The `dpp_conc` argument allows to modify the value of the DPP concentration parameter.
 
