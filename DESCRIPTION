@@ -13,7 +13,7 @@ Description: This package implements Bayesian models for fitting and
     well as auxiliary functions for analysing and plotting resulting
     data. Markov chain Monte Carlo sampling is performed using Stan.
 License: GPL (>=3)
-LazyData: true
+LazyData: false
 Biarch: true
 Depends: 
     R (>= 3.4.0)
