@@ -57,7 +57,7 @@ The corresponding BibTeX entry is:
     }
 
 
-### Troubleshooting installation
+## Troubleshooting installation
 
 __Problem:__
 
