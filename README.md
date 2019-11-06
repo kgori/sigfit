@@ -25,7 +25,7 @@ sigfit is an R package. As it is in early development it is not yet on CRAN, but
     
 The `build_opts` argument can be omitted, but the package vignette will not be built in this case.
 
-For solutions to some of the problems that may arise during installation, see the __[Troubleshooting installation](#troubleshooting-installation)__ section below.
+For solutions to some of the problems that may arise during installation, see the __[Troubleshooting installation](#troubleshooting-installation)__ section.
 
 
 ## Usage guide
@@ -70,6 +70,8 @@ You should have received a copy of the GNU General Public License along with thi
 
 
 ## Troubleshooting installation
+
+Below are the solutions to some of the problems that may arise during installation.
 
 __Problem:__
 
