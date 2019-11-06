@@ -59,10 +59,10 @@ fit_signatures <- function(counts, signatures, exp_prior = NULL, model = "multin
     signatures <- to_matrix(signatures)
     
     if (model != "normal" & !all(counts_real - counts_int == 0)) {
-        warning("Using discrete model for non-integer counts: counts have been rounded.")
+        warning("Using a discrete model for non-integer counts: counts have been rounded.")
     }
     if (model == "normal" & all(counts_real - counts_int == 0)) {
-        warning("Using continuous model for integer counts; we recommend using a discrete model instead.")
+        warning("Using a continuous model for integer counts; we recommend using a discrete model instead.")
     }
     
     # Add pseudocounts to signatures
