@@ -177,8 +177,8 @@ mutations &lt;-<span class="st"> </span><span class="kw">matrix</span>(<span cla
 ## Stan sampling:
 ## SAMPLING FOR MODEL 'sigfit_fit' NOW (CHAIN 1).
 ## Chain 1: 
-## Chain 1: Gradient evaluation took 7e-05 seconds
-## Chain 1: 1000 transitions using 10 leapfrog steps per transition would take 0.7 seconds.
+## Chain 1: Gradient evaluation took 0.000236 seconds
+## Chain 1: 1000 transitions using 10 leapfrog steps per transition would take 2.36 seconds.
 ## Chain 1: Adjust your expectations accordingly!
 ## Chain 1: 
 ## Chain 1: 
@@ -195,9 +195,9 @@ mutations &lt;-<span class="st"> </span><span class="kw">matrix</span>(<span cla
 ## Chain 1: Iteration: 1800 / 2000 [ 90%]  (Sampling)
 ## Chain 1: Iteration: 2000 / 2000 [100%]  (Sampling)
 ## Chain 1: 
-## Chain 1:  Elapsed Time: 0.866994 seconds (Warm-up)
-## Chain 1:                0.541237 seconds (Sampling)
-## Chain 1:                1.40823 seconds (Total)
+## Chain 1:  Elapsed Time: 1.12278 seconds (Warm-up)
+## Chain 1:                0.604154 seconds (Sampling)
+## Chain 1:                1.72694 seconds (Total)
 ## Chain 1:</code></pre>
 <p>For details about further arguments of <code>fit_signatures</code>, including alternative signature models, mutational opportunities and exposure priors, see the <em>Other functionalities</em> section at the end of this vignette, or type <code>?fit_signatures</code> to read the documentation.</p>
 </div>
@@ -274,7 +274,7 @@ mcmc_samples_fit_<span class="dv">2</span> &lt;-<span class="st"> </span><span c
 <li><p><strong>Sample ID</strong> (character, e.g. <code>&quot;Sample 1&quot;</code>).</p></li>
 <li><p><strong>Reference base</strong> (character: <code>&quot;A&quot;</code>, <code>&quot;C&quot;</code>, <code>&quot;G&quot;</code>, or <code>&quot;T&quot;</code>).</p></li>
 <li><p><strong>Mutated base</strong> (character: <code>&quot;A&quot;</code>, <code>&quot;C&quot;</code>, <code>&quot;G&quot;</code>, or <code>&quot;T&quot;</code>).</p></li>
-<li><p><strong>Trinucleotide context</strong> of the variant (character; reference sequence between the positions immediately before (-1) and after (+1) the variant, e.g. <code>&quot;TCA&quot;</code>). This can be obtained from the reference genome that was used to call the variants, using an R package like <a href="https://bioconductor.org/packages/release/bioc/html/BSgenome.html">BSgenome</a>; however, sequence context information is sometimes provided by variant callers within the ‘INFO’ field of the VCF file.</p></li>
+<li><p><strong>Trinucleotide context</strong> of the variant (character; reference sequence between the positions immediately before (-1) and after (+1) the variant, e.g. <code>&quot;TCA&quot;</code>). This can be obtained from the reference genome that was used to call the variants, using an R package like <a href="https://doi.org/doi:10.18129/B9.bioc.BSgenome">BSgenome</a> or <a href="https://doi.org/doi:10.18129/B9.bioc.Biostrings">Biostrings</a>; however, sequence context information is sometimes provided by variant callers within the ‘INFO’ field of the VCF file.</p></li>
 <li><p><strong>Optionally</strong>: for variants in protein-coding regions, if information is available about the <strong>transcriptional strand</strong> where each variant occurred, this can be incorporated as a fifth column taking character values <code>&quot;1&quot;</code> / <code>&quot;U&quot;</code> (for the untranscribed strand) or <code>&quot;-1&quot;</code> / <code>&quot;T&quot;</code> (for the transcribed strand). If the table is a data frame, integer values <code>1</code> and <code>-1</code> are also admitted. If this fifth column is present in the table, all the estimation and plotting functions will automatically incorporate transcriptional strand information. The interpretation of <code>1</code> and <code>-1</code> as the untranscribed and transcribed strands, respectively, allows direct use of the ‘Strand’ field that is normally provided by variant annotation tools, such as the <a href="http://www.ensembl.org/info/docs/tools/vep/index.html">VEP</a> (Annotation tools use ‘Strand’ values of <code>1</code> and <code>-1</code> to indicate that the corresponding gene is located on the forward or reverse strand, respectively. Since variants are always called on the forward strand, this value informs about the transcriptional strand of variants.)</p></li>
 </ul>
 <p>Importantly, since a variant can only have a single sample ID, variants which are found in <strong>more than one sample</strong> need to be included multiple times in the table, using different sample IDs. The order in which the samples are found in this table is the order in which they will be displayed thereafter. In this case, the samples are already sorted alphabetically:</p>
