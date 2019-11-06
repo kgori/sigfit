@@ -211,10 +211,10 @@ extract_signatures <- function(counts, nsignatures, model = "multinomial", oppor
     counts_int <- to_matrix(counts, int = TRUE)
     
     if (model != "normal" & !all(counts_real - counts_int == 0)) {
-        warning("Using discrete model for non-integer counts: counts have been rounded.")
+        warning("Using a discrete model for non-integer counts: counts have been rounded.")
     }
     if (model == "normal" & all(counts_real - counts_int == 0)) {
-        warning("Using continuous model for integer counts; we recommend using a discrete model instead.")
+        warning("Using a continuous model for integer counts; we recommend using a discrete model instead.")
     }
     
     NSAMP <- nrow(counts)
@@ -427,10 +427,10 @@ fit_extract_signatures <- function(counts, signatures, num_extra_sigs,
     signatures <- to_matrix(signatures)
     
     if (model != "normal" & !all(counts_real - counts_int == 0)) {
-        warning("Using discrete model for non-integer counts: counts have been rounded.")
+        warning("Using a discrete model for non-integer counts: counts have been rounded.")
     }
     if (model == "normal" & all(counts_real - counts_int == 0)) {
-        warning("Using continuous model for integer counts; we recommend using a discrete model instead.")
+        warning("Using a continuous model for integer counts; we recommend using a discrete model instead.")
     }
     
     # Add pseudocounts to signatures
