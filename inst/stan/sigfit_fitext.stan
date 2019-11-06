@@ -3,7 +3,7 @@ functions {
 }
 
 data {
-    int<lower=1, upper=3> family;   // model: 1=multinomial, 2=poisson, 3=negbin, 4=normal
+    int<lower=1, upper=4> family;   // model: 1=multinomial, 2=poisson, 3=negbin, 4=normal
     int<lower=1> C;                 // number of mutation categories
     int<lower=1> S;                 // number of fixed signatures
     int<lower=1> G;                 // number of genomes
