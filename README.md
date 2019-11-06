@@ -66,6 +66,8 @@ __Problem:__
 __Solution:__  
 Update rstantools: `devtools::install_github("stan-dev/rstantools")`
 
+---
+
 __Problem:__
 
     C++14 standard requested but CXX14 is not defined
@@ -78,6 +80,8 @@ Provide R with c++14 options via the file `~/.R/Makevars`, e.g.
     CXX14PICFLAGS = -fpic
     CXX14STD = -std=gnu++14
 
+---
+
 __Problem:__
 
     make: *** [stanExports_sigfit_ext.o] Error 1
@@ -89,6 +93,8 @@ Which is preceded by a series of compilation errors related to `StanHeaders`, su
 
 __Solution:__  
 Provide R with c++14 options via the file `~/.R/Makevars`, as described above.
+
+---
 
 __Problem:__
 
