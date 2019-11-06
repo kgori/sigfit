@@ -23,7 +23,39 @@ sigfit is an R package. As it is in early development it is not yet on CRAN, but
 
     devtools::install_github("kgori/sigfit", build_opts = c("--no-resave-data", "--no-manual"))
     
-`build_opts` can be omitted, but the package vignette will not be built in this case.
+The `build_opts` argument can be omitted, but the package vignette will not be built in this case.
+
+For solutions to some of the problems that may arise during installation, see the __Troubleshooting installation__ section below.
+
+
+## Usage guide
+
+See the package vignette for detailed usage examples:
+
+    browseVignettes("sigfit")
+    
+If the vignette is not available because it was not built during installation, you can build it using `tools::buildVignettes("sigfit")`.
+
+### You can also browse the package vignette on [GitHub](http://htmlpreview.github.io/?https://github.com/kgori/sigfit/blob/master/doc/sigfit_vignette.html).
+
+
+## Citation
+
+To cite sigfit in publications, please use:
+
+* **Kevin Gori, Adrian Baez-Ortega. sigfit: flexible Bayesian inference of mutational signatures. _bioRxiv_, 372896 (2018). doi: [10.1101/372896](http://doi.org/10.1101/372896).**
+
+The corresponding BibTeX entry is:
+
+    @Article{sigfit,
+        title = {sigfit: flexible Bayesian inference of mutational signatures},
+        author = {Gori, Kevin and Baez-Ortega, Adrian},
+        journal = {bioRxiv},
+        year = {2018},
+        pages = {372896},
+        doi = {10.1101/372896}
+    }
+
 
 ### Troubleshooting installation
 
@@ -46,32 +78,29 @@ Provide R with c++14 options via the file `~/.R/Makevars`, e.g.
     CXX14PICFLAGS = -fpic
     CXX14STD = -std=gnu++14
 
+__Problem:__
 
-## Usage guide
+    make: *** [stanExports_sigfit_ext.o] Error 1
+    ERROR: compilation failed for package ‘sigfit’
 
-See the package vignette for detailed usage examples:
+Which is preceded by a series of compilation errors related to `StanHeaders`, such as:
 
-    browseVignettes("sigfit")
+    .../R/x86_64-pc-linux-gnu-library/3.6/StanHeaders/include/stan/math/rev/mat/functor/adj_jac_apply.hpp:619:15: error: invalid use of ‘auto’
 
-### You can also browse the package vignette on [GitHub](http://htmlpreview.github.io/?https://github.com/kgori/sigfit/blob/master/doc/sigfit_vignette.html).
+__Solution:__  
+Provide R with c++14 options via the file `~/.R/Makevars`, as described above.
 
+__Problem:__
 
-## Citation
+    g++: error: unrecognized command line option '-std=gnu++14'
 
-To cite sigfit in publications, please use:
+__Solution:__  
+Upgrade the `gcc` and `g++` compilers to version 5. In Ubuntu, this can be done as follows:
 
-* **Kevin Gori, Adrian Baez-Ortega. sigfit: flexible Bayesian inference of mutational signatures. _bioRxiv_, 372896 (2018). doi: [10.1101/372896](http://doi.org/10.1101/372896).**
-
-The corresponding BibTeX entry is:
-
-    @Article{sigfit,
-        title = {sigfit: flexible Bayesian inference of mutational signatures},
-        author = {Gori, Kevin and Baez-Ortega, Adrian},
-        journal = {bioRxiv},
-        year = {2018},
-        pages = {372896},
-        doi = {10.1101/372896}
-    }
+    sudo add-apt-repository ppa:ubuntu-toolchain-r/test
+    sudo apt-get update
+    sudo apt-get install gcc-5 g++-5
+    sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-5 60 --slave /usr/bin/g++ g++ /usr/bin/g++-5
 
 
 ## Licence
