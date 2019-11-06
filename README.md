@@ -25,7 +25,7 @@ sigfit is an R package. As it is in early development it is not yet on CRAN, but
     
 The `build_opts` argument can be omitted, but the package vignette will not be built in this case.
 
-For solutions to some of the problems that may arise during installation, see the __Troubleshooting installation__ section below.
+For solutions to some of the problems that may arise during installation, see the __[Troubleshooting installation](#troubleshooting-installation)__ section below.
 
 
 ## Usage guide
@@ -55,6 +55,18 @@ The corresponding BibTeX entry is:
         pages = {372896},
         doi = {10.1101/372896}
     }
+
+
+## Licence
+
+Authors: Kevin Gori and Adrian Baez-Ortega  
+Transmissible Cancer Group, University of Cambridge
+
+sigfit is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation; either version 3 of the License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License along with this program. If not, see http://www.gnu.org/licenses.
 
 
 ## Troubleshooting installation
@@ -109,14 +121,3 @@ Upgrade the `gcc` and `g++` compilers to version 5. In Ubuntu, this can be done 
     sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-5 60 --slave /usr/bin/g++ g++ /usr/bin/g++-5
 
 Alternatively, if you have version 4.8.1 or higher of `gcc` and `g++`, you can enable C++14 features by substituting `-std=gnu++1y` for `-std=gnu++14` in `~/.R/Makevars`.
-
-## Licence
-
-Authors: Kevin Gori and Adrian Baez-Ortega  
-Transmissible Cancer Group, University of Cambridge
-
-sigfit is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation; either version 3 of the License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License along with this program. If not, see http://www.gnu.org/licenses.
