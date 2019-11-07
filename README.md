@@ -115,11 +115,11 @@ __Problem:__
     g++: error: unrecognized command line option '-std=gnu++14'
 
 __Solution:__
-Upgrade the `gcc` and `g++` compilers to version 5. In Ubuntu, this can be done as follows:
+Upgrade the `gcc` and `g++` compilers to version 5. In __Ubuntu__, this can be done as follows:
 
     sudo add-apt-repository ppa:ubuntu-toolchain-r/test
     sudo apt-get update
     sudo apt-get install gcc-5 g++-5
     sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-5 60 --slave /usr/bin/g++ g++ /usr/bin/g++-5
 
-Alternatively, if you have version 4.8.1 or higher of `gcc` and `g++`, you can enable C++14 features by substituting `-std=gnu++1y` for `-std=gnu++14` in `~/.R/Makevars`.
+Alternatively, if you have version __4.8.1__ or higher of `gcc` and `g++`, you can enable C++14 features by substituting `-std=gnu++1y` for `-std=gnu++14` in `~/.R/Makevars`.
