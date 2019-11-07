@@ -106,7 +106,7 @@ Arguments to the `rstan::sampling` function, such as `iter`, `warmup`, `chains`,
 
 * The arguments `warmup` and `iter` specify the number of __‘warm-up’__ (or ‘burn-in’) iterations and the total number of __sampling iterations__ (including warm-up iterations), respectively. We recommend that the value of `warmup` be between one-third and half the value of `iter`. The behaviour of the MCMC sampler (which ultimately affects the quality of the analysis) depends on parameters set during the warm-up, so it is important to run enough warm-up iterations. By default, `rstan::sampling` uses `iter = 2000` and `warmup = floor(iter/2)`; going below these values is generally not advised.
 
-> __In general, one should run as many MCMC iterations (`iter`) as one’s computer and patience allow, with runtime and memory being the major constraints.__
+> __In general, one should run as many MCMC iterations (`iter`) as one’s computer and patience allow, with time and memory being the major constraints.__
 
 * The `chains` argument can be used to parallelise the sampling process by using multiple __Markov chains__, the number of which should never exceed the number of processors (the `rstan::sampling` function uses `chains = 4` by default). To run multiple chains in parallel, the number of processors first needs to be set using `options(mc.cores = parallel::detectCores())`.
 

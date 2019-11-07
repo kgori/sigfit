@@ -157,7 +157,7 @@ mutations &lt;-<span class="st"> </span><span class="kw">matrix</span>(<span cla
 <li>The arguments <code>warmup</code> and <code>iter</code> specify the number of <strong>‘warm-up’</strong> (or ‘burn-in’) iterations and the total number of <strong>sampling iterations</strong> (including warm-up iterations), respectively. We recommend that the value of <code>warmup</code> be between one-third and half the value of <code>iter</code>. The behaviour of the MCMC sampler (which ultimately affects the quality of the analysis) depends on parameters set during the warm-up, so it is important to run enough warm-up iterations. By default, <code>rstan::sampling</code> uses <code>iter = 2000</code> and <code>warmup = floor(iter/2)</code>; going below these values is generally not advised.</li>
 </ul>
 <blockquote>
-<p><strong>In general, one should run as many MCMC iterations (<code>iter</code>) as one’s computer and patience allow, with runtime and memory being the major constraints.</strong></p>
+<p><strong>In general, one should run as many MCMC iterations (<code>iter</code>) as one’s computer and patience allow, with time and memory being the major constraints.</strong></p>
 </blockquote>
 <ul>
 <li><p>The <code>chains</code> argument can be used to parallelise the sampling process by using multiple <strong>Markov chains</strong>, the number of which should never exceed the number of processors (the <code>rstan::sampling</code> function uses <code>chains = 4</code> by default). To run multiple chains in parallel, the number of processors first needs to be set using <code>options(mc.cores = parallel::detectCores())</code>.</p></li>
@@ -177,8 +177,8 @@ mutations &lt;-<span class="st"> </span><span class="kw">matrix</span>(<span cla
 ## Stan sampling:
 ## SAMPLING FOR MODEL 'sigfit_fit' NOW (CHAIN 1).
 ## Chain 1: 
-## Chain 1: Gradient evaluation took 0.000236 seconds
-## Chain 1: 1000 transitions using 10 leapfrog steps per transition would take 2.36 seconds.
+## Chain 1: Gradient evaluation took 0.000105 seconds
+## Chain 1: 1000 transitions using 10 leapfrog steps per transition would take 1.05 seconds.
 ## Chain 1: Adjust your expectations accordingly!
 ## Chain 1: 
 ## Chain 1: 
@@ -195,9 +195,9 @@ mutations &lt;-<span class="st"> </span><span class="kw">matrix</span>(<span cla
 ## Chain 1: Iteration: 1800 / 2000 [ 90%]  (Sampling)
 ## Chain 1: Iteration: 2000 / 2000 [100%]  (Sampling)
 ## Chain 1: 
-## Chain 1:  Elapsed Time: 1.12278 seconds (Warm-up)
-## Chain 1:                0.604154 seconds (Sampling)
-## Chain 1:                1.72694 seconds (Total)
+## Chain 1:  Elapsed Time: 1.17303 seconds (Warm-up)
+## Chain 1:                0.563908 seconds (Sampling)
+## Chain 1:                1.73694 seconds (Total)
 ## Chain 1:</code></pre>
 <p>For details about further arguments of <code>fit_signatures</code>, including alternative signature models, mutational opportunities and exposure priors, see the <em>Other functionalities</em> section at the end of this vignette, or type <code>?fit_signatures</code> to read the documentation.</p>
 </div>

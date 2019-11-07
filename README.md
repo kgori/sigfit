@@ -103,7 +103,7 @@ __Problem:__
 
 Which is preceded by a series of compilation errors related to `StanHeaders`, such as:
 
-    .../R/x86_64-pc-linux-gnu-library/3.6/StanHeaders/include/stan/math/rev/mat/functor/adj_jac_apply.hpp:619:15: error: invalid use of ‘auto’
+    .../StanHeaders/include/stan/math/rev/mat/functor/adj_jac_apply.hpp:619:15: error: invalid use of ‘auto’
 
 __Solution:__  
 Provide R with c++14 options via the file `~/.R/Makevars`, as described above.
