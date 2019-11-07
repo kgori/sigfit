@@ -35,7 +35,12 @@ See the package vignette for detailed usage examples:
 
     browseVignettes("sigfit")
     
-If the vignette is not available because it was not built during installation, you can build it using `tools::buildVignettes("sigfit")`.
+If the vignette is not available because it was not built during installation, you can download it and build it using the `rmarkdown` package (the vignette will be saved as an HTML file in your current working directory):
+
+    download.file("https://raw.githubusercontent.com/kgori/sigfit/master/vignettes/sigfit_vignette.Rmd",
+                  destfile = "sigfit_vignette.Rmd")
+    rmarkdown::render("sigfit_vignette.Rmd")
+    browseURL("sigfit_vignette.html")
 
 ### You can also browse the package vignette on [GitHub](http://htmlpreview.github.io/?https://github.com/kgori/sigfit/blob/master/doc/sigfit_vignette.html).
 
