@@ -1,7 +1,7 @@
 CHANGE LOG
 
 2019/11/08
-Major changes in sigfit v2.0 ("Exogenous Exposure")
+Major changes in sigfit v2.0.0 ("Exogenous Exposure")
 
 * New models for analysis of real-valued data ("normal") and robust fitting to sparse data ("negbin").
 * New COSMIC v3 signatures (67 SBS signatures) and test datasets.
