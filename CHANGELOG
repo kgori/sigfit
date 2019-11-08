@@ -12,7 +12,6 @@ Major changes in sigfit v2.0 ("Exogenous Exposure")
 * Increased MCMC sampling efficiency.
 * Extended package vignette.
 
-
 2019/03/29
 Major changes in sigfit v1.3.1 ("Deleterious Dimer")
 
@@ -55,6 +54,7 @@ Major changes in sigfit v1.1.0 ("BRCA Breakdown")
  * Arguments `counts` and `signatures` have been removed in function `sigfit::plot_reconstruction`.
  * Arguments `counts` and `signatures` have been removed in function `sigfit::plot_all`.
  * Argument `feature` has been renamed to `par` in `sigfit::retrieve_pars`.
+ 
  
 2017/11/13
 sigfit v1.0.0 ("APOBEC Apocalypse")
