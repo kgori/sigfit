@@ -12,6 +12,7 @@ Major changes in sigfit v2.0 ("Exogenous Exposure")
 * Increased MCMC sampling efficiency.
 * Extended package vignette.
 
+
 2019/03/29
 Major changes in sigfit v1.3.1 ("Deleterious Dimer")
 
