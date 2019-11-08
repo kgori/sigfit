@@ -14,14 +14,14 @@ Major changes in sigfit v2.0 ("Exogenous Exposure")
 
 
 2019/03/29
-Major changes in sigfit v1.3.1 ("Dinucleotide Deletion")
+Major changes in sigfit v1.3.1 ("Deleterious Dimer")
 
 * Set up continuous integration with TravisCI (config file .travis.yml).
 * Removed ggplot2 dependency.
 
 
 2019/03/26
-Major changes in sigfit v1.3.0 ("Dinucleotide Damage")
+Major changes in sigfit v1.3.0 ("Deleterious Deletion")
 
 * Fixed bug in `build_catalogues` function, which made it fail for single-sample cases.
 * Implemented plotting routines for non-standard catalogues with arbitrary mutation categories.
