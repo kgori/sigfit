@@ -7,7 +7,7 @@
 get_reconstructions(mcmc_samples)
 }
 \arguments{
-\item{mcmc_samples}{List with elements \code{\`data\`} and \code{\`results\`}, produced via either
+\item{mcmc_samples}{List with elements \code{`data`} and \code{`results`}, produced via either
 \code{\link{fit_signatures}}, \code{\link{extract_signatures}} or \code{\link{fit_extract_signatures}}.}
 }
 \description{

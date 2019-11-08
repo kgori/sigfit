@@ -2,22 +2,21 @@
 % Please edit documentation in R/sigfit_utility.R
 \name{fetch_cosmic_data}
 \alias{fetch_cosmic_data}
-\title{Fetch COSMIC mutational signatures}
+\title{Fetch COSMIC mutational signatures (deprecated)}
 \usage{
 fetch_cosmic_data(reorder = TRUE, remove_zeros = TRUE)
 }
 \arguments{
-\item{reorder}{Logical; if \code{TRUE} (default), the matrix will be reordered by substitution type and trinucleotide.}
+\item{reorder}{Logical; if \code{TRUE} (default), the matrix will be reordered by substitution
+type and trinucleotide.}
 
-\item{remove_zeros}{Logical; if \code{TRUE} (default), pseudocounts will be added to prevent the signatures from
-containing any zeros, which can affect computation of the log likelihood.}
+\item{remove_zeros}{Logical; if \code{TRUE} (default), pseudocounts will be added to prevent the
+signatures from containing any zeros, which can affect computation of the log likelihood.}
 }
 \value{
 Matrix of signatures, with one row per signature and one column for each of
 the 96 trinucleotide mutation types.
 }
 \description{
-\code{fetch_cosmic_data} downloads the latest release of signatures from COSMIC
-(http://cancer.sanger.ac.uk/cosmic/signatures) and produces a matrix of signatures
-that can be used for signature fitting.
+Fetch COSMIC mutational signatures (deprecated)
 }

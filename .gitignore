@@ -1,7 +1,10 @@
+Meta
 .Rproj.user
 .Rhistory
 .RData
 .Ruserdata
+src/*.cc
+src/*.h
 src/*.o
 src/*.so
 src/*.dll

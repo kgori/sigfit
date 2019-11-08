@@ -7,13 +7,13 @@
 match_signatures(sigs_a, sigs_b, stat = "cosine")
 }
 \arguments{
-\item{sigs_a}{Signatures estimate; Either a numeric matrix of mutational signatures,
+\item{sigs_a}{First set of signatures; either a numeric matrix of signatures,
 with one row per signature and one column per mutation type, or a list of matrices
 generated via \code{\link{retrieve_pars}}.}
 
-\item{sigs_b}{Signatures estimate as for \code{sigs_a}.}
+\item{sigs_b}{Second set of signatures, as for \code{sigs_a}.}
 
-\item{stat}{Similarity metric to use when comparing signaturesd. Admits values \code{"cosine"}
+\item{stat}{Similarity metric to use when comparing signatures. Admits values \code{"cosine"}
 (default, cosine similarity) or \code{"L2"} (L2 norm or Euclidean distance).}
 }
 \value{
