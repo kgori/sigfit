@@ -35,7 +35,7 @@ Major changes in sigfit v1.3.0 ("Dinucleotide Damage")
 
 
 2018/07/14
-Major changes in sigfit v1.2.0 ("CpG Clock")
+Major changes in sigfit v1.2.0 ("Clock-like Component")
 
 * Argument `method` has been renamed `model` in all relevant functions.
 * Implemented data frame compatibility, so that input objects to functions chan be either 
