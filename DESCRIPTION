@@ -35,4 +35,4 @@ LinkingTo:
 SystemRequirements: GNU make
 RoxygenNote: 6.1.1
 NeedsCompilation: yes
-VignetteBuilder: knitr
+VignetteBuilder: knitr, rmarkdown
