@@ -32,7 +32,9 @@ LinkingTo:
     RcppEigen (>= 0.3.3.3.0),
     rstan (>= 2.18.1),
     StanHeaders (>= 2.18.0)
+Suggests:
+    markdown
 SystemRequirements: GNU make
 RoxygenNote: 6.1.1
 NeedsCompilation: yes
-VignetteBuilder: knitr
+VignetteBuilder: knitr, rmarkdown
