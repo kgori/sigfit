@@ -4,9 +4,16 @@
 \alias{extract_signatures_initialiser}
 \title{Use optimization to generate initial parameter values for MCMC sampling}
 \usage{
-extract_signatures_initialiser(counts, nsignatures,
-  model = "multinomial", opportunities = NULL, sig_prior = NULL,
-  exp_prior = NULL, chains = 1, ...)
+extract_signatures_initialiser(
+  counts,
+  nsignatures,
+  model = "multinomial",
+  opportunities = NULL,
+  sig_prior = NULL,
+  exp_prior = NULL,
+  chains = 1,
+  ...
+)
 }
 \arguments{
 \item{counts}{Numeric matrix of observed mutation counts, with one row per sample and

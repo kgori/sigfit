@@ -4,9 +4,16 @@
 \alias{plot_spectrum}
 \title{Plot mutational spectra}
 \usage{
-plot_spectrum(spectra, pdf_path = NULL, pdf_width = 24,
-  pdf_height = 8, name = NULL, max_y = NULL, colors = NULL,
-  boxes = TRUE)
+plot_spectrum(
+  spectra,
+  pdf_path = NULL,
+  pdf_width = 24,
+  pdf_height = 8,
+  name = NULL,
+  max_y = NULL,
+  colors = NULL,
+  boxes = TRUE
+)
 }
 \arguments{
 \item{spectra}{This can be a numeric vector with one element per mutation type, a numeric matrix

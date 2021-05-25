@@ -4,11 +4,20 @@
 \alias{plot_reconstruction}
 \title{Plot mutational spectrum reconstructions}
 \usage{
-plot_reconstruction(mcmc_samples = NULL, pdf_path = NULL,
-  counts = NULL, signatures = NULL, exposures = NULL,
-  opportunities = NULL, pdf_width = 24, pdf_height = 15,
-  legend_pos = "topleft", legend_cex = 2, sig_color_palette = NULL,
-  boxes = TRUE)
+plot_reconstruction(
+  mcmc_samples = NULL,
+  pdf_path = NULL,
+  counts = NULL,
+  signatures = NULL,
+  exposures = NULL,
+  opportunities = NULL,
+  pdf_width = 24,
+  pdf_height = 15,
+  legend_pos = "topleft",
+  legend_cex = 2,
+  sig_color_palette = NULL,
+  boxes = TRUE
+)
 }
 \arguments{
 \item{mcmc_samples}{List with two elements named \code{`data`} and \code{`results`}, produced via

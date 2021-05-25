@@ -4,22 +4,23 @@
 \alias{convert_signatures}
 \title{Convert signatures between models}
 \usage{
-convert_signatures(signatures, opportunities_from = NULL,
-  opportunities_to = NULL)
+convert_signatures(
+  signatures,
+  opportunities_from = NULL,
+  opportunities_to = NULL
+)
 }
 \arguments{
 \item{signatures}{Either a numeric matrix of mutational signatures, with one row per signature
 and one column per mutation type, or a list of matrices generated via \code{\link{retrieve_pars}}.}
 
 \item{opportunities_from}{Mutational opportunities that are currently imposed on the signatures.
-This can be a numeric matrix of mutational opportunities, with one row per signature and
-one column per mutation type (if the signatures were inferred together, then every row should
-contain the same opportunities). Character values \code{"human-genome"} or \code{"human-exome"}
-are also admitted, in which case the mutational opportunities of the reference human
-genome/exome will be used for every signature. If this argument is provided, the signatures will
-be normalised (divided) by the opportunities. Otherwise (if \code{opportunities_from = NULL}),
-the signatures will be interpreted as being already normalised (i.e. not relative to any
-opportunities).}
+This can be a numeric vector of mutational opportunities, with one element per mutation type.
+Character values \code{"human-genome"} or \code{"human-exome"} are also admitted, in which case
+the mutational opportunities of the reference human genome/exome will be used.
+If this argument is provided, the signatures will be normalised (divided) by the opportunities.
+Otherwise (if \code{opportunities_from = NULL}), the signatures will be interpreted as being
+already normalised (i.e. not relative to any opportunities).}
 
 \item{opportunities_to}{Mutational opportunities that are to be imposed on the signatures.
 Admits the same values as \code{opportunities_from}. If this argument is provided, the
