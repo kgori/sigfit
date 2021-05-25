@@ -524,13 +524,10 @@ convert_signatures <- function(signatures, opportunities_from = NULL, opportunit
     if (nrow(opportunities_to) > 1)
         opportunities_to = opportunities_to[1, ]
     
-    # A vector of conversion opportunities is calculated as the ratio of
-    # opportunities_to and opportunities_from, normalised to sum to 1
-    opps <- opportunities_to / opportunities_from
-    opps <- opps / sum(opps)
     conv_sigs <- signatures
     for (i in 1:nrow(conv_sigs)) {
-        conv_sigs[i, ] <- conv_sigs[i, ] * opps
+        conv_sigs[i, ] <- conv_sigs[i, ] / opportunities_from * opportunities_to
+        conv_sigs[i, ] <- conv_sigs[i, ] / sum(conv_sigs[i, ])
     }
     conv_sigs
 }
