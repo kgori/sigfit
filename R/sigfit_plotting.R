@@ -70,46 +70,25 @@ plot_gof <- function(sample_list, stat = "cosine") {
         warning("Goodness-of-fit analysis omitted when using less than 4 values of 'nsignatures'.")
     }
     
+    if (!(stat %in% c("cosine", "L2"))) {
+        stop("'stat' only admits values \"cosine\" and \"L2\".\nType ?plot_gof to read the documentation.")
+    }
+    
     else {
-        gof_function <- switch(stat,
-                               "cosine" = cosine_sim,
-                               "L2" = l2_norm)
-        if (is.null(gof_function)) {
-            stop("'stat' only admits values \"cosine\" and \"L2\".\nType ?plot_gof to read the documentation.")
-        }
-    
-        nS <- NULL
-        gof <- NULL
-        for (samples in sample_list) {
-            if (!is.list(samples)) next
-    
-            counts <- samples$data$counts_real
-    
-            model <- samples$result@model_name
-            e <- extract(samples$result, pars = c("expected_counts", "signatures"))
-    
-            if (samples$data$family == 1) {
-                reconstructed <- apply(e$expected_counts, c(2, 3), mean) * rowSums(counts)
+        if ("gof" %in% names(sample_list)) {
+            gof_list <- sample_list[["gof"]]
+            if (gof_list[["stat"]] != stat) {
+                gof_list <- calculate_gof(sample_list, stat)
             }
-            else {
-                reconstructed <- apply(e$expected_counts, c(2, 3), mean)
-            }
-    
-            stopifnot(dim(reconstructed) == dim(counts))
-    
-            nS <- c(nS, dim(e$signatures)[2])
-            gof <- c(gof, gof_function(as.vector(reconstructed),
-                                       as.vector(counts)))
+        } else {
+            gof_list <- calculate_gof(sample_list, stat)
         }
-    
-        # Find the point of highest rate of change of gradient (i.e. highest positive
-        # 2nd derivative for 'L'-shaped curves, negative for 'r'-shaped curves)
-        # Approximate 2nd derivative = x[n+1] + x[n-1] - 2x[n]
-        deriv <- gof[3:(length(gof))] + gof[1:(length(gof)-2)] - 2 * gof[2:(length(gof)-1)]
-        best <- ifelse(stat == "cosine",
-                       which.min(deriv) + 1,  # highest negative curvature
-                       which.max(deriv) + 1)  # highest positive curvature
-    
+        
+        nS <- gof_list[["nS"]]
+        gof <- gof_list[["gof"]]
+        best <- gof_list[["best"]]
+        model <- gof_list[["model"]]
+        
         plot(nS, gof, type = "o", lty = 3, pch = 16, col = "dodgerblue4",
              main = paste0("Goodness-of-fit (", stat, ")\nmodel: ", model),
              xlab = "Number of signatures",
