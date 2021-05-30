@@ -1,7 +1,7 @@
 CHANGE LOG
 
 2021/05/25
-Major changes in sigfit v2.1
+Major changes in sigfit v2.1 ("Focal Fragmentation")
 
 * New COSMIC v3.2 signatures (78 SBS signatures).
 * Fixed bug in `convert_signatures` function, which made it misbehave when mutational
@@ -22,6 +22,7 @@ Major changes in sigfit v2.0 ("Exogenous Exposure")
 * Enhanced plotting functionalities.
 * Increased MCMC sampling efficiency.
 * Extended package vignette.
+
 
 2019/03/29
 Major changes in sigfit v1.3.1 ("Deleterious Dimer")
