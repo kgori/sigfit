@@ -14,8 +14,11 @@
 cosmic_signatures_v3_strand
 }
 \description{
-A data set of 67 strand bias signatures extracted by SigProfiler as described
-in Alexandrov, Kim, Hardhvala, Huang, et al., 2018.
-Signatures 51-67 are annotated as "Possible sequencing artefacts"
+A data set of 67 strand-bias signatures from COSMIC v3.0 (May 2019).
+These signatures were extracted using SigProfiler (as described in Alexandrov
+et al., 2020) from the 2,780 whole-genome variant calls produced by the
+ICGC/TCGA Pan Cancer Analysis of Whole Genomes (PCAWG) Network.
+The following signatures are annotated as "Possible sequencing artefacts":
+SBS27, SBS43, SBS45-60.
 }
 \keyword{datasets}
