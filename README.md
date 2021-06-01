@@ -29,8 +29,6 @@ sigfit is an R package. As it is in early development it is not yet on CRAN, but
 
     devtools::install_github("kgori/sigfit", build_vignettes = TRUE,
                              build_opts = c("--no-resave-data", "--no-manual"))
-<<<<<<< HEAD
-=======
     
 The arguments `build_vignettes` and `build_opts` are necessary for the package vignette to be built.
 
@@ -41,7 +39,6 @@ For solutions to some of the problems that may arise during installation, see th
 Problem:
 
     Error: 'rstan_config' is not an exported object from 'namespace:rstantools'
->>>>>>> dev
     
 The arguments `build_vignettes` and `build_opts` are necessary for the package vignette to be built.
 

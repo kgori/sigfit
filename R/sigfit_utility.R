@@ -28,13 +28,6 @@ build_opps_matrix <- function(nsamples, ncat, opps) {
             opps <- matrix(rep(human_trinuc_freqs(opps, strand), nsamples),
                            nrow = nsamples, byrow = TRUE)
         }
-<<<<<<< HEAD
-        else {
-            opps <- as.matrix(opps)
-        }
-        # Normalise to sum to nsamples (to avoid very large/small values)
-        opps / sum(opps) * nsamples
-=======
         else if (is.numeric(opps) & length(opps) == ncat) {
             opps <- matrix(rep(opps, nsamples), nrow = nsamples, byrow = TRUE)
         }
@@ -45,7 +38,6 @@ build_opps_matrix <- function(nsamples, ncat, opps) {
         #opps / sum(opps) * nsamples
         # Normalise each row to sum to 1
         opps / rowSums(opps)
->>>>>>> dev
     }
 }
 
@@ -482,23 +474,12 @@ build_catalogues <- function(variants) {
 #' @param signatures Either a numeric matrix of mutational signatures, with one row per signature
 #' and one column per mutation type, or a list of matrices generated via \code{\link{retrieve_pars}}.
 #' @param opportunities_from Mutational opportunities that are currently imposed on the signatures.
-<<<<<<< HEAD
-#' This can be a numeric matrix of mutational opportunities, with one row per signature and
-#' one column per mutation type (if the signatures were inferred together, then every row should
-#' contain the same opportunities). Character values \code{"human-genome"} or \code{"human-exome"}
-#' are also admitted, in which case the mutational opportunities of the reference human
-#' genome/exome will be used for every signature. If this argument is provided, the signatures will
-#' be normalised (divided) by the opportunities. Otherwise (if \code{opportunities_from = NULL}),
-#' the signatures will be interpreted as being already normalised (i.e. not relative to any
-#' opportunities).
-=======
 #' This can be a numeric vector of mutational opportunities, with one element per mutation type.
 #' Character values \code{"human-genome"} or \code{"human-exome"} are also admitted, in which case
 #' the mutational opportunities of the reference human genome/exome will be used.
 #' If this argument is provided, the signatures will be normalised (divided) by the opportunities.
 #' Otherwise (if \code{opportunities_from = NULL}), the signatures will be interpreted as being
 #' already normalised (i.e. not relative to any opportunities).
->>>>>>> dev
 #' @param opportunities_to Mutational opportunities that are to be imposed on the signatures.
 #' Admits the same values as \code{opportunities_from}. If this argument is provided, the
 #' signatures will be multiplied by the opportunities. Otherwise (if \code{opportunities_to = NULL}),
@@ -536,14 +517,6 @@ convert_signatures <- function(signatures, opportunities_from = NULL, opportunit
         stop("Either 'opportunities_from' or 'opportunities_to' must be provided.")
     }
     signatures <- to_matrix(signatures)
-<<<<<<< HEAD
-    opportunities_from <- build_opps_matrix(nrow(signatures), ncol(signatures), opportunities_from)
-    opportunities_to <- build_opps_matrix(nrow(signatures), ncol(signatures), opportunities_to)
-    
-    conv_sigs <- signatures
-    for (i in 1:nrow(conv_sigs)) {
-        conv_sigs[i, ] <- conv_sigs[i, ] / opportunities_from[i, ] * opportunities_to[i, ]
-=======
     opportunities_from <- build_opps_matrix(1, ncol(signatures), opportunities_from)
     opportunities_to <- build_opps_matrix(1, ncol(signatures), opportunities_to)
     if (nrow(opportunities_from) > 1)
@@ -554,7 +527,6 @@ convert_signatures <- function(signatures, opportunities_from = NULL, opportunit
     conv_sigs <- signatures
     for (i in 1:nrow(conv_sigs)) {
         conv_sigs[i, ] <- conv_sigs[i, ] / opportunities_from * opportunities_to
->>>>>>> dev
         conv_sigs[i, ] <- conv_sigs[i, ] / sum(conv_sigs[i, ])
     }
     conv_sigs
