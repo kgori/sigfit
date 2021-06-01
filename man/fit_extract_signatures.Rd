@@ -4,10 +4,20 @@
 \alias{fit_extract_signatures}
 \title{Fit-and-extract mutational signatures}
 \usage{
-fit_extract_signatures(counts, signatures, num_extra_sigs,
-  model = "multinomial", opportunities = NULL, sig_prior = NULL,
-  exp_prior = NULL, dpp = FALSE, dpp_conc = 1,
-  stanfunc = "sampling", chains = 1, ...)
+fit_extract_signatures(
+  counts,
+  signatures,
+  num_extra_sigs,
+  model = "multinomial",
+  opportunities = NULL,
+  sig_prior = NULL,
+  exp_prior = NULL,
+  dpp = FALSE,
+  dpp_conc = 1,
+  stanfunc = "sampling",
+  chains = 1,
+  ...
+)
 }
 \arguments{
 \item{counts}{Numeric matrix of observed mutation counts, with one row per sample and

@@ -7,6 +7,11 @@
 
 __sigfit__ is an R package to estimate signatures of mutational processes and their activities on mutation count data. Starting from a set of single-nucleotide variants (SNVs), it allows both estimation of the exposure of samples to predefined mutational signatures (including whether the signatures are present at all), and identification of signatures _de novo_ from the mutation counts. These two procedures are often called, respectively, signature fitting and signature extraction. In addition, sigfit implements novel methods to combine signature fitting and extraction in a single inferential process, thus facilitating the deconvolution of rare or admixed signatures. The package provides interfaces to four different Bayesian models of signatures (multinomial, Poisson, normal and negative binomial), as well as a range of functions to generate publication-quality graphics of the corresponding mutational catalogues, signatures and exposures. Furthermore, the signature fitting and extraction methods in sigfit can be seamlessly applied to mutational profiles beyond SNV data, including indel or rearrangement count data, and even real-valued data such as DNA methylation profiles.
 
+### Enhancements in version 2.1 (May 2021)
+
+* New COSMIC v3.2 signatures (78 SBS signatures)
+* Functions to calculate cosine similarity and L2 distance between signatures
+
 ### Enhancements in version 2.0 (November 2019)
 
 * New models for analysis of real-valued data ("normal") and robust fitting to sparse data ("negbin")
@@ -19,10 +24,24 @@ __sigfit__ is an R package to estimate signatures of mutational processes and th
 * Extended package vignette
 
 ## Installation
+
 sigfit is an R package. As it is in early development it is not yet on CRAN, but can be installed from inside an R session using the [devtools](https://cran.r-project.org/web/packages/devtools/index.html) package.
 
     devtools::install_github("kgori/sigfit", build_vignettes = TRUE,
                              build_opts = c("--no-resave-data", "--no-manual"))
+<<<<<<< HEAD
+=======
+    
+The arguments `build_vignettes` and `build_opts` are necessary for the package vignette to be built.
+
+For solutions to some of the problems that may arise during installation, see the __[Troubleshooting installation](#troubleshooting-installation)__ section.
+
+#### Troubleshooting installation
+
+Problem:
+
+    Error: 'rstan_config' is not an exported object from 'namespace:rstantools'
+>>>>>>> dev
     
 The arguments `build_vignettes` and `build_opts` are necessary for the package vignette to be built.
 

@@ -4,10 +4,19 @@
 \alias{extract_signatures}
 \title{Extract mutational signatures}
 \usage{
-extract_signatures(counts, nsignatures, model = "multinomial",
-  opportunities = NULL, sig_prior = NULL, exp_prior = NULL,
-  dpp = FALSE, dpp_conc = 1, stanfunc = "sampling", chains = 1,
-  ...)
+extract_signatures(
+  counts,
+  nsignatures,
+  model = "multinomial",
+  opportunities = NULL,
+  sig_prior = NULL,
+  exp_prior = NULL,
+  dpp = FALSE,
+  dpp_conc = 1,
+  stanfunc = "sampling",
+  chains = 1,
+  ...
+)
 }
 \arguments{
 \item{counts}{Numeric matrix of observed mutation counts, with one row per sample and

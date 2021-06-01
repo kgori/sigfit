@@ -298,8 +298,8 @@ extract_signatures <- function(counts, nsignatures, model = "multinomial", oppor
         
         names(out) <- paste0("nsignatures=", 1:length(out))
         
-        # Plot goodness of fit and best number of signatures
-        out$best <- plot_gof(out)
+        # Calculate goodness of fit and best number of signatures
+        out$gof <- calculate_gof(out)
     }
     
     # Single nsignatures value case

@@ -28,11 +28,24 @@ build_opps_matrix <- function(nsamples, ncat, opps) {
             opps <- matrix(rep(human_trinuc_freqs(opps, strand), nsamples),
                            nrow = nsamples, byrow = TRUE)
         }
+<<<<<<< HEAD
         else {
             opps <- as.matrix(opps)
         }
         # Normalise to sum to nsamples (to avoid very large/small values)
         opps / sum(opps) * nsamples
+=======
+        else if (is.numeric(opps) & length(opps) == ncat) {
+            opps <- matrix(rep(opps, nsamples), nrow = nsamples, byrow = TRUE)
+        }
+        else {
+            opps <- as.matrix(opps)
+        }
+        #Normalise to sum to nsamples
+        #opps / sum(opps) * nsamples
+        # Normalise each row to sum to 1
+        opps / rowSums(opps)
+>>>>>>> dev
     }
 }
 
@@ -43,6 +56,7 @@ build_opps_matrix <- function(nsamples, ncat, opps) {
 #' means no similarity, and 1 means maximum similarity.
 #' @examples
 #' cosine_sim(c(1,2,3,4), c(4,3,2,1))
+#' @export
 cosine_sim <- function(x, y) { x %*% y / sqrt(x%*%x * y%*%y) }
 
 #' L2 norm between two vectors
@@ -52,6 +66,7 @@ cosine_sim <- function(x, y) { x %*% y / sqrt(x%*%x * y%*%y) }
 #' means no difference.
 #' @examples
 #' l2_norm(c(1,2,3,4), c(4,3,2,1))
+#' @export
 l2_norm <- function(x, y) { sqrt(sum((x - y)^2)) }
 
 #' Deal with zero values in a signature
@@ -467,6 +482,7 @@ build_catalogues <- function(variants) {
 #' @param signatures Either a numeric matrix of mutational signatures, with one row per signature
 #' and one column per mutation type, or a list of matrices generated via \code{\link{retrieve_pars}}.
 #' @param opportunities_from Mutational opportunities that are currently imposed on the signatures.
+<<<<<<< HEAD
 #' This can be a numeric matrix of mutational opportunities, with one row per signature and
 #' one column per mutation type (if the signatures were inferred together, then every row should
 #' contain the same opportunities). Character values \code{"human-genome"} or \code{"human-exome"}
@@ -475,6 +491,14 @@ build_catalogues <- function(variants) {
 #' be normalised (divided) by the opportunities. Otherwise (if \code{opportunities_from = NULL}),
 #' the signatures will be interpreted as being already normalised (i.e. not relative to any
 #' opportunities).
+=======
+#' This can be a numeric vector of mutational opportunities, with one element per mutation type.
+#' Character values \code{"human-genome"} or \code{"human-exome"} are also admitted, in which case
+#' the mutational opportunities of the reference human genome/exome will be used.
+#' If this argument is provided, the signatures will be normalised (divided) by the opportunities.
+#' Otherwise (if \code{opportunities_from = NULL}), the signatures will be interpreted as being
+#' already normalised (i.e. not relative to any opportunities).
+>>>>>>> dev
 #' @param opportunities_to Mutational opportunities that are to be imposed on the signatures.
 #' Admits the same values as \code{opportunities_from}. If this argument is provided, the
 #' signatures will be multiplied by the opportunities. Otherwise (if \code{opportunities_to = NULL}),
@@ -512,12 +536,25 @@ convert_signatures <- function(signatures, opportunities_from = NULL, opportunit
         stop("Either 'opportunities_from' or 'opportunities_to' must be provided.")
     }
     signatures <- to_matrix(signatures)
+<<<<<<< HEAD
     opportunities_from <- build_opps_matrix(nrow(signatures), ncol(signatures), opportunities_from)
     opportunities_to <- build_opps_matrix(nrow(signatures), ncol(signatures), opportunities_to)
     
     conv_sigs <- signatures
     for (i in 1:nrow(conv_sigs)) {
         conv_sigs[i, ] <- conv_sigs[i, ] / opportunities_from[i, ] * opportunities_to[i, ]
+=======
+    opportunities_from <- build_opps_matrix(1, ncol(signatures), opportunities_from)
+    opportunities_to <- build_opps_matrix(1, ncol(signatures), opportunities_to)
+    if (nrow(opportunities_from) > 1)
+        opportunities_from = opportunities_from[1, ]
+    if (nrow(opportunities_to) > 1)
+        opportunities_to = opportunities_to[1, ]
+    
+    conv_sigs <- signatures
+    for (i in 1:nrow(conv_sigs)) {
+        conv_sigs[i, ] <- conv_sigs[i, ] / opportunities_from * opportunities_to
+>>>>>>> dev
         conv_sigs[i, ] <- conv_sigs[i, ] / sum(conv_sigs[i, ])
     }
     conv_sigs
@@ -689,4 +726,73 @@ simulate_ppc <- function(mcmc_samples) {
         }
     }
     ppc
+}
+
+
+#' Do goodness-of-fit calculations
+#'
+#' \code{calculate_gof} Calculates the goodness-of-fit information for a set of samples, each of which has typically been
+#' sampled using an signature extraction model with a different number of signatures.
+#' @param sample_list List containing the results of signature extraction using
+#' \code{\link{extract_signatures}} with multiple numbers of signatures (see argument
+#' \code{nsignatures} in \code{\link{extract_signatures}}).
+#' @param stat Function for measuring goodness-of-fit. Admits character values \code{"cosine"}
+#' (cosine similarity, default) or \code{"L2"} (L2 norm or Euclidean distance).
+#' @return List of nS, number of signatures; gof, goodness of fit score; best, index of best
+#' scoring signature; stat, the statistic used to calculate goodness of fit (cosine or L2); model,
+#' sigfit model name obtained from the samples.
+#' @importFrom "rstan" extract
+#' @export
+calculate_gof <- function(sample_list, stat = "cosine") {
+    
+    if (sum(sapply(sample_list, is.list)) < 4) {
+        warning("Goodness-of-fit analysis omitted when using less than 4 values of 'nsignatures'.")
+    }
+    
+    else {
+        gof_function <- switch(stat,
+                               "cosine" = cosine_sim,
+                               "L2" = l2_norm)
+        if (is.null(gof_function)) {
+            stop("'stat' only admits values \"cosine\" and \"L2\".\nType ?calculate_gof to read the documentation.")
+        }
+        
+        nS <- NULL
+        gof <- NULL
+        for (samples in sample_list) {
+            # Only process fitting results, so skip any entries that are not lists
+            # with "data" and "result" entries
+            if (!is.list(samples)) next
+            if (!("data" %in% names(samples)) | !("result" %in% names(samples))) next
+            
+            counts <- samples$data$counts_real
+            
+            model <- samples$result@model_name
+            e <- extract(samples$result, pars = c("expected_counts", "signatures"))
+            
+            if (samples$data$family == 1) {
+                reconstructed <- apply(e$expected_counts, c(2, 3), mean) * rowSums(counts)
+            }
+            else {
+                reconstructed <- apply(e$expected_counts, c(2, 3), mean)
+            }
+            
+            stopifnot(dim(reconstructed) == dim(counts))
+            
+            nS <- c(nS, dim(e$signatures)[2])
+            gof <- c(gof, gof_function(as.vector(reconstructed),
+                                       as.vector(counts)))
+        }
+        
+        # Find the point of highest rate of change of gradient (i.e. highest positive
+        # 2nd derivative for 'L'-shaped curves, negative for 'r'-shaped curves)
+        # Approximate 2nd derivative = x[n+1] + x[n-1] - 2x[n]
+        deriv <- gof[3:(length(gof))] + gof[1:(length(gof)-2)] - 2 * gof[2:(length(gof)-1)]
+        best <- ifelse(stat == "cosine",
+                       which.min(deriv) + 1,  # highest negative curvature
+                       which.max(deriv) + 1)  # highest positive curvature
+        
+        cat("Estimated best number of signatures:", nS[best], "\n")
+        return (list(nS=nS, gof=gof, best=best, stat=stat, model=model))
+    }
 }

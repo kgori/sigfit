@@ -4,8 +4,14 @@
 \alias{fit_signatures}
 \title{Fit mutational signatures}
 \usage{
-fit_signatures(counts, signatures, exp_prior = NULL,
-  model = "multinomial", opportunities = NULL, ...)
+fit_signatures(
+  counts,
+  signatures,
+  exp_prior = NULL,
+  model = "multinomial",
+  opportunities = NULL,
+  ...
+)
 }
 \arguments{
 \item{counts}{Numeric matrix of observed mutation counts, with one row per sample and

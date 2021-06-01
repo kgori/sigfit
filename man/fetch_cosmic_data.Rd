@@ -18,5 +18,4 @@ Matrix of signatures, with one row per signature and one column for each of
 the 96 trinucleotide mutation types.
 }
 \description{
-Fetch COSMIC mutational signatures (deprecated)
 }

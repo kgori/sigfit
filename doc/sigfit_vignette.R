@@ -1,8 +1,13 @@
+<<<<<<< HEAD
 ## ----setup, include=FALSE------------------------------------------------
+=======
+## ----setup, include=FALSE-----------------------------------------------------
+>>>>>>> dev
 knitr::opts_chunk$set(echo = TRUE)
 suppressPackageStartupMessages(library(sigfit))
 par(mar = c(6, 4, 6, 4))
 
+<<<<<<< HEAD
 ## ----devtools_instructions, eval=FALSE-----------------------------------
 #  devtools::install_github("kgori/sigfit", build_opts = c("--no-resave-data", "--no-manual"))
 
@@ -11,16 +16,34 @@ library(sigfit)
 data("cosmic_signatures_v2")
 
 ## ----sim-----------------------------------------------------------------
+=======
+## ----devtools_instructions, eval=FALSE----------------------------------------
+#  devtools::install_github("kgori/sigfit", build_opts = c("--no-resave-data", "--no-manual"))
+
+## ----fetch--------------------------------------------------------------------
+library(sigfit)
+data("cosmic_signatures_v2")
+
+## ----sim----------------------------------------------------------------------
+>>>>>>> dev
 set.seed(1)
 probs <- c(0.4, 0.3, 0.2, 0.1) %*% as.matrix(cosmic_signatures_v2[c(1, 3, 7, 11), ])
 mutations <- matrix(rmultinom(1, 20000, probs), nrow = 1)
 colnames(mutations) <- colnames(cosmic_signatures_v2)
 
+<<<<<<< HEAD
 ## ----plotsim, fig.width=20, fig.height=7, out.width="100%", echo=-1------
 par(mar = c(4.5,5.5,6.5,1))
 plot_spectrum(mutations, name = "Simulated counts")
 
 ## ----fitting, warning=FALSE----------------------------------------------
+=======
+## ----plotsim, fig.width=20, fig.height=7, out.width="100%", echo=-1-----------
+par(mar = c(4.5,5.5,6.5,1))
+plot_spectrum(mutations, name = "Simulated counts")
+
+## ----fitting, warning=FALSE---------------------------------------------------
+>>>>>>> dev
 mcmc_samples_fit <- fit_signatures(counts = mutations, 
                                    signatures = cosmic_signatures_v2,
                                    iter = 2000, 
@@ -28,7 +51,11 @@ mcmc_samples_fit <- fit_signatures(counts = mutations,
                                    chains = 1, 
                                    seed = 1756)
 
+<<<<<<< HEAD
 ## ----retrieve_exp--------------------------------------------------------
+=======
+## ----retrieve_exp-------------------------------------------------------------
+>>>>>>> dev
 exposures <- retrieve_pars(mcmc_samples_fit, 
                            par = "exposures", 
                            hpd_prob = 0.90)
@@ -39,7 +66,11 @@ exposures$mean
 par(mar=c(8,5,3.5,0))
 plot_exposures(mcmc_samples = mcmc_samples_fit)
 
+<<<<<<< HEAD
 ## ----refitting, eval=FALSE-----------------------------------------------
+=======
+## ----refitting, eval=FALSE----------------------------------------------------
+>>>>>>> dev
 #  selected_signatures <- c(1, 3, 7, 11)
 #  mcmc_samples_fit_2 <- fit_signatures(mutations,
 #                                       cosmic_signatures_v2[selected_signatures, ],
@@ -52,20 +83,35 @@ plot_exposures(mcmc_samples = mcmc_samples_fit)
 par(mar=c(5,6,6.5,1))
 plot_reconstruction(mcmc_samples = mcmc_samples_fit)
 
+<<<<<<< HEAD
 ## ----plot_all, eval=FALSE------------------------------------------------
+=======
+## ----plot_all, eval=FALSE-----------------------------------------------------
+>>>>>>> dev
 #  plot_all(mcmc_samples = mcmc_samples_fit,
 #           out_path = "your/output/dir/here",
 #           prefix = "Fitting")
 
+<<<<<<< HEAD
 ## ----load_mutations------------------------------------------------------
+=======
+## ----load_mutations-----------------------------------------------------------
+>>>>>>> dev
 library(sigfit)
 data("variants_21breast")
 head(variants_21breast)
 
+<<<<<<< HEAD
 ## ----show_samples--------------------------------------------------------
 unique(variants_21breast[, 1])
 
 ## ----build_catalogues----------------------------------------------------
+=======
+## ----show_samples-------------------------------------------------------------
+unique(variants_21breast[, 1])
+
+## ----build_catalogues---------------------------------------------------------
+>>>>>>> dev
 counts_21breast <- build_catalogues(variants_21breast)
 dim(counts_21breast)
 counts_21breast[1:5, 1:8]
@@ -75,11 +121,19 @@ par(mar = c(5,6,7,2))
 par(mfrow = c(7, 3))
 plot_spectrum(counts_21breast)
 
+<<<<<<< HEAD
 ## ----extraction, eval=FALSE----------------------------------------------
+=======
+## ----extraction, eval=FALSE---------------------------------------------------
+>>>>>>> dev
 #  mcmc_samples_extr <- extract_signatures(counts = counts_21breast,
 #                                          nsignatures = 2:7,
 #                                          iter = 1000,
 #                                          seed = 1756)
+<<<<<<< HEAD
+=======
+#  plot_gof(mcmc_samples_extr)
+>>>>>>> dev
 
 ## ----plot_gof_silent, echo=FALSE, fig.width=9, fig.height=6, out.width="100%"----
 ## Plot precalculated GOF in order to avoid running the model
@@ -91,6 +145,7 @@ plot(nS, gof, type = "o", lty = 3, pch = 16, col = "dodgerblue4",
 points(nS[best], gof[best], pch = 16, col = "orangered", cex = 1.1)
 cat("Estimated best number of signatures:", nS[best], "\n")
 
+<<<<<<< HEAD
 ## ----extr_names, eval=FALSE----------------------------------------------
 #  names(mcmc_samples_extr)
 
@@ -99,11 +154,25 @@ print(c("nsignatures=1", "nsignatures=2", "nsignatures=3", "nsignatures=4", "nsi
 signatures <- extr_signatures
 
 ## ----retrieve_sigs, eval=FALSE-------------------------------------------
+=======
+## ----extr_names, eval=FALSE---------------------------------------------------
+#  names(mcmc_samples_extr)
+
+## ----extr_names_silent, echo=FALSE--------------------------------------------
+print(c("nsignatures=1", "nsignatures=2", "nsignatures=3", "nsignatures=4", "nsignatures=5", "nsignatures=6", "nsignatures=7", "best"))
+signatures <- extr_signatures
+
+## ----retrieve_sigs, eval=FALSE------------------------------------------------
+>>>>>>> dev
 #  ## Note: mcmc_samples_extr[[N]] contains the extraction results for N signatures
 #  signatures <- retrieve_pars(mcmc_samples_extr[[4]],
 #                              par = "signatures")
 
+<<<<<<< HEAD
 ## ----show_signames-------------------------------------------------------
+=======
+## ----show_signames------------------------------------------------------------
+>>>>>>> dev
 rownames(signatures$mean)
 
 ## ----plot_sigs, warning=FALSE, fig.width=25, fig.height=10, out.width='100%', fig.align="center", echo=-1----
@@ -111,11 +180,19 @@ par(mar = c(6,7,6,1))
 par(mfrow = c(2, 2))
 plot_spectrum(signatures)
 
+<<<<<<< HEAD
 ## ----match_sigs----------------------------------------------------------
 data("cosmic_signatures_v2")
 match_signatures(signatures, cosmic_signatures_v2)
 
 ## ----refitting2, eval=FALSE----------------------------------------------
+=======
+## ----match_sigs---------------------------------------------------------------
+data("cosmic_signatures_v2")
+match_signatures(signatures, cosmic_signatures_v2)
+
+## ----refitting2, eval=FALSE---------------------------------------------------
+>>>>>>> dev
 #  signatures <- retrieve_pars(mcmc_samples_extr_2, "signatures")
 #  mcmc_samples_refit <- fit_signatures(counts = counts_21breast,
 #                                       signatures = signatures,
@@ -123,19 +200,31 @@ match_signatures(signatures, cosmic_signatures_v2)
 #                                       warmup = 1000)
 #  exposures <- retrieve_pars(mcmc_samples_refit, "exposures")
 
+<<<<<<< HEAD
 ## ----strandwise, fig.width=22, fig.height=7, out.width="100%", echo=-1----
+=======
+## ----strandwise, fig.width=22, fig.height=7, out.width="100%", echo=-1--------
+>>>>>>> dev
 par(mar = c(4.5,5.5,6.5,1))
 # Load and plot a strand-wise catalogue
 data("counts_88liver_strand")
 plot_spectrum(counts_88liver_strand[1, ], name = rownames(counts_88liver_strand)[1])
 
+<<<<<<< HEAD
 ## ----generic, fig.width=22, fig.height=8, out.width="100%", echo=-1------
+=======
+## ----generic, fig.width=22, fig.height=8, out.width="100%", echo=-1-----------
+>>>>>>> dev
 par(mar = c(6.5,5.5,6.5,1)); set.seed(0xC0FFEE)
 # Create and plot an arbitrary catalogue
 counts <- as.numeric(rmultinom(1, 5000, runif(100)))
 plot_spectrum(counts, name = "Arbitrary catalogue")
 
+<<<<<<< HEAD
 ## ----convert_sigs, eval=F------------------------------------------------
+=======
+## ----convert_sigs, eval=F-----------------------------------------------------
+>>>>>>> dev
 #  # (Following from the signature extraction example presented above)
 #  # Retrieve genome-derived signatures
 #  genome_signatures <- retrieve_pars(mcmc_samples_extr[[4]],
@@ -158,7 +247,11 @@ par(mfrow = c(2, 1), mar = c(5,5.5,6.5,1))
 plot_spectrum(signatures$mean[4,], name="Signature D, Genome-relative probabilities")
 plot_spectrum(exome_signatures[4,], name="Signature D, Exome-relative probabilities")
 
+<<<<<<< HEAD
 ## ----multichain, eval=F--------------------------------------------------
+=======
+## ----multichain, eval=F-------------------------------------------------------
+>>>>>>> dev
 #  # Load mutation counts
 #  data("counts_21breast")
 #  
@@ -183,6 +276,7 @@ plot_spectrum(exome_signatures[4,], name="Signature D, Exome-relative probabilit
 #                                       chains = ncores,
 #                                       init = inits)
 
+<<<<<<< HEAD
 ## ------------------------------------------------------------------------
     data("cosmic_signatures_v2")
     data("cosmic_signatures_v3")
@@ -193,18 +287,39 @@ plot_spectrum(exome_signatures[4,], name="Signature D, Exome-relative probabilit
     data("counts_21breast")
 
 ## ------------------------------------------------------------------------
+=======
+## -----------------------------------------------------------------------------
+    data("cosmic_signatures_v2")
+    data("cosmic_signatures_v3")
+    data("cosmic_signatures_v3_strand")
+    data("cosmic_signatures_v3.2")
+
+## -----------------------------------------------------------------------------
+    data("variants_21breast")
+    data("counts_21breast")
+
+## -----------------------------------------------------------------------------
+>>>>>>> dev
     data("variants_119breast")
     data("variants_119breast_strand")
     data("counts_119breast")
     data("counts_119breast_strand")
 
+<<<<<<< HEAD
 ## ------------------------------------------------------------------------
+=======
+## -----------------------------------------------------------------------------
+>>>>>>> dev
     data("variants_88liver")
     data("variants_88liver_strand")
     data("counts_88liver")
     data("counts_88liver_strand")
 
+<<<<<<< HEAD
 ## ------------------------------------------------------------------------
+=======
+## -----------------------------------------------------------------------------
+>>>>>>> dev
     data("methylation_50breast")
     data("methylation_27normal")
 

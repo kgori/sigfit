@@ -4,11 +4,22 @@
 \alias{plot_exposures}
 \title{Plot signature exposures}
 \usage{
-plot_exposures(mcmc_samples = NULL, pdf_path = NULL, counts = NULL,
-  exposures = NULL, signature_names = NULL, thresh = 0.01,
-  hpd_prob = 0.95, pdf_width = 24, pdf_height = 10,
-  margin_bottom = 10.5, legend_pos = "topleft", legend_cex = 2,
-  cex_names = 1.9, sig_color_palette = NULL)
+plot_exposures(
+  mcmc_samples = NULL,
+  pdf_path = NULL,
+  counts = NULL,
+  exposures = NULL,
+  signature_names = NULL,
+  thresh = 0.01,
+  hpd_prob = 0.95,
+  pdf_width = 24,
+  pdf_height = 10,
+  margin_bottom = 10.5,
+  legend_pos = "topleft",
+  legend_cex = 2,
+  cex_names = 1.9,
+  sig_color_palette = NULL
+)
 }
 \arguments{
 \item{mcmc_samples}{List with two elements named \code{`data`} and \code{`results`}, produced via

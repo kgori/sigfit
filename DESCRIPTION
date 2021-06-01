@@ -2,8 +2,8 @@ Encoding: UTF-8
 Package: sigfit
 Type: Package
 Title: Flexible Bayesian inference of mutational signatures
-Version: 2.0.0
-Date: 2019-11-08
+Version: 2.1
+Date: 2021-05-30
 Authors@R: c(person("Kevin", "Gori", email = "kcg25@cam.ac.uk", role = c("aut", "cre")),
              person("Adrian", "Baez-Ortega", email = "ab2324@cam.ac.uk", role = "aut"))
 Description: This package implements Bayesian models for fitting and
@@ -35,6 +35,6 @@ LinkingTo:
 Suggests:
     markdown
 SystemRequirements: GNU make
-RoxygenNote: 6.1.1
+RoxygenNote: 7.0.2
 NeedsCompilation: yes
 VignetteBuilder: knitr, rmarkdown

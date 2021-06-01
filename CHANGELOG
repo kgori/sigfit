@@ -1,7 +1,18 @@
 CHANGE LOG
 
+2021/05/25
+Major changes in sigfit v2.1 ("Focal Fragmentation")
+
+* New COSMIC v3.2 signatures (78 SBS signatures).
+* Fixed bug in `convert_signatures` function, which made it misbehave when mutational
+  opportunities were given as a vector instead of a matrix. The function now expects
+  opportunities to be provided as a vector.
+* Exported functions `cosine_sim` and `l2_norm` (to calculate cosine similarity and
+  L2 distance between vectors) so they can be called directly by the user.
+
+
 2019/11/08
-Major changes in sigfit v2.0.0 ("Exogenous Exposure")
+Major changes in sigfit v2.0 ("Exogenous Exposure")
 
 * New models for analysis of real-valued data ("normal") and robust fitting to sparse data ("negbin").
 * New COSMIC v3 signatures (67 SBS signatures) and test datasets.

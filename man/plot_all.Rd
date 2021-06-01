@@ -4,13 +4,26 @@
 \alias{plot_all}
 \title{Plot all results from signature fitting or extraction}
 \usage{
-plot_all(mcmc_samples = NULL, out_path, prefix = NULL, counts = NULL,
-  signatures = NULL, exposures = NULL, opportunities = NULL,
-  thresh = 0.01, hpd_prob = 0.95, signature_names = NULL,
-  exp_margin_bottom = 10.5, exp_legend_pos = "topleft",
-  exp_legend_cex = 2, exp_cex_names = 1.9,
-  rec_legend_pos = "topleft", rec_legend_cex = 2,
-  sig_color_palette = NULL, boxes = TRUE)
+plot_all(
+  mcmc_samples = NULL,
+  out_path,
+  prefix = NULL,
+  counts = NULL,
+  signatures = NULL,
+  exposures = NULL,
+  opportunities = NULL,
+  thresh = 0.01,
+  hpd_prob = 0.95,
+  signature_names = NULL,
+  exp_margin_bottom = 10.5,
+  exp_legend_pos = "topleft",
+  exp_legend_cex = 2,
+  exp_cex_names = 1.9,
+  rec_legend_pos = "topleft",
+  rec_legend_cex = 2,
+  sig_color_palette = NULL,
+  boxes = TRUE
+)
 }
 \arguments{
 \item{mcmc_samples}{List with two elements named \code{`data`} and \code{`results`}, produced via
