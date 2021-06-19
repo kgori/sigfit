@@ -34,16 +34,6 @@ The arguments `build_vignettes` and `build_opts` are necessary for the package v
 
 For solutions to some of the problems that may arise during installation, see the __[Troubleshooting installation](#troubleshooting-installation)__ section.
 
-#### Troubleshooting installation
-
-Problem:
-
-    Error: 'rstan_config' is not an exported object from 'namespace:rstantools'
-    
-The arguments `build_vignettes` and `build_opts` are necessary for the package vignette to be built.
-
-For solutions to some of the problems that may arise during installation, see the __[Troubleshooting installation](#troubleshooting-installation)__ section.
-
 
 ## Usage guide
 
