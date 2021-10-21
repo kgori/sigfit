@@ -16,6 +16,7 @@ to_matrix <- function(x, int = FALSE) {
     x
 }
 
+
 #' Build an opportunities matrix
 build_opps_matrix <- function(nsamples, ncat, opps) {
     if (is.null(opps)) {
@@ -41,6 +42,7 @@ build_opps_matrix <- function(nsamples, ncat, opps) {
     }
 }
 
+
 #' Cosine similarity between two vectors
 #' @param x Vector of real values
 #' @param y Vector of real values, same length as \code{x}
@@ -50,6 +52,7 @@ build_opps_matrix <- function(nsamples, ncat, opps) {
 #' cosine_sim(c(1,2,3,4), c(4,3,2,1))
 #' @export
 cosine_sim <- function(x, y) { x %*% y / sqrt(x%*%x * y%*%y) }
+
 
 #' L2 norm between two vectors
 #' @param x Vector of real values
@@ -61,6 +64,7 @@ cosine_sim <- function(x, y) { x %*% y / sqrt(x%*%x * y%*%y) }
 #' @export
 l2_norm <- function(x, y) { sqrt(sum((x - y)^2)) }
 
+
 #' Deal with zero values in a signature
 remove_zeros_ <- function(mtx, min_allowed = 1e-9) {
     as.matrix(
@@ -70,6 +74,7 @@ remove_zeros_ <- function(mtx, min_allowed = 1e-9) {
         }))
     )
 }
+
 
 #' From https://stackoverflow.com/a/21689613/1875814
 #' Produce Excel-style letter labels - A, B, ..., Z, AA, AB, ..., AZ, ..., ZZ, AAA, ...
@@ -82,6 +87,7 @@ letterwrap <- function(n, depth = 1) {
     return(c(x, letterwrap(n - length(x), depth = depth + 1)))
 }
 
+
 #' Reverse complement a nucleotide sequence string
 #' Input is string, output is character vector
 rev_comp <- function(nucleotides) {
@@ -93,6 +99,7 @@ rev_comp <- function(nucleotides) {
     })))
 }
 
+
 #' Generate default colour palette for signatures
 default_sig_palette <- function(n) {
     rep(c("#1B9E77", "#D95F02", "#7570B3", "#E7298A", "#66A61E", "#E6AB02",
@@ -100,6 +107,7 @@ default_sig_palette <- function(n) {
           "#FF7F00", "#FFFF33", "#A65628", "#F781BF", "#999999"),
         10)[1:n]
 }
+
 
 #' Generates character vector of 96 (or 192, if strand=TRUE) trinucleotide mutation types
 mut_types <- function(strand = FALSE) {
@@ -118,6 +126,7 @@ mut_types <- function(strand = FALSE) {
         muts
     }
 }
+
 
 #' Generate log likelihood values from a model
 #' @param mcmc_samples List with elements \code{`data`} and \code{`results`}, produced via either
@@ -151,6 +160,7 @@ get_loglik <- function(mcmc_samples) {
     }
     log_lik
 }
+
 
 #' Generate reconstructed mutation catalogues from parameters estimated from MCMC samples
 #' @param mcmc_samples List with elements \code{`data`} and \code{`results`}, produced via either
@@ -215,14 +225,14 @@ get_reconstructions <- function(mcmc_samples) {
     list(reconstructions = reconstructions, hpds = hpds, exposures = t(apply(e$exposures, 2, colMeans)))
 }
 
+
 #' Fetch COSMIC mutational signatures (deprecated)
 #'
 #' \code{fetch_cosmic_data} downloads the latest release of signatures from COSMIC
 #' (http://cancer.sanger.ac.uk/cosmic/signatures) and produces a matrix of signatures
 #' that can be used for signature fitting.
-#' NB. COSMIC signatures are also available in sigfit via the functions
-#' \code{data("cosmic_signatures_v2")}, \code{data("cosmic_signatures_v3") and
-#' \code{data("cosmic_signatures_v3_strand")}.
+#' NB. COSMIC signatures are also provided within sigfit; for a list of datasets, type 
+#' \code{data(package="sigfit")}.
 #' @param reorder Logical; if \code{TRUE} (default), the matrix will be reordered by substitution
 #' type and trinucleotide.
 #' @param remove_zeros Logical; if \code{TRUE} (default), pseudocounts will be added to prevent the
@@ -244,11 +254,13 @@ fetch_cosmic_data <- function(reorder = TRUE, remove_zeros = TRUE) {
     cosmic_sigs
 }
 
+
 #' Access stan models
 #' @export
 stan_models <- function() {
     stanmodels
 }
+
 
 #' Find the best matches between two sets of signatures
 #'
@@ -286,6 +298,7 @@ match_signatures <- function(sigs_a, sigs_b, stat = "cosine") {
     }
     solve_LSAP(m, maximum = TRUE)
 }
+
 
 #' Retrieve human trinucleotide frequencies
 #'
@@ -365,6 +378,7 @@ human_trinuc_freqs <- function(type = "human-genome", strand = FALSE) {
         freq
     }
 }
+
 
 #' Build mutational catalogues
 #'
@@ -467,6 +481,7 @@ build_catalogues <- function(variants) {
     catalogues
 }
 
+
 #' Convert signatures between models
 #'
 #' \code{convert_signatures} converts mutational signatures between two representations relative to 
@@ -531,6 +546,7 @@ convert_signatures <- function(signatures, opportunities_from = NULL, opportunit
     }
     conv_sigs
 }
+
 
 #' Retrieve model parameters
 #'
@@ -668,6 +684,7 @@ retrieve_pars <- function(mcmc_samples, par, hpd_prob = 0.95) {
     par_summ
 }
 
+
 #' Generate posterior predictive check values from a model
 #' @param mcmc_samples List with two elements named \code{`data`} and \code{`results`}, produced via
 #' \code{\link{fit_signatures}}, \code{\link{extract_signatures}}, or
@@ -716,7 +733,6 @@ simulate_ppc <- function(mcmc_samples) {
 #' @importFrom "rstan" extract
 #' @export
 calculate_gof <- function(sample_list, stat = "cosine") {
-    
     if (sum(sapply(sample_list, is.list)) < 4) {
         warning("Goodness-of-fit analysis omitted when using less than 4 values of 'nsignatures'.")
     }
