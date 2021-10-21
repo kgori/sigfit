@@ -460,13 +460,20 @@ The DPP can be activated in the functions `extract_signatures` and `fit_extract_
 
 sigfit includes the following data sets, which can be loaded using the `data` function.
 
-* Three collections of __COSMIC mutational signatures__: original set of 30 signatures (v2, 2015) and updated sets of 67 signatures (v3, 2019) and 78 signatures (v3.2, 2021). The v3 signature set is also available in transcriptional strand-wise version (192 mutation types). These data can be loaded using:
+* Three collections of __COSMIC mutational signatures__ for __single base substitutions (SBS)__: original set of 30 signatures (v2, 2015) and updated sets of 67 signatures (v3.0, 2019) and 78 signatures (v3.2, 2021). The v3.0 signature set is also available in transcriptional strand-wise version (192 mutation types). These data can be loaded using:
 
 ```{r}
     data("cosmic_signatures_v2")
     data("cosmic_signatures_v3")
-    data("cosmic_signatures_v3_strand")
+    data("cosmic_signatures_strand_v3")
     data("cosmic_signatures_v3.2")
+```
+
+* Collections of __COSMIC mutational signatures__ for __indels (ID)__ and __doublet base substitutions (DBS)__: sets of 18 ID signatures and 11 DBS signatures (v3.2, 2021). These data can be loaded using:
+
+```{r}
+    data("cosmic_signatures_indel_v3.2")
+    data("cosmic_signatures_doublet_v3.2")
 ```
 
 * Mutation table and mutational catalogues (96 mutation types) for the set of __21 breast cancer genomes__ used in [Nik-Zainal _et al._ (2012)](http://dx.doi.org/10.1016/j.cell.2012.04.024). These data can be loaded using:
