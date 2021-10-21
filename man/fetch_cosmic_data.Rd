@@ -18,5 +18,9 @@ Matrix of signatures, with one row per signature and one column for each of
 the 96 trinucleotide mutation types.
 }
 \description{
-
+\code{fetch_cosmic_data} downloads the latest release of signatures from COSMIC
+(http://cancer.sanger.ac.uk/cosmic/signatures) and produces a matrix of signatures
+that can be used for signature fitting.
+NB. COSMIC signatures are also provided within sigfit; for a list of datasets, type 
+\code{data(package="sigfit")}.
 }

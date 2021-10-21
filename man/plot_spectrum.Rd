@@ -12,7 +12,8 @@ plot_spectrum(
   name = NULL,
   max_y = NULL,
   colors = NULL,
-  boxes = TRUE
+  boxes = TRUE,
+  generic = FALSE
 )
 }
 \arguments{
@@ -37,11 +38,15 @@ single spectrum.}
 \item{max_y}{Numeric indicating an optional upper limit for the vertical axis.}
 
 \item{colors}{Character vector of custom color names or hexadecimal codes to use for the spectrum
-bars. Only used if the number of mutation types in the spectrum is not 96 or 192. Must contain
-either a single value, or as many values as the number of mutation types in the spectrum.}
+bars. Must contain either a single value, or as many values as the number of mutation types in
+the spectrum.}
 
 \item{boxes}{Logical indicating whether boxes should be drawn around the plots (default is
 \code{TRUE}).}
+
+\item{generic}{Logical indicating whether a "generic" spectrum should be plotted (default is
+\code{FALSE}). A generic spectrum is always plotted if the number of mutation types in
+\code{spectra} does not match any of the available spectrum types.}
 }
 \description{
 \code{plot_spectrum} generates plots of one or more mutational spectra, which can be either
