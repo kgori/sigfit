@@ -226,13 +226,13 @@ get_reconstructions <- function(mcmc_samples) {
 }
 
 
-#' Fetch COSMIC mutational signatures (deprecated)
+#' Fetch COSMIC mutational signatures (DEPRECATED)
 #'
 #' \code{fetch_cosmic_data} downloads the latest release of signatures from COSMIC
 #' (http://cancer.sanger.ac.uk/cosmic/signatures) and produces a matrix of signatures
 #' that can be used for signature fitting.
-#' NB. COSMIC signatures are also provided within sigfit; for a list of datasets, type 
-#' \code{data(package="sigfit")}.
+#' NB. This function is deprecated. COSMIC signatures are also provided within sigfit;
+#' for a list of available data sets, type \code{data(package="sigfit")}.
 #' @param reorder Logical; if \code{TRUE} (default), the matrix will be reordered by substitution
 #' type and trinucleotide.
 #' @param remove_zeros Logical; if \code{TRUE} (default), pseudocounts will be added to prevent the
