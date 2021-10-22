@@ -164,6 +164,10 @@ plot_gof <- function(sample_list, stat = "cosine") {
 #' @param boxes Logical indicating whether boxes should be drawn around spectrum, signature and
 #' reconstruction plots (default is \code{TRUE}). This value is passed to
 #' \code{\link{plot_spectrum}} and \code{\link{plot_reconstruction}}.
+#' @param generic Logical indicating whether a "generic" spectrum should be plotted (default is
+#' \code{FALSE}). A generic spectrum is always plotted if the number of mutation types in
+#' \code{spectra} does not match any of the available spectrum types. This value is passed to
+#' \code{\link{plot_spectrum}} and \code{\link{plot_reconstruction}}.
 #' @examples
 #' \dontrun{
 #' # Load example mutational catalogues
@@ -191,7 +195,7 @@ plot_all <- function(mcmc_samples = NULL, out_path, prefix = NULL, counts = NULL
                      exposures = NULL, opportunities = NULL, thresh = 0.01, hpd_prob = 0.95, 
                      signature_names = NULL, exp_margin_bottom = 10.5, exp_legend_pos = "topleft",
                      exp_legend_cex = 2, exp_cex_names = 1.9, rec_legend_pos = "topleft",
-                     rec_legend_cex = 2, sig_color_palette = NULL, boxes = TRUE) {
+                     rec_legend_cex = 2, sig_color_palette = NULL, boxes = TRUE, generic = FALSE) {
 
     if (is.null(mcmc_samples) &
         (is.null(counts) | is.null(signatures) | is.null(exposures))) {
@@ -207,11 +211,11 @@ plot_all <- function(mcmc_samples = NULL, out_path, prefix = NULL, counts = NULL
     # Case A: matrices provided instead of MCMC samples
     if (is.null(mcmc_samples)) {
         cat("Plotting original catalogues...\n")
-        plot_spectrum(counts, boxes = boxes,
+        plot_spectrum(counts, boxes = boxes, generic = generic,
                       pdf_path = file.path(out_path, paste0(prefix, "Catalogues_", Sys.Date(), ".pdf")))
 
         cat("Plotting mutational signatures...\n")
-        plot_spectrum(signatures, boxes = boxes,
+        plot_spectrum(signatures, boxes = boxes, generic = generic,
                       pdf_path = file.path(out_path, paste0(prefix, "Signatures_", Sys.Date(), ".pdf")))
 
         cat("Plotting signature exposures...\n")
@@ -225,13 +229,14 @@ plot_all <- function(mcmc_samples = NULL, out_path, prefix = NULL, counts = NULL
         plot_reconstruction(counts = counts, signatures = signatures, exposures = exposures,
                             opportunities = opportunities, legend_pos = rec_legend_pos,
                             legend_cex = rec_legend_cex, sig_color_palette = sig_color_palette,
+                            boxes = boxes, generic = generic,
                             pdf_path = file.path(out_path, paste0(prefix, "Reconstructions_", Sys.Date(), ".pdf")))
     }
 
     # Case B: MCMC samples provided instead of matrices
     else {
         cat("Plotting original catalogues...\n")
-        plot_spectrum(mcmc_samples$data$counts_real, boxes = boxes,
+        plot_spectrum(mcmc_samples$data$counts_real, boxes = boxes, generic = generic,
                       pdf_path = file.path(out_path, paste0(prefix, "Catalogues_", Sys.Date(), ".pdf")))
 
         cat("Plotting mutational signatures...\n")
@@ -241,7 +246,7 @@ plot_all <- function(mcmc_samples = NULL, out_path, prefix = NULL, counts = NULL
         else {
             signatures <- mcmc_samples$data$signatures
         }
-        plot_spectrum(signatures, boxes = boxes,
+        plot_spectrum(signatures, boxes = boxes, generic = generic,
                       pdf_path = file.path(out_path, paste0(prefix, "Signatures_", Sys.Date(), ".pdf")))
 
         cat("Plotting signature exposures...\n")
@@ -254,7 +259,7 @@ plot_all <- function(mcmc_samples = NULL, out_path, prefix = NULL, counts = NULL
 
         plot_reconstruction(mcmc_samples = mcmc_samples,
                             legend_pos = rec_legend_pos, legend_cex = rec_legend_cex,
-                            sig_color_palette = sig_color_palette, boxes=boxes,
+                            sig_color_palette = sig_color_palette, boxes = boxes, generic = generic,
                             pdf_path = file.path(out_path, paste0(prefix, "Reconstructions_", Sys.Date(), ".pdf")))
     }
 }
@@ -302,6 +307,9 @@ plot_all <- function(mcmc_samples = NULL, out_path, prefix = NULL, counts = NULL
 #' number of signatures.
 #' @param boxes Logical indicating whether boxes should be drawn around the plots (default is
 #' \code{TRUE}).
+#' @param generic Logical indicating whether a "generic" spectrum should be plotted (default is
+#' \code{FALSE}). A generic spectrum is always plotted if the number of mutation types in
+#' \code{spectra} does not match any of the available spectrum types.
 #' @examples
 #' \dontrun{
 #' # Load example mutational catalogues
@@ -329,7 +337,8 @@ plot_all <- function(mcmc_samples = NULL, out_path, prefix = NULL, counts = NULL
 plot_reconstruction <- function(mcmc_samples = NULL, pdf_path = NULL, counts = NULL,
                                 signatures = NULL, exposures = NULL, opportunities = NULL, 
                                 pdf_width = 24, pdf_height = 15, legend_pos = "topleft", 
-                                legend_cex = 2, sig_color_palette = NULL, boxes = TRUE) {
+                                legend_cex = 2, sig_color_palette = NULL, boxes = TRUE,
+                                generic = FALSE) {
 
     if (!is.null(mcmc_samples)) {
         counts <- mcmc_samples$data$counts_real
@@ -437,7 +446,7 @@ plot_reconstruction <- function(mcmc_samples = NULL, pdf_path = NULL, counts = N
     par(mfrow = c(2, 1))
 
     # Generic spectrum (NCAT!={96,192})
-    if (!(ncol(counts) %in% c(96, 192))) {
+    if (!(ncol(counts) %in% c(96, 192)) | generic) {
         if (is.null(colnames(counts))) {
             types <- paste("Mut. type", 1:ncol(counts))
         }
@@ -455,7 +464,7 @@ plot_reconstruction <- function(mcmc_samples = NULL, pdf_path = NULL, counts = N
 
             # Plot original catalogue
             plot_spectrum(counts[i, ], name = rownames(counts)[i], max_y = max_y,
-                          generic = TRUE, boxes = boxes)
+                          boxes = boxes, generic = TRUE)
 
             # Plot catalogue reconstruction
             bars <- barplot(reconstructions[i, , ],
@@ -650,7 +659,7 @@ plot_reconstruction <- function(mcmc_samples = NULL, pdf_path = NULL, counts = N
 #' @param max_y Numeric indicating an optional upper limit for the vertical axis.
 #' @param colors Character vector of custom color names or hexadecimal codes to use for the spectrum
 #' bars. Must contain either a single value, or as many values as the number of mutation types in
-#' the spectrum.
+#' the spectrum. This argument is ignored when plotting transcriptional strand-wise spectra.
 #' @param boxes Logical indicating whether boxes should be drawn around the plots (default is
 #' \code{TRUE}).
 #' @param generic Logical indicating whether a "generic" spectrum should be plotted (default is
@@ -724,7 +733,7 @@ plot_spectrum <- function(spectra, pdf_path = NULL, pdf_width = 24, pdf_height =
         }
         # DBS spectrum (NCAT=78)
         if (NCAT == NTYPES["DBS"]) {
-            plot_spectrum_dbs(spec, lwr, upr, name, max_y, colors, boxes)  ## NOT IMPLEMENTED!!
+            plot_spectrum_dbs(spec, lwr, upr, name, max_y, colors, boxes)
         }
     }
     if (!is.null(pdf_path)) {
@@ -861,22 +870,16 @@ plot_spectrum_tsw <- function(spec, lwr, upr, name, max_y, colors, boxes) {
         legend("topright", bty = "n", inset = c(0.115, 0.03), pch=15, pt.cex=3.75,
                col=STRANDCOL, legend = c("", ""), cex = 2.1)
         # Plot spectrum bars
-        if (is.null(colors)) {
-            colors = STRANDCOL
-        }
-        else if ((length(colors) > 1) & (length(colors) != NCAT)) {
-            stop("'colors' must contain either a single value, or one value per mutation type.")
-        }
         bars <- barplot(rbind(spec[i, 1:(NCAT/2)],
                               spec[i, (NCAT/2+1):NCAT]),
                         names.arg = substr(mut_types(), 1, 3), beside = TRUE,
                         space = c(0.1, 0.8), mgp = c(3, 0.8, 0), las = 2,
-                        col = colors, border = "white", yaxt = "n",
+                        col = STRANDCOL, border = "white", yaxt = "n",
                         cex.names = 1.6, xaxs = "i", family = "mono", add = TRUE)
         # Highlight trinucleotide middle bases
         for (j in 1:length(COLORS)) {
             idx <- ((j-1) * 16 + 1):(j * 16)
-            axis(side = 1, at = bars[idx], tick = FALSE, cex.axis = 1.6,
+            axis(side = 1, at = colMeans(bars)[idx], tick = FALSE, cex.axis = 1.6,
                  mgp = c(3, 0.8, 0), las = 2, family = "mono", font = 2,
                  col.axis = COLORS[j], labels = paste0(" ", substr(mut_types()[idx], 2, 2), " "))
         }
