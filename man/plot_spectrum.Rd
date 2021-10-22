@@ -39,7 +39,7 @@ single spectrum.}
 
 \item{colors}{Character vector of custom color names or hexadecimal codes to use for the spectrum
 bars. Must contain either a single value, or as many values as the number of mutation types in
-the spectrum.}
+the spectrum. This argument is ignored when plotting transcriptional strand-wise spectra.}
 
 \item{boxes}{Logical indicating whether boxes should be drawn around the plots (default is
 \code{TRUE}).}

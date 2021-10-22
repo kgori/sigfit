@@ -22,7 +22,8 @@ plot_all(
   rec_legend_pos = "topleft",
   rec_legend_cex = 2,
   sig_color_palette = NULL,
-  boxes = TRUE
+  boxes = TRUE,
+  generic = FALSE
 )
 }
 \arguments{
@@ -94,6 +95,11 @@ number of signatures. This value is passed to \code{\link{plot_exposures}} and
 
 \item{boxes}{Logical indicating whether boxes should be drawn around spectrum, signature and
 reconstruction plots (default is \code{TRUE}). This value is passed to
+\code{\link{plot_spectrum}} and \code{\link{plot_reconstruction}}.}
+
+\item{generic}{Logical indicating whether a "generic" spectrum should be plotted (default is
+\code{FALSE}). A generic spectrum is always plotted if the number of mutation types in
+\code{spectra} does not match any of the available spectrum types. This value is passed to
 \code{\link{plot_spectrum}} and \code{\link{plot_reconstruction}}.}
 }
 \description{
