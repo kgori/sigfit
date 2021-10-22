@@ -698,10 +698,12 @@ plot_spectrum <- function(spectra, pdf_path = NULL, pdf_width = 24, pdf_height =
         lwr <- NULL
         upr <- NULL
     }
+    if (is.null(rownames(spec))) {
+        rownames(spec) <- paste("Sample", 1:nrow(spec))
+    }
 
     NTYPES <- c("SBS"=96, "TSW"=192, "ID"=83, "DBS"=78)  # number of categories per spectrum type
-    NCAT <- ncol(spec)   # number of categories
-    NSAMP <- nrow(spec)  # number of samples
+    NCAT <- ncol(spec)                                   # number of categories in spectrum
 
     # Initialise PDF
     if (!is.null(pdf_path)) {
@@ -750,8 +752,8 @@ plot_spectrum_sbs <- function(spec, lwr, upr, name, max_y, colors, boxes) {
     XL <- c(0.2, 19.4, 38.6, 57.8, 77, 96.2)
     XR <- c(19.2, 38.4, 57.6, 76.8, 96, 115.2)
     FACTOR <- 1.095
-    NCAT <- ncol(spec)
-    NSAMP <- nrow(spec)
+    NCAT <- ncol(spec)   # number of categories
+    NSAMP <- nrow(spec)  # number of samples
     for (i in 1:NSAMP) {
         if (is.null(max_y)) {
             samp_max_y <- max(0.05,
@@ -835,8 +837,8 @@ plot_spectrum_tsw <- function(spec, lwr, upr, name, max_y, colors, boxes) {
     XR <- c(19.2, 38.4, 57.6, 76.8, 96, 115.2)
     BACKLIM <- c(0, 46.8, 93.2, 139.55, 186, 232.35, 279.2)
     FACTOR <- 1.095
-    NCAT <- ncol(spec)
-    NSAMP <- nrow(spec)
+    NCAT <- ncol(spec)   # number of categories
+    NSAMP <- nrow(spec)  # number of samples
     for (i in 1:NSAMP) {
         if (is.null(max_y)) {
             samp_max_y <- max(0.05,
@@ -930,8 +932,8 @@ plot_spectrum_id <- function(spec, lwr, upr, name, max_y, colors, boxes) {
     XR <- c(7.2, 14.4, 21.6, 28.8, 36, 43.2, 50.4, 57.6, 64.8, 72, 79.2, 86.4, 87.6, 90, 93.6, 99.6)
     XM <- c(7.3, 21.7, 43.3, 72.1, 93.1)
     FACTOR <- 1.095
-    NCAT <- ncol(spec)
-    NSAMP <- nrow(spec)
+    NCAT <- ncol(spec)   # number of categories
+    NSAMP <- nrow(spec)  # number of samples
     colnames(spec) <- c(rep(c(paste0(1:5, "  "), "6+"), 2), rep(c(paste0(0:4, "  "), "5+"), 2),
                         rep(c(paste0(1:5, "  "), "6+"), 4), rep(c(paste0(0:4, "  "), "5+"), 4),
                         paste0(c(1, 1:2, 1:3, 1:4), "  "), "5+")
@@ -988,8 +990,8 @@ plot_spectrum_id <- function(spec, lwr, upr, name, max_y, colors, boxes) {
                    length = 0, lwd = 3, col = LINECOL)
         }
         # Plot mutation type labels
-        rect(xleft = XL, xright = XR, ybottom = 0.94 * max(spec[i, ]) * FACTOR,
-             ytop = max(spec[i, ]) * FACTOR, col = unique(COLORS), border = "white")
+        rect(xleft = XL, xright = XR, ybottom = 0.945 * samp_max_y,
+             ytop = samp_max_y, col = unique(COLORS), border = "white")
         mtext(TYPES, side = 3, at = XM, line = 2.4, cex = 2.2, xpd = TRUE)
         mtext(c(rep(c("C", "T"), 2), rep(c("2", "3", "4", "5+"), 3)),
               at = (XL + XR) / 2, side = 3, line = 0.35, cex = 2.1)
@@ -1016,8 +1018,8 @@ plot_spectrum_dbs <- function(spec, lwr, upr, name, max_y, colors, boxes) {
     XL <- c(0.2, 11, 18.2, 29, 36.2, 47, 54.2, 61.4, 72.2, 83)
     XR <- c(10.8, 18, 28.8, 36, 46.8, 54, 61.2, 72, 82.8, 93.6)
     FACTOR <- 1.095
-    NCAT <- ncol(spec)
-    NSAMP <- nrow(spec)
+    NCAT <- ncol(spec)   # number of categories
+    NSAMP <- nrow(spec)  # number of samples
     for (i in 1:NSAMP) {
         if (is.null(max_y)) {
             samp_max_y <- max(0.05,
@@ -1088,8 +1090,8 @@ plot_spectrum_generic <- function(spec, lwr, upr, name, max_y, colors, boxes) {
     COLOR <- "orangered3"
     LINECOL <- "gray60"
     FACTOR <- 1.05
-    NCAT <- ncol(spec)
-    NSAMP <- nrow(spec)
+    NCAT <- ncol(spec)   # number of categories
+    NSAMP <- nrow(spec)  # number of samples
     if (is.null(colnames(spec))) {
         types <- paste("Mut. type", 1:NCAT)
     }
