@@ -2,8 +2,8 @@ Encoding: UTF-8
 Package: sigfit
 Type: Package
 Title: Flexible Bayesian inference of mutational signatures
-Version: 2.1
-Date: 2021-05-30
+Version: 2.2
+Date: 2021-10-22
 Authors@R: c(person("Kevin", "Gori", email = "kcg25@cam.ac.uk", role = c("aut", "cre")),
              person("Adrian", "Baez-Ortega", email = "ab2324@cam.ac.uk", role = "aut"))
 Description: This package implements Bayesian models for fitting and
