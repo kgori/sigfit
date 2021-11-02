@@ -1,6 +1,6 @@
 ---
 title: "Fitting and extracting mutational signatures with sigfit"
-author: "Kevin Gori and Adrian Baez-Ortega (2019)"
+author: "Kevin Gori and Adrian Baez-Ortega (2021)"
 output: rmarkdown::html_vignette
 vignette: >
   %\VignetteIndexEntry{Fitting and extracting mutational signatures with sigfit}
@@ -234,7 +234,7 @@ Note that the `build_catalogues` function only admits mutational catalogues defi
 
 We can plot the __spectrum__ of each mutational catalogue using `plot_spectrum`, as in the previous example. For tables containing multiple catalogues, this function will produce __one plot per catalogue__, making the use of an output PDF file (`pdf_path` argument) more convenient. Here, however, we will plot all the catalogues on a grid.
 
-```{r plot_spectra, fig.width=22, fig.height=23, out.width='100%', fig.align="center", echo=-1}
+```{r plot_spectra, fig.width=23, fig.height=22, out.width='100%', fig.align="center", echo=-1}
 par(mar = c(5,6,7,2))
 par(mfrow = c(7, 3))
 plot_spectrum(counts_21breast)
@@ -345,16 +345,37 @@ For further details on these signature models, see the sigfit [paper](https://do
 
 ### Alternative mutation type definitions
 
-sigfit allows the analysis of mutational patterns beyond the typical trinucleotide-context SNV spectrum. As explained in _Example 2_ (see above), the inclusion of transcriptional strand information for each variant results in __transcriptional strand-wise__ representations of mutational catalogues and signatures. These also have their own graphical representation via strand-wise mutational spectra, as shown in the example below.
+sigfit allows the analysis of mutational patterns beyond the typical trinucleotide-context single-base substitution (SBS) spectrum. Additional supported mutation types include SBS with transcriptional strand information (strand-wise spectrum), small insertions and deletions (indel spectrum), doublet base substitutions (DBS spectrum) and arbitrary mutation types defined by the user (generic spectrum).
+
+As explained in _Example 2_ (see above), the inclusion of transcriptional strand information for each variant results in __transcriptional strand-wise__ representations of mutational catalogues and signatures. These also have their own graphical representation via strand-wise mutational spectra, as shown in the example below.
 
 ```{r strandwise, fig.width=22, fig.height=7, out.width="100%", echo=-1}
 par(mar = c(4.5,5.5,6.5,1))
 # Load and plot a strand-wise catalogue
 data("counts_88liver_strand")
-plot_spectrum(counts_88liver_strand[1, ], name = rownames(counts_88liver_strand)[1])
+plot_spectrum(counts_88liver_strand[1, ],
+              name = rownames(counts_88liver_strand)[1])
 ```
 
-Furthermore, mutational catalogues and signatures can be defined using any set of __arbitrary mutation categories__. In this case, a ‘generic’ mutational spectrum is produced by sigfit, as shown in the example below. The colours of the bars in the generic spectrum can be customised using the `colors` argument in `plot_spectrum`.
+sigfit can also process and plot mutational catalogues and signatures for __indels__ and __doublet base substitutions__, defined over the same sets of mutation categories as the COSMIC ID and DBS signatures (v3.2). However, note that the function `build_catalogues` is __not__ currently capable of producing mutational catalogues for these mutation types. Catalogues of indels and DBS can be produced using the [__SigProfilerMatrixGeneratorR__](https://github.com/AlexandrovLab/SigProfilerMatrixGeneratorR) package (for human, mouse, rat and dog genomes). Indel catalogues can also be produced via the `indel.spectrum` function in the [__Indelwald__](https://github.com/MaximilianStammnitz/Indelwald/blob/master/Scripts/3_Indelwald_spectrum.R) tool (for any reference genome).
+
+```{r indel, fig.width=22, fig.height=7, out.width="100%", echo=-1}
+par(mar = c(4.5,5.5,6.5,1))
+# Load and plot an indel signature
+data("cosmic_signatures_indel_v3.2")
+plot_spectrum(cosmic_signatures_indel_v3.2[4, ],
+              name = rownames(cosmic_signatures_indel_v3.2)[4])
+```
+
+```{r dbs, fig.width=22, fig.height=7, out.width="100%", echo=-1}
+par(mar = c(4.5,5.5,6.5,1))
+# Load and plot a doublet signature
+data("cosmic_signatures_doublet_v3.2")
+plot_spectrum(cosmic_signatures_doublet_v3.2[9, ],
+              name = rownames(cosmic_signatures_doublet_v3.2)[9])
+```
+
+Furthermore, mutational catalogues and signatures can be defined using any set of __arbitrary mutation categories__. In this case, a ‘generic’ mutational spectrum is produced by sigfit, as shown in the example below. The colours of the spectrum bars can be customised using the `colors` argument in `plot_spectrum`.
 
 ```{r generic, fig.width=22, fig.height=8, out.width="100%", echo=-1}
 par(mar = c(6.5,5.5,6.5,1)); set.seed(0xC0FFEE)
@@ -391,9 +412,9 @@ exome_signatures <- convert_signatures(genome_signatures,
                                        opportunities_to = "human-exome")
 
 par(mfrow = c(2, 1))
-plot_spectrum(genome_signatures$mean[4,],
+plot_spectrum(genome_signatures$mean[4, ],
               name = "Signature D, Genome-relative probabilities")
-plot_spectrum(exome_signatures[4,],
+plot_spectrum(exome_signatures[4, ],
               name = "Signature D, Exome-relative probabilities")
 ```
 
@@ -404,7 +425,7 @@ plot_spectrum(signatures$mean[4,], name="Signature D, Genome-relative probabilit
 plot_spectrum(exome_signatures[4,], name="Signature D, Exome-relative probabilities")
 ```
 
-Signatures can be similarly converted from exome-relative to genome-relative representations, or between any two given __matrices of opportunities__ (see previous section). In addition, if the `opportunities_to` argument is omitted, the signatures will only be __normalised__ by the original opportunities (given by `opportunities_from`), such that they will not be relative to any particular reference sequence. (Another way of obtaining sequence-independent signatures is to specify the mutational opportunities when running `extract_signatures`.)
+Signatures can be similarly converted from exome-relative to genome-relative representations, or between any two given __vectors of opportunities__ (with one element per mutation type). In addition, if the `opportunities_to` argument is omitted, the signatures will only be __normalised__ by the original opportunities (given by `opportunities_from`), such that they will not be relative to any particular reference sequence. (Another way of obtaining sequence-independent signatures is to specify the mutational opportunities when running `extract_signatures`.)
 
 Conversely, if the `opportunities_from` argument is omitted, the signatures will be interpreted as being already normalised, and the desired opportunities (given by `opportunities_to`) will be directly __imposed__ on the signatures. For further details on signature conversion, type `?convert_signatures` to read the documentation.
 
@@ -460,13 +481,20 @@ The DPP can be activated in the functions `extract_signatures` and `fit_extract_
 
 sigfit includes the following data sets, which can be loaded using the `data` function.
 
-* Three collections of __COSMIC mutational signatures__: original set of 30 signatures (v2, 2015) and updated sets of 67 signatures (v3, 2019) and 78 signatures (v3.2, 2021). The v3 signature set is also available in transcriptional strand-wise version (192 mutation types). These data can be loaded using:
+* Three collections of __COSMIC mutational signatures__ for __single base substitutions__: original set of 30 signatures (v2, 2015) and updated sets of 67 signatures (v3.0, 2019) and 78 signatures (v3.2, 2021). The v3.0 signature set is also available in transcriptional strand-wise version (192 mutation types). These data can be loaded using:
 
 ```{r}
-    data("cosmic_signatures_v2")
-    data("cosmic_signatures_v3")
-    data("cosmic_signatures_v3_strand")
     data("cosmic_signatures_v3.2")
+    data("cosmic_signatures_v3")
+    data("cosmic_signatures_strand_v3")
+    data("cosmic_signatures_v2")
+```
+
+* Collections of __COSMIC mutational signatures__ for __indels__ and __doublet base substitutions__: sets of 18 ID signatures and 11 DBS signatures (v3.2, 2021). These data can be loaded using:
+
+```{r}
+    data("cosmic_signatures_indel_v3.2")
+    data("cosmic_signatures_doublet_v3.2")
 ```
 
 * Mutation table and mutational catalogues (96 mutation types) for the set of __21 breast cancer genomes__ used in [Nik-Zainal _et al._ (2012)](http://dx.doi.org/10.1016/j.cell.2012.04.024). These data can be loaded using:

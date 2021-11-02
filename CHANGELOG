@@ -1,5 +1,14 @@
 CHANGE LOG
 
+2021/10/22
+Major changes in sigfit v2.2 ("Genomic Gymnastics")
+
+* New COSMIC v3.2 signatures for indels and doublet base substitutions (18/11 signatures).
+* Support for plotting mutational spectra of indels and doublet base substitutions.
+* Added argument `generic` to plotting functions, for forcing use of 'generic' spectra.
+* Extended package vignette.
+
+
 2021/05/25
 Major changes in sigfit v2.1 ("Focal Fragmentation")
 
@@ -8,7 +17,7 @@ Major changes in sigfit v2.1 ("Focal Fragmentation")
   opportunities were given as a vector instead of a matrix. The function now expects
   opportunities to be provided as a vector.
 * Exported functions `cosine_sim` and `l2_norm` (to calculate cosine similarity and
-  L2 distance between vectors) so they can be called directly by the user.
+  L2 distance between vectors) so that they can be called by the user.
 
 
 2019/11/08

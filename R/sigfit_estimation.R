@@ -119,6 +119,7 @@ fit_signatures <- function(counts, signatures, exp_prior = NULL, model = "multin
          "result" = out)
 }
 
+
 #' Extract mutational signatures
 #'
 #' \code{extract_signatures} performs MCMC sampling to infer a set of mutational signatures
@@ -327,6 +328,7 @@ extract_signatures <- function(counts, nsignatures, model = "multinomial", oppor
     out
 }
 
+
 #' Fit-and-extract mutational signatures
 #'
 #' \code{fit_extract_signatures} performs MCMC sampling to simultaneously fit a set of 'fixed'
@@ -506,6 +508,7 @@ fit_extract_signatures <- function(counts, signatures, num_extra_sigs,
          "result" = out)
 }
 
+
 #' Use optimization to generate initial parameter values for MCMC sampling
 #' @param counts Numeric matrix of observed mutation counts, with one row per sample and
 #' one column per mutation type.
@@ -539,6 +542,7 @@ extract_signatures_initialiser <- function(counts, nsignatures, model = "multino
         return (get_initializer_list(opt, chains))
     }
 }
+
 
 #' Query a signature extraction result for parameter values that can initialise a follow-up
 #' extraction.

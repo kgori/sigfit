@@ -70,7 +70,7 @@ counts_21breast <- build_catalogues(variants_21breast)
 dim(counts_21breast)
 counts_21breast[1:5, 1:8]
 
-## ----plot_spectra, fig.width=22, fig.height=23, out.width='100%', fig.align="center", echo=-1----
+## ----plot_spectra, fig.width=23, fig.height=22, out.width='100%', fig.align="center", echo=-1----
 par(mar = c(5,6,7,2))
 par(mfrow = c(7, 3))
 plot_spectrum(counts_21breast)
@@ -128,7 +128,22 @@ match_signatures(signatures, cosmic_signatures_v2)
 par(mar = c(4.5,5.5,6.5,1))
 # Load and plot a strand-wise catalogue
 data("counts_88liver_strand")
-plot_spectrum(counts_88liver_strand[1, ], name = rownames(counts_88liver_strand)[1])
+plot_spectrum(counts_88liver_strand[1, ],
+              name = rownames(counts_88liver_strand)[1])
+
+## ----indel, fig.width=22, fig.height=7, out.width="100%", echo=-1-------------
+par(mar = c(4.5,5.5,6.5,1))
+# Load and plot an indel signature
+data("cosmic_signatures_indel_v3.2")
+plot_spectrum(cosmic_signatures_indel_v3.2[4, ],
+              name = rownames(cosmic_signatures_indel_v3.2)[4])
+
+## ----dbs, fig.width=22, fig.height=7, out.width="100%", echo=-1---------------
+par(mar = c(4.5,5.5,6.5,1))
+# Load and plot a doublet signature
+data("cosmic_signatures_doublet_v3.2")
+plot_spectrum(cosmic_signatures_doublet_v3.2[9, ],
+              name = rownames(cosmic_signatures_doublet_v3.2)[9])
 
 ## ----generic, fig.width=22, fig.height=8, out.width="100%", echo=-1-----------
 par(mar = c(6.5,5.5,6.5,1)); set.seed(0xC0FFEE)
@@ -148,9 +163,9 @@ plot_spectrum(counts, name = "Arbitrary catalogue")
 #                                         opportunities_to = "human-exome")
 #  
 #  par(mfrow = c(2, 1))
-#  plot_spectrum(genome_signatures$mean[4,],
+#  plot_spectrum(genome_signatures$mean[4, ],
 #                name = "Signature D, Genome-relative probabilities")
-#  plot_spectrum(exome_signatures[4,],
+#  plot_spectrum(exome_signatures[4, ],
 #                name = "Signature D, Exome-relative probabilities")
 
 ## ----convert_sigs_silent, echo=F, fig.width=22, fig.height=14, out.width="100%"----
@@ -185,10 +200,14 @@ plot_spectrum(exome_signatures[4,], name="Signature D, Exome-relative probabilit
 #                                       init = inits)
 
 ## -----------------------------------------------------------------------------
-    data("cosmic_signatures_v2")
-    data("cosmic_signatures_v3")
-    data("cosmic_signatures_v3_strand")
     data("cosmic_signatures_v3.2")
+    data("cosmic_signatures_v3")
+    data("cosmic_signatures_strand_v3")
+    data("cosmic_signatures_v2")
+
+## -----------------------------------------------------------------------------
+    data("cosmic_signatures_indel_v3.2")
+    data("cosmic_signatures_doublet_v3.2")
 
 ## -----------------------------------------------------------------------------
     data("variants_21breast")

@@ -16,7 +16,8 @@ plot_reconstruction(
   legend_pos = "topleft",
   legend_cex = 2,
   sig_color_palette = NULL,
-  boxes = TRUE
+  boxes = TRUE,
+  generic = FALSE
 )
 }
 \arguments{
@@ -65,6 +66,10 @@ number of signatures.}
 
 \item{boxes}{Logical indicating whether boxes should be drawn around the plots (default is
 \code{TRUE}).}
+
+\item{generic}{Logical indicating whether a "generic" spectrum should be plotted (default is
+\code{FALSE}). A generic spectrum is always plotted if the number of mutation types in
+\code{spectra} does not match any of the available spectrum types.}
 }
 \description{
 \code{plot_reconstruction} plots reconstructions of the original mutational catalogues obtained

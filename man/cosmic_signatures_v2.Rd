@@ -14,7 +14,7 @@
 cosmic_signatures_v2
 }
 \description{
-A data set of 30 signatures from COSMIC v2 (March 2015).
+A data set of 30 SBS signatures from COSMIC v2 (March 2015).
 These signatures were extracted using the WTSI Mutational Signature Framework
 as described in Alexandrov et al., 2013.
 }

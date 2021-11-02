@@ -14,7 +14,7 @@
 cosmic_signatures_v3
 }
 \description{
-A data set of 67 signatures from COSMIC v3.0 (May 2019).
+A data set of 67 SBS signatures from COSMIC v3.0 (May 2019).
 These signatures were extracted using SigProfiler (as described in Alexandrov
 et al., 2020) from the 2,780 whole-genome variant calls produced by the
 ICGC/TCGA Pan Cancer Analysis of Whole Genomes (PCAWG) Network.
