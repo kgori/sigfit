@@ -10,7 +10,6 @@ r_build_args: '--no-build-vignettes'
 r_check_args: '--ignore-vignettes --no-examples'
 
 r_github_packages:
-  - jimhester/covr
   - stan-dev/rstantools
     
 
@@ -39,7 +38,3 @@ before_install:
   - echo "CXX17FLAGS = -O2 -m64 -g -Wno-ignored-attributes -Wno-deprecated-declarations" >> ~/.R/Makevars
   - echo "CXX17STD = -std=gnu++17" >> ~/.R/Makevars
   - echo "CXX17PICFLAGS = -fpic" >> ~/.R/Makevars
-
-  
-after_success:
-  - travis_wait 30 Rscript -e 'covr::codecov()'
