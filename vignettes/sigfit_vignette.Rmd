@@ -3,7 +3,7 @@ title: "Fitting and extracting mutational signatures with sigfit"
 author: "Kevin Gori and Adrian Baez-Ortega (2021)"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{Usage guide}
+  %\VignetteIndexEntry{Fitting and extracting mutational signatures with sigfit}
   %\VignetteEngine{knitr::rmarkdown}
   \usepackage[utf8]{inputenc}
 ---

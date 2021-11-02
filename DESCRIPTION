@@ -35,6 +35,6 @@ LinkingTo:
 Suggests:
     markdown
 SystemRequirements: GNU make
-RoxygenNote: 7.0.2
+RoxygenNote: 7.1.1
 NeedsCompilation: yes
 VignetteBuilder: knitr, rmarkdown
