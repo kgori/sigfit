@@ -1,7 +1,7 @@
 CHANGE LOG
 
 2021/10/22
-Major changes in sigfit v2.2 ("G... G...")
+Major changes in sigfit v2.2 ("Genomic Gymnastics")
 
 * New COSMIC v3.2 signatures for indels and doublet base substitutions (18/11 signatures).
 * Support for plotting mutational spectra of indels and doublet base substitutions.
