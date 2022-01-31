@@ -15,9 +15,6 @@ r_check_args: '--ignore-vignettes --no-examples'
 apt_packages:
   - build-essential
 
-r_github_packages:
-  - stan-dev/rstantools
-
 before_install:
   - mkdir -p ~/.R/
   - echo "CXX = g++" >> ~/.R/Makevars
