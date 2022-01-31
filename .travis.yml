@@ -13,7 +13,7 @@ r_build_args: '--no-build-vignettes'
 r_check_args: '--ignore-vignettes --no-examples'
 
 apt_packages:
-      - gcc-9
+  - build-essential
 
 r_github_packages:
   - stan-dev/rstantools
