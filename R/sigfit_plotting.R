@@ -770,7 +770,7 @@ plot_spectrum_sbs <- function(spec, lwr, upr, name, max_y, colors, boxes) {
         }
         # Plot spectrum bars
         if (is.null(colors)) {
-            colors = rep(COLORS, each = 16)
+            colors <- rep(COLORS, each = 16)
         }
         else if ((length(colors) > 1) & (length(colors) != NCAT)) {
             stop("'colors' must contain either a single value, or one value per mutation type.")
@@ -1036,7 +1036,7 @@ plot_spectrum_dbs <- function(spec, lwr, upr, name, max_y, colors, boxes) {
         }
         # Plot spectrum bars
         if (is.null(colors)) {
-            colors = COLORS
+            colors <- COLORS
         }
         else if ((length(colors) > 1) & (length(colors) != NCAT)) {
             stop("'colors' must contain either a single value, or one value per mutation type.")
@@ -1107,7 +1107,7 @@ plot_spectrum_generic <- function(spec, lwr, upr, name, max_y, colors, boxes) {
             samp_max_y <- max_y
         }
         if (is.null(colors)) {
-            colors = COLOR
+            colors <- COLOR
         }
         else if ((length(colors) > 1) & (length(colors) != NCAT)) {
             stop("'colors' must contain either a single value, or one value per mutation type.")
