@@ -33,8 +33,10 @@ LinkingTo:
     rstan (>= 2.18.1),
     StanHeaders (>= 2.18.0)
 Suggests:
-    markdown
+    testthat (>= 3.0.0),
+    markdown,
 SystemRequirements: GNU make
 RoxygenNote: 7.1.1
 NeedsCompilation: yes
 VignetteBuilder: knitr, rmarkdown
+Config/testthat/edition: 3
