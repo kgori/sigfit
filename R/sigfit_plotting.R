@@ -195,7 +195,8 @@ plot_all <- function(mcmc_samples = NULL, out_path, prefix = NULL, counts = NULL
                      exposures = NULL, opportunities = NULL, thresh = 0.01, hpd_prob = 0.95, 
                      signature_names = NULL, exp_margin_bottom = 10.5, exp_legend_pos = "topleft",
                      exp_legend_cex = 2, exp_cex_names = 1.9, rec_legend_pos = "topleft",
-                     rec_legend_cex = 2, sig_color_palette = NULL, boxes = TRUE, generic = FALSE) {
+                     rec_legend_cex = 2, sig_color_palette = NULL, boxes = TRUE, generic = FALSE,
+                     use_cairo = TRUE) {
 
     if (is.null(mcmc_samples) &
         (is.null(counts) | is.null(signatures) | is.null(exposures))) {
@@ -212,11 +213,13 @@ plot_all <- function(mcmc_samples = NULL, out_path, prefix = NULL, counts = NULL
     if (is.null(mcmc_samples)) {
         cat("Plotting original catalogues...\n")
         plot_spectrum(counts, boxes = boxes, generic = generic,
-                      pdf_path = file.path(out_path, paste0(prefix, "Catalogues_", Sys.Date(), ".pdf")))
+                      pdf_path = file.path(out_path, paste0(prefix, "Catalogues_", Sys.Date(), ".pdf")),
+                      use_cairo = use_cairo)
 
         cat("Plotting mutational signatures...\n")
         plot_spectrum(signatures, boxes = boxes, generic = generic,
-                      pdf_path = file.path(out_path, paste0(prefix, "Signatures_", Sys.Date(), ".pdf")))
+                      pdf_path = file.path(out_path, paste0(prefix, "Signatures_", Sys.Date(), ".pdf")),
+                      use_cairo = use_cairo)
 
         cat("Plotting signature exposures...\n")
         plot_exposures(counts = counts, exposures = exposures,
@@ -224,20 +227,23 @@ plot_all <- function(mcmc_samples = NULL, out_path, prefix = NULL, counts = NULL
                        sig_color_palette = sig_color_palette, cex_names = exp_cex_names,
                        margin_bottom = exp_margin_bottom, legend_pos = exp_legend_pos,
                        legend_cex = exp_legend_cex,
-                       pdf_path = file.path(out_path, paste0(prefix, "Exposures_", Sys.Date(), ".pdf")))
+                       pdf_path = file.path(out_path, paste0(prefix, "Exposures_", Sys.Date(), ".pdf")),
+                       use_cairo = use_cairo)
 
         plot_reconstruction(counts = counts, signatures = signatures, exposures = exposures,
                             opportunities = opportunities, legend_pos = rec_legend_pos,
                             legend_cex = rec_legend_cex, sig_color_palette = sig_color_palette,
                             boxes = boxes, generic = generic,
-                            pdf_path = file.path(out_path, paste0(prefix, "Reconstructions_", Sys.Date(), ".pdf")))
+                            pdf_path = file.path(out_path, paste0(prefix, "Reconstructions_", Sys.Date(), ".pdf")),
+                            use_cairo = use_cairo)
     }
 
     # Case B: MCMC samples provided instead of matrices
     else {
         cat("Plotting original catalogues...\n")
         plot_spectrum(mcmc_samples$data$counts_real, boxes = boxes, generic = generic,
-                      pdf_path = file.path(out_path, paste0(prefix, "Catalogues_", Sys.Date(), ".pdf")))
+                      pdf_path = file.path(out_path, paste0(prefix, "Catalogues_", Sys.Date(), ".pdf")),
+                      use_cairo = use_cairo)
 
         cat("Plotting mutational signatures...\n")
         if ("signatures" %in% mcmc_samples$result@model_pars) {
@@ -247,7 +253,8 @@ plot_all <- function(mcmc_samples = NULL, out_path, prefix = NULL, counts = NULL
             signatures <- mcmc_samples$data$signatures
         }
         plot_spectrum(signatures, boxes = boxes, generic = generic,
-                      pdf_path = file.path(out_path, paste0(prefix, "Signatures_", Sys.Date(), ".pdf")))
+                      pdf_path = file.path(out_path, paste0(prefix, "Signatures_", Sys.Date(), ".pdf")),
+                      use_cairo = use_cairo)
 
         cat("Plotting signature exposures...\n")
         plot_exposures(mcmc_samples = mcmc_samples,
@@ -255,12 +262,14 @@ plot_all <- function(mcmc_samples = NULL, out_path, prefix = NULL, counts = NULL
                        margin_bottom = exp_margin_bottom, legend_pos = exp_legend_pos,
                        sig_color_palette = sig_color_palette, cex_names = exp_cex_names,
                        legend_cex = exp_legend_cex,
-                       pdf_path = file.path(out_path, paste0(prefix, "Exposures_", Sys.Date(), ".pdf")))
+                       pdf_path = file.path(out_path, paste0(prefix, "Exposures_", Sys.Date(), ".pdf")),
+                       use_cairo = use_cairo)
 
         plot_reconstruction(mcmc_samples = mcmc_samples,
                             legend_pos = rec_legend_pos, legend_cex = rec_legend_cex,
                             sig_color_palette = sig_color_palette, boxes = boxes, generic = generic,
-                            pdf_path = file.path(out_path, paste0(prefix, "Reconstructions_", Sys.Date(), ".pdf")))
+                            pdf_path = file.path(out_path, paste0(prefix, "Reconstructions_", Sys.Date(), ".pdf")),
+                            use_cairo = use_cairo)
     }
 }
 
@@ -310,6 +319,8 @@ plot_all <- function(mcmc_samples = NULL, out_path, prefix = NULL, counts = NULL
 #' @param generic Logical indicating whether a "generic" spectrum should be plotted (default is
 #' \code{FALSE}). A generic spectrum is always plotted if the number of mutation types in
 #' \code{spectra} does not match any of the available spectrum types.
+#' @param use_cairo If set to TRUE, uses \code{cairo_pdf} to generate PDF files. If set to FALSE
+#' uses \code{pdf}.
 #' @examples
 #' \dontrun{
 #' # Load example mutational catalogues
@@ -338,7 +349,7 @@ plot_reconstruction <- function(mcmc_samples = NULL, pdf_path = NULL, counts = N
                                 signatures = NULL, exposures = NULL, opportunities = NULL, 
                                 pdf_width = 24, pdf_height = 15, legend_pos = "topleft", 
                                 legend_cex = 2, sig_color_palette = NULL, boxes = TRUE,
-                                generic = FALSE) {
+                                generic = FALSE, use_cairo = TRUE) {
 
     if (!is.null(mcmc_samples)) {
         counts <- mcmc_samples$data$counts_real
@@ -434,7 +445,8 @@ plot_reconstruction <- function(mcmc_samples = NULL, pdf_path = NULL, counts = N
 
     if (!is.null(pdf_path)) {
         stopifnot(is.character(pdf_path))
-        cairo_pdf(pdf_path, width = pdf_width, height = pdf_height, onefile = TRUE)
+        PDF <- if (use_cairo) { cairo_pdf } else { pdf }
+        PDF(pdf_path, width = pdf_width, height = pdf_height, onefile = TRUE)
         par(oma = c(1, 0, 1, 0))
         if (ncol(counts) %in% c(96, 192)) {
             par(mar = c(4.5, 7, 6.5, 2))
@@ -464,7 +476,8 @@ plot_reconstruction <- function(mcmc_samples = NULL, pdf_path = NULL, counts = N
 
             # Plot original catalogue
             plot_spectrum(counts[i, ], name = rownames(counts)[i], max_y = max_y,
-                          boxes = boxes, generic = TRUE)
+                          boxes = boxes, generic = TRUE,
+                          use_cairo = use_cairo)
 
             # Plot catalogue reconstruction
             bars <- barplot(reconstructions[i, , ],
@@ -510,7 +523,8 @@ plot_reconstruction <- function(mcmc_samples = NULL, pdf_path = NULL, counts = N
                 }
 
                 # Plot original catalogue
-                plot_spectrum(counts[i, ], name = rownames(counts)[i], max_y = max_y, boxes = boxes)
+                plot_spectrum(counts[i, ], name = rownames(counts)[i], max_y = max_y, boxes = boxes,
+                              use_cairo = use_cairo)
 
                 # Plot catalogue reconstruction
                 bars <- barplot(reconstructions[i, , ],
@@ -568,7 +582,8 @@ plot_reconstruction <- function(mcmc_samples = NULL, pdf_path = NULL, counts = N
                 }
 
                 # Plot original catalogue
-                plot_spectrum(counts[i, ], name = rownames(counts)[i], max_y = max_y, boxes = boxes)
+                plot_spectrum(counts[i, ], name = rownames(counts)[i], max_y = max_y, boxes = boxes,
+                              use_cairo = use_cairo)
                 
                 # Plot catalogue reconstruction
                 # Background panes and mutation type labels
@@ -665,6 +680,8 @@ plot_reconstruction <- function(mcmc_samples = NULL, pdf_path = NULL, counts = N
 #' @param generic Logical indicating whether a "generic" spectrum should be plotted (default is
 #' \code{FALSE}). A generic spectrum is always plotted if the number of mutation types in
 #' \code{spectra} does not match any of the available spectrum types.
+#' @param use_cairo If set to TRUE, uses \code{cairo_pdf} to generate PDF files. If set to FALSE
+#' uses \code{pdf}.
 #' @examples
 #' \dontrun{
 #' # Load example mutational catalogues
@@ -686,7 +703,7 @@ plot_reconstruction <- function(mcmc_samples = NULL, pdf_path = NULL, counts = N
 #' @importFrom "grDevices" cairo_pdf
 #' @export
 plot_spectrum <- function(spectra, pdf_path = NULL, pdf_width = 24, pdf_height = 8, name = NULL,
-                          max_y = NULL, colors = NULL, boxes = TRUE, generic = FALSE) {
+                          max_y = NULL, colors = NULL, boxes = TRUE, generic = FALSE, use_cairo = TRUE) {
     # Fetch HPD interval values, if present
     if (is.list(spectra) & "mean" %in% names(spectra)) {
         spec <- to_matrix(spectra$mean)
@@ -707,7 +724,8 @@ plot_spectrum <- function(spectra, pdf_path = NULL, pdf_width = 24, pdf_height =
 
     # Initialise PDF
     if (!is.null(pdf_path)) {
-        cairo_pdf(pdf_path, width = pdf_width, height = pdf_height, onefile = TRUE)
+        PDF <- if (use_cairo) { cairo_pdf } else { pdf }
+        PDF(pdf_path, width = pdf_width, height = pdf_height, onefile = TRUE)
         if (NCAT %in% NTYPES) {
             par(mar = c(5.5, 7, 7.5, 2))
         }
@@ -1187,6 +1205,8 @@ plot_spectrum_generic <- function(spec, lwr, upr, name, max_y, colors, boxes) {
 #' @param sig_color_palette Character vector of custom color names or hexadecimal codes to use for
 #' each signature in exposure and reconstruction plots. Must have at least as many elements as the
 #' number of signatures.
+#' @param use_cairo If set to TRUE, uses \code{cairo_pdf} to generate PDF files. If set to FALSE
+#' uses \code{pdf}.
 #' @importFrom "graphics" arrows axis barplot legend lines mtext par plot points rect text title
 #' @importFrom "grDevices" pdf dev.off rgb
 #' @examples
@@ -1213,7 +1233,8 @@ plot_spectrum_generic <- function(spec, lwr, upr, name, max_y, colors, boxes) {
 plot_exposures <- function(mcmc_samples = NULL, pdf_path = NULL, counts = NULL, exposures = NULL,
                            signature_names = NULL, thresh = 0.01, hpd_prob = 0.95, pdf_width = 24,
                            pdf_height = 10, margin_bottom = 10.5, legend_pos = "topleft",
-                           legend_cex = 2, cex_names = 1.9, sig_color_palette = NULL) {
+                           legend_cex = 2, cex_names = 1.9, sig_color_palette = NULL,
+                           use_cairo = TRUE) {
     if (is.null(mcmc_samples) & (is.null(counts) | is.null(exposures))) {
         stop("Either 'mcmc_samples', or both 'counts' and 'exposures', must be provided.")
     }
@@ -1236,6 +1257,7 @@ plot_exposures <- function(mcmc_samples = NULL, pdf_path = NULL, counts = NULL, 
             colnames(exposures[[i]]) <- signature_names
         }
     }
+    
     exposures <- to_matrix(exposures)
     stopifnot(nrow(counts) == nrow(exposures))
 
@@ -1265,7 +1287,8 @@ plot_exposures <- function(mcmc_samples = NULL, pdf_path = NULL, counts = NULL, 
         if (pdf_width == 24) {
             pdf_width <- max(pdf_width, NSAMP * 0.13)
         }
-        cairo_pdf(pdf_path, width = pdf_width, height = pdf_height, onefile = TRUE)
+        PDF <- if (use_cairo) { cairo_pdf } else { pdf }
+        PDF(pdf_path, width = pdf_width, height = pdf_height, onefile = TRUE)
         par(mar = c(margin_bottom, 7.5, 7.5, 0))
     }
 
