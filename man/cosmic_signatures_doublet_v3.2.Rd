@@ -4,14 +4,16 @@
 \name{cosmic_signatures_doublet_v3.2}
 \alias{cosmic_signatures_doublet_v3.2}
 \title{Doublet base substitution signatures from COSMIC v3.2}
-\format{An object of class \code{matrix} with 11 rows and 78 columns.}
+\format{
+An object of class \code{matrix} (inherits from \code{array}) with 11 rows and 78 columns.
+}
 \source{
 \url{https://cancer.sanger.ac.uk/cosmic/signatures/ID/}
 
 \url{https://cancer.sanger.ac.uk/signatures/downloads/}
 }
 \usage{
-cosmic_signatures_doublet_v3.2
+data(cosmic_signatures_doublet_v3.2)
 }
 \description{
 A data set of 11 DBS signatures from COSMIC v3.2 (March 2021).

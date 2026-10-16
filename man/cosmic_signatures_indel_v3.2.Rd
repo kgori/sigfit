@@ -4,14 +4,16 @@
 \name{cosmic_signatures_indel_v3.2}
 \alias{cosmic_signatures_indel_v3.2}
 \title{Small insertion/deletion signatures from COSMIC v3.2}
-\format{An object of class \code{matrix} with 18 rows and 83 columns.}
+\format{
+An object of class \code{matrix} (inherits from \code{array}) with 18 rows and 83 columns.
+}
 \source{
 \url{https://cancer.sanger.ac.uk/cosmic/signatures/ID/}
 
 \url{https://cancer.sanger.ac.uk/signatures/downloads/}
 }
 \usage{
-cosmic_signatures_indel_v3.2
+data(cosmic_signatures_indel_v3.2)
 }
 \description{
 A data set of 18 ID signatures from COSMIC v3.2 (March 2021).

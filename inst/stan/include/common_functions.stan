@@ -13,7 +13,7 @@ row_vector scale_row_to_sum_1(row_vector r) {
    * @param x An array of vectors
    * @return A matrix copy of x
    */
-matrix array_to_matrix(vector[] x) {
+matrix array_to_matrix(array[] vector x) {
     // Assume x doesn't have 0 rows or columns
     matrix[size(x), rows(x[1])] y;
     for (m in 1:size(x))

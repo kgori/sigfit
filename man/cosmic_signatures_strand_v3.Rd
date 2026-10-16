@@ -4,14 +4,16 @@
 \name{cosmic_signatures_strand_v3}
 \alias{cosmic_signatures_strand_v3}
 \title{Single base substitution signatures from COSMIC v3 with transcriptional strand bias}
-\format{An object of class \code{matrix} with 65 rows and 192 columns.}
+\format{
+An object of class \code{matrix} (inherits from \code{array}) with 65 rows and 192 columns.
+}
 \source{
 \url{https://cancer.sanger.ac.uk/cosmic/signatures/SBS/}
 
 \url{https://www.synapse.org/#!Synapse:syn11801889}
 }
 \usage{
-cosmic_signatures_strand_v3
+data(cosmic_signatures_strand_v3)
 }
 \description{
 A data set of 65 transcriptional strand-wise SBS signatures from COSMIC v3.0 (May 2019).

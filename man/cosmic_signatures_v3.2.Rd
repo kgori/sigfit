@@ -4,14 +4,16 @@
 \name{cosmic_signatures_v3.2}
 \alias{cosmic_signatures_v3.2}
 \title{Single base substitution signatures from COSMIC v3.2}
-\format{An object of class \code{matrix} with 78 rows and 96 columns.}
+\format{
+An object of class \code{matrix} (inherits from \code{array}) with 78 rows and 96 columns.
+}
 \source{
 \url{https://cancer.sanger.ac.uk/cosmic/signatures/SBS/}
 
 \url{https://cancer.sanger.ac.uk/signatures/downloads/}
 }
 \usage{
-cosmic_signatures_v3.2
+data(cosmic_signatures_v3.2)
 }
 \description{
 A data set of 78 SBS signatures from COSMIC v3.2 (March 2021).

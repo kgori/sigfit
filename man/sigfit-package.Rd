@@ -15,3 +15,13 @@ sampling is performed using Stan.
 \references{
 Gori K, Baez-Ortega A (2018). sigfit: flexible Bayesian inference of mutational signatures. bioRxiv, 372896. DOI: 10.1101/372896.
 }
+\author{
+\strong{Maintainer}: Kevin Gori \email{kcg25@cam.ac.uk}
+
+Authors:
+\itemize{
+  \item Kevin Gori \email{kcg25@cam.ac.uk}
+  \item Adrian Baez-Ortega \email{ab2324@cam.ac.uk}
+}
+
+}
